@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Math World 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --mario-red: #E60012;
+            /* CLASSIC NES MARIO SKY BLUE */
+            --sky-blue: #5c94fc; 
+            --cave-black: #000000;
+            --brick-brown: #b84e00;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--sky-blue);
+            transition: background-color 1s ease;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+            touch-action: manipulation;
+            color: white;
+            min-height: 100dvh; 
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overscroll-behavior: none;
+        }
+
+        /* HUD */
+        .hud {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+            padding: 10px 5px; text-transform: uppercase;
+            font-size: 0.65em; text-shadow: 2px 2px 0px black;
+            gap: 5px; margin-top: 30px;
+        }
+        .hud-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .streak-title { color: #ff9800; }
+
+        /* QUESTION AREA */
+        .question-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 60px; /* Space for ground */
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            text-shadow: 3px 3px 0 #000;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* Dynamic Image */
+        .quiz-image {
+            max-height: 150px;
+            max-width: 90%;
+            border: 4px solid white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.5);
+            background: white;
+            display: none; 
+        }
+
+        /* ANSWER BRICKS */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; /* 3 Columns */
+            gap: 10px;
+            width: 95%;
+            max-width: 500px;
+        }
+
+        .brick-btn {
+            background: repeating-linear-gradient(45deg, #b84e00, #b84e00 10px, #983e00 10px, #983e00 20px);
+            border: 4px solid black;
+            color: white;
+            padding: 15px 5px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8em;
+            cursor: pointer;
+            text-shadow: 2px 2px 0 black;
+            box-shadow: 0 6px 0 #5a2400;
+            border-radius: 5px;
+            transition: transform 0.1s;
+            white-space: normal;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brick-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #5a2400;
+        }
+
+        /* Feedback Popups */
+        #feedback {
+            font-size: 1.2em;
+            height: 20px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 black;
+        }
+        .correct { color: #5eff5e; } .wrong { color: #ff5e5e; }
+
+        /* MARIO & DECOR */
+        .ground {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 40px;
+            background-color: #b84e00; border-top: 4px solid #000;
+            background-image: linear-gradient(335deg, rgba(0,0,0,0.3) 23px, transparent 23px), linear-gradient(155deg, rgba(0,0,0,0.3) 23px, transparent 23px);
+            background-size: 58px 58px; z-index: 5;
+        }
+        .grass { position: fixed; bottom: 40px; left: 0; width: 100%; height: 10px; background-color: #00aa00; border-top: 4px solid black; z-index: 5; }
+
+        .hero-img {
+            position: fixed; bottom: 50px; left: 20px; height: 70px; z-index: 6; 
+            image-rendering: pixelated; 
+        }
+        
+        .hero-jump { animation: jump 0.6s ease-out; }
+        @keyframes jump { 0% { transform: translateY(0); } 50% { transform: translateY(-120px); } 100% { transform: translateY(0); } }
+
+        /* MUSIC BTN */
+        .music-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.5); color: white; border: 2px solid white;
+            padding: 5px 10px; font-size: 0.5em; cursor: pointer; z-index: 100;
+        }
+
+        /* LEVEL CLEAR OVERLAY */
+        #levelClearOverlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9); z-index: 999;
+            flex-direction: column; justify-content: center; align-items: center;
+            color: #ffde00; text-shadow: 4px 4px 0px #b84e00;
+        }
+        .clear-text { font-size: 2.5em; margin-bottom: 20px; text-align:center; }
+    </style>
+</head>
+<body>
+    <audio id="bgm" loop><source src="music.mp3" type="audio/mpeg"></audio>
+    
+    <div id="levelClearOverlay">
+        <div class="clear-text">COURSE<br>CLEAR!</div>
+        <div style="font-size: 1em; color: white;">NEXT WORLD UNLOCKED</div>
+    </div>
+
+    <button class="music-btn" onclick="toggleMusic()">🎵 MUSIC: OFF</button>
+
+    <div class="hud">
+        <div class="hud-item"><span>MARIO</span><span id="scoreDisplay">0000</span></div>
+        <div class="hud-item"><span>🪙COINS</span><span>x<span id="coinDisplay">00</span></span></div>
+        <div class="hud-item"><span class="streak-title">🔥STREAK</span><span id="streakDisplay">0</span></div>
+        <div class="hud-item"><span>WORLD</span><span id="levelDisplay">1-1</span></div>
+    </div>
+
+    <div class="question-container">
+        <div id="qText" class="question-text">Loading...</div>
+        <img id="qImage" class="quiz-image" src="" alt="Quiz Image">
+        <div id="feedback"></div>
+        <div id="answers" class="answers-grid"></div>
+    </div>
+
+    <img src="mario.png" id="mario" class="hero-img" alt="Mario" onerror="this.style.display='none'">
+    <div class="grass"></div>
+    <div class="ground"></div>
+
+    <script>
+        // --- CONFIGURATION ---
+        
+        // 1. PASTE YOUR SHEET CSV LINK INSIDE THE QUOTES BELOW:
+        const rawSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
+        
+        // 2. PROXY CONFIG (We use this to bypass the Error Loading issue)
+        // If rawSheetURL is still the placeholder, we don't try to load.
+        const sheetURL = "https://corsproxy.io/?" + encodeURIComponent(rawSheetURL);
+
+
+        // --- SOUNDS ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playCoinSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square'; osc.frequency.setValueAtTime(987, audioCtx.currentTime); osc.frequency.setValueAtTime(1318, audioCtx.currentTime+0.08);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.6);
+            osc.start(); osc.stop(audioCtx.currentTime+0.6);
+        }
+        function playBonkSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime+0.3);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
+            osc.start(); osc.stop(audioCtx.currentTime+0.3);
+        }
+
+        // --- APP LOGIC ---
+        const gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0 };
+        let questions = [];
+        let currentQ = {};
+
+        function initApp() {
+            const saved = JSON.parse(localStorage.getItem('marioMathState'));
+            if(saved) Object.assign(gameState, saved);
+            checkStreak(); updateUI(); updateWorldTheme();
+
+            if(rawSheetURL.includes("PASTE_YOUR")) {
+                document.getElementById('qText').innerText = "Please update the Sheet URL in the code!";
+                return;
+            }
+
+            // Using the Proxy URL to fetch
+            Papa.parse(sheetURL, {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(results) {
+                    questions = results.data.filter(r => r.Question && r.Answer);
+                    if(questions.length > 0) loadNextQuestion();
+                    else document.getElementById('qText').innerText = "Sheet Empty?";
+                },
+                error: (err) => { 
+                    console.error(err);
+                    document.getElementById('qText').innerText = "Error Loading. Check Sheet Permissions."; 
+                }
+            });
+        }
+
+        function loadNextQuestion() {
+            document.getElementById('feedback').innerText = "";
+            const qIndex = Math.floor(Math.random() * questions.length);
+            currentQ = questions[qIndex];
+
+            // 1. Set Question Text
+            document.getElementById('qText').innerHTML = currentQ.Question;
+
+            // 2. Set Image (if exists)
+            const imgEl = document.getElementById('qImage');
+            if(currentQ.Image && currentQ.Image.startsWith('http')) {
+                imgEl.src = currentQ.Image;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            // 3. Create Buttons
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = ""; 
+
+            // Grab options
+            const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3];
+            // Shuffle
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                if(!opt) return; 
+                const btn = document.createElement('button');
+                btn.className = 'brick-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt);
+                answersDiv.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedText) {
+            const feedback = document.getElementById('feedback');
+            const mario = document.getElementById('mario');
+
+            if(selectedText.trim() === currentQ.Answer.trim()) {
+                // CORRECT
+                playCoinSound();
+                feedback.innerHTML = "CORRECT!"; feedback.className = "correct";
+                mario.classList.remove('hero-jump'); void mario.offsetWidth; mario.classList.add('hero-jump');
+                
+                gameState.score += 200; 
+                gameState.coins += 10;
+                
+                if(gameState.coins >= 100) {
+                    gameState.coins = 0; gameState.stage++;
+                    if(gameState.stage > 3) { gameState.world++; gameState.stage = 1; doLevelClear(); }
+                    else { new Audio('clear.mp3').play().catch(()=>{}); }
+                }
+                
+                saveGame();
+                setTimeout(loadNextQuestion, 1500);
+            } else {
+                // WRONG
+                playBonkSound();
+                feedback.innerHTML = "TRY AGAIN"; feedback.className = "wrong";
+            }
+        }
+
+        function doLevelClear() {
+            const overlay = document.getElementById('levelClearOverlay');
+            overlay.style.display = 'flex';
+            confetti({ particleCount: 200, spread: 90 });
+            const sfx = new Audio('clear.mp3'); sfx.play().catch(()=>{});
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                updateWorldTheme();
+            }, 5000);
+        }
+
+        function toggleMusic() {
+            const bgm = document.getElementById('bgm');
+            const btn = document.querySelector('.music-btn');
+            if(bgm.paused) { bgm.play().catch(()=>{}); btn.innerText="MUSIC: ON"; }
+            else { bgm.pause(); btn.innerText="MUSIC: OFF"; }
+        }
+
+        function updateWorldTheme() {
+            if (gameState.world === 1) document.body.style.backgroundColor = "var(--sky-blue)";
+            else if (gameState.world === 2) document.body.style.backgroundColor = "var(--cave-black)";
+            else if (gameState.world >= 3) document.body.style.backgroundColor = "var(--brick-brown)";
+        }
+
+        function checkStreak() {
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            if (gameState.lastLogin === yesterday) { gameState.streak++; gameState.lastLogin = today; saveGame(); } 
+            else if (gameState.lastLogin !== today) { gameState.streak = 1; gameState.lastLogin = today; saveGame(); }
+        }
+        function saveGame() { localStorage.setItem('marioMathState', JSON.stringify(gameState)); updateUI(); }
+        function updateUI() {
+            document.getElementById('coinDisplay').innerText = gameState.coins.toString().padStart(2, '0');
+            document.getElementById('scoreDisplay').innerText = gameState.score.toString().padStart(6, '0');
+            document.getElementById('streakDisplay').innerText = gameState.streak.toString();
+            document.getElementById('levelDisplay').innerText = gameState.world + "-" + gameState.stage;
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

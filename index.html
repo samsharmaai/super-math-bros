@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Math World 3</title>
+    <title>Super Math World - Deluxe</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -13,11 +13,10 @@
             --mario-red: #E60012;
             --sky-blue: #5c94fc;
             --cave-black: #000000;
-            --brick-brown: #b84e00;
+            --boss-dark: #2b0000;
         }
 
         body {
-            /* HUD stays pixelated */
             font-family: 'Press Start 2P', cursive;
             background-color: var(--sky-blue);
             transition: background-color 1s ease;
@@ -33,6 +32,26 @@
             overscroll-behavior: none;
         }
 
+        /* --- ANIMATIONS --- */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        
+        .damage-effect {
+            animation: shake 0.5s;
+            background-color: #ff5e5e !important; /* Flash Red */
+        }
+
         /* HUD */
         .hud {
             display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -42,14 +61,6 @@
         }
         .hud-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .streak-title { color: #ff9800; }
-        
-        /* FIRE EFFECT FOR STREAK */
-        .on-fire {
-            color: #ffde00;
-            text-shadow: 0 0 5px red, 0 0 10px orange;
-            animation: burn 0.5s infinite alternate;
-        }
-        @keyframes burn { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 15px red; } }
 
         /* QUESTION AREA */
         .question-container {
@@ -58,81 +69,77 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin-bottom: 60px;
+            margin-bottom: 80px; /* Space for chars */
+            position: relative;
+            z-index: 10;
         }
 
         .question-text {
-            /* CHANGED TO CLEAN FONT FOR READABILITY */
-            font-family: 'Verdana', 'Arial', sans-serif; 
-            font-weight: bold;
-            font-size: 1.6em; /* Bigger */
-            letter-spacing: 0.5px;
-            
+            font-family: 'Verdana', sans-serif; font-weight: bold; font-size: 1.5em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            line-height: 1.4;
-            margin-bottom: 20px;
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 15px;
-            border: 2px solid rgba(255,255,255,0.3);
+            margin-bottom: 20px; background: rgba(0,0,0,0.2);
+            padding: 15px; border-radius: 15px; border: 2px solid rgba(255,255,255,0.3);
             width: 90%;
         }
 
         .quiz-image {
-            max-height: 150px;
-            max-width: 90%;
-            border: 4px solid white;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 5px 5px 0px rgba(0,0,0,0.5);
-            background: white;
-            display: none; 
+            max-height: 120px; max-width: 90%;
+            border: 4px solid white; border-radius: 10px; margin-bottom: 20px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.5); background: white; display: none; 
         }
 
         .answers-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            width: 95%;
-            max-width: 500px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+            width: 95%; max-width: 500px;
         }
 
         .brick-btn {
             background: repeating-linear-gradient(45deg, #b84e00, #b84e00 10px, #983e00 10px, #983e00 20px);
-            border: 4px solid black;
-            color: white;
-            padding: 15px 5px;
-            
-            /* Clean Font for Answers too */
-            font-family: 'Verdana', sans-serif; 
-            font-weight: bold;
-            font-size: 1.2em;
-            
-            cursor: pointer;
-            text-shadow: 2px 2px 0 black;
-            box-shadow: 0 6px 0 #5a2400;
-            border-radius: 5px;
-            white-space: normal;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 4px solid black; color: white; padding: 10px 5px;
+            font-family: 'Verdana', sans-serif; font-weight: bold; font-size: 1.1em;
+            cursor: pointer; text-shadow: 2px 2px 0 black; box-shadow: 0 6px 0 #5a2400;
+            border-radius: 5px; min-height: 60px; display: flex; align-items: center; justify-content: center;
         }
         .brick-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #5a2400; }
 
-        /* Feedback Popups */
         #feedback { font-family: 'Press Start 2P', cursive; font-size: 1.2em; height: 20px; margin-bottom: 10px; text-shadow: 2px 2px 0 black; }
         .correct { color: #5eff5e; } .wrong { color: #ff5e5e; }
 
-        /* DECOR */
+        /* HEROES & BOSSES */
         .ground { position: fixed; bottom: 0; left: 0; width: 100%; height: 40px; background-color: #b84e00; border-top: 4px solid #000; z-index: 5; }
         .grass { position: fixed; bottom: 40px; left: 0; width: 100%; height: 10px; background-color: #00aa00; border-top: 4px solid black; z-index: 5; }
-        .hero-img { position: fixed; bottom: 50px; left: 20px; height: 70px; z-index: 6; image-rendering: pixelated; }
+
+        .hero-img {
+            position: fixed; bottom: 50px; left: 20px; height: 70px; z-index: 6; 
+            image-rendering: pixelated; transition: 0.3s;
+        }
         .hero-jump { animation: jump 0.6s ease-out; }
         @keyframes jump { 0% { transform: translateY(0); } 50% { transform: translateY(-120px); } 100% { transform: translateY(0); } }
 
-        .music-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: 2px solid white; padding: 5px 10px; font-size: 0.5em; cursor: pointer; z-index: 100; font-family: 'Press Start 2P', cursive; }
+        .boss-img {
+            position: fixed; bottom: 50px; right: 20px; height: 120px; z-index: 5;
+            image-rendering: pixelated; display: none; /* Hidden unless boss level */
+            animation: floatBoss 3s infinite ease-in-out;
+        }
+        @keyframes floatBoss { 0% { transform: translateY(0); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
 
+        /* CHARACTER SELECTOR BAR */
+        .char-select-bar {
+            position: fixed; bottom: 5px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 15px; z-index: 100;
+            background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px;
+            border: 2px solid white;
+        }
+        .char-icon {
+            width: 30px; height: 30px; border-radius: 5px; border: 2px solid transparent; opacity: 0.5; cursor: pointer;
+            image-rendering: pixelated; background: #fff;
+        }
+        .char-icon.unlocked { opacity: 1; border-color: #fff; }
+        .char-icon.selected { border-color: #ffde00; box-shadow: 0 0 10px #ffde00; transform: scale(1.2); }
+        .lock-label { font-size: 0.4em; position: absolute; bottom: -15px; width: 100%; text-align: center; }
+
+        .music-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: 2px solid white; padding: 5px 10px; font-size: 0.5em; cursor: pointer; z-index: 100; font-family: 'Press Start 2P', cursive; }
+        
         #levelClearOverlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.9); z-index: 999;
@@ -153,7 +160,7 @@
     <button class="music-btn" onclick="toggleMusic()">🎵 MUSIC: OFF</button>
 
     <div class="hud">
-        <div class="hud-item"><span>MARIO</span><span id="scoreDisplay">0000</span></div>
+        <div class="hud-item"><span>PLAYER</span><span id="scoreDisplay">0000</span></div>
         <div class="hud-item"><span>🪙COINS</span><span>x<span id="coinDisplay">00</span></span></div>
         <div class="hud-item"><span class="streak-title">🔥STREAK</span><span id="streakDisplay">0</span></div>
         <div class="hud-item"><span>WORLD</span><span id="levelDisplay">1-1</span></div>
@@ -166,7 +173,24 @@
         <div id="answers" class="answers-grid"></div>
     </div>
 
-    <img src="mario.png" id="mario" class="hero-img" alt="Mario" onerror="this.style.display='none'">
+    <img src="mario.png" id="hero" class="hero-img" alt="Hero">
+    
+    <img src="bowser.png" id="boss" class="boss-img" alt="Bowser">
+
+    <div class="char-select-bar">
+        <div style="position:relative">
+            <img src="mario.png" class="char-icon unlocked selected" id="char-mario" onclick="selectChar('mario')">
+        </div>
+        <div style="position:relative">
+            <img src="luigi.png" class="char-icon" id="char-luigi" onclick="selectChar('luigi')">
+            <div class="lock-label" id="label-luigi">1000pts</div>
+        </div>
+        <div style="position:relative">
+            <img src="peach.png" class="char-icon" id="char-peach" onclick="selectChar('peach')">
+            <div class="lock-label" id="label-peach">3000pts</div>
+        </div>
+    </div>
+
     <div class="grass"></div>
     <div class="ground"></div>
 
@@ -176,7 +200,8 @@
         const sheetURL = "https://corsproxy.io/?" + encodeURIComponent(rawSheetURL);
 
         // --- SOUNDS ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
         function playTone(freq, type, duration) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -189,61 +214,64 @@
         function playBonkSound() { playTone(150, 'sawtooth', 0.3); }
 
         // --- APP LOGIC ---
-        const gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0 };
+        const gameState = { 
+            streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, 
+            questionsAnsweredLevel: 0, 
+            character: 'mario',
+            unlocked: ['mario'] // List of unlocked chars
+        };
+        
         let allQuestions = [];
-        let recentQuestions = []; // To prevent repetition
+        let recentQuestions = [];
         let currentQ = {};
+
+        // Fallback Questions if Sheet Fails
+        const manualQuestions = [
+            { Question: "What is 15 + 5?", Option1: "20", Option2: "25", Option3: "30", Answer: "20", Category: "Math" },
+            { Question: "Who is Mario's brother?", Option1: "Luigi", Option2: "Wario", Option3: "Bowser", Answer: "Luigi", Category: "Fun" }
+        ];
 
         function initApp() {
             const saved = JSON.parse(localStorage.getItem('marioMathState'));
-            if(saved) Object.assign(gameState, saved);
-            checkStreak(); updateUI(); updateWorldTheme();
-
-            if(rawSheetURL.includes("PASTE_YOUR")) {
-                document.getElementById('qText').innerText = "Please update the Sheet URL!";
-                return;
+            if(saved) {
+                // Merge saved data, but ensure new fields exist
+                Object.assign(gameState, saved);
+                if(!gameState.unlocked) gameState.unlocked = ['mario'];
+                if(!gameState.character) gameState.character = 'mario';
             }
+            
+            updateUI(); 
+            updateWorldTheme();
+            updateCharSelect();
+            setHeroImage(gameState.character);
 
             Papa.parse(sheetURL, {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
                     allQuestions = results.data.filter(r => r.Question && r.Answer);
                     if(allQuestions.length > 0) loadNextQuestion();
-                    else document.getElementById('qText').innerText = "Sheet Empty?";
+                    else { allQuestions = manualQuestions; loadNextQuestion(); }
                 },
-                error: (err) => { document.getElementById('qText').innerText = "Error Loading. Check Sheet Permissions."; }
+                error: (err) => { allQuestions = manualQuestions; loadNextQuestion(); }
             });
         }
 
         function loadNextQuestion() {
             document.getElementById('feedback').innerText = "";
             
-            // LOGIC: FUN MIX
-            // If we have answered 4 or 9 questions in this level, FORCE a Fun question
+            // Fun Mix Logic
             const isFunTurn = (gameState.questionsAnsweredLevel === 4 || gameState.questionsAnsweredLevel === 9);
-            
-            let pool = [];
-            if(isFunTurn) {
-                // Try to find questions marked 'Fun' in the Category column
-                pool = allQuestions.filter(q => q.Category === 'Fun');
-                if(pool.length === 0) pool = allQuestions; // Fallback
-            } else {
-                // Otherwise find Math questions
-                pool = allQuestions.filter(q => !q.Category || q.Category === 'Math');
-            }
+            let pool = isFunTurn ? allQuestions.filter(q => q.Category === 'Fun') : allQuestions.filter(q => !q.Category || q.Category === 'Math');
+            if(pool.length === 0) pool = allQuestions;
 
-            // ANTI-REPETITION: Filter out recent questions
             let available = pool.filter(q => !recentQuestions.includes(q.Question));
-            if(available.length === 0) available = pool; // Reset if we ran out
+            if(available.length === 0) available = pool;
 
-            const qIndex = Math.floor(Math.random() * available.length);
-            currentQ = available[qIndex];
-
-            // Add to recent list (keep last 5)
+            currentQ = available[Math.floor(Math.random() * available.length)];
             recentQuestions.push(currentQ.Question);
             if(recentQuestions.length > 5) recentQuestions.shift();
 
-            // RENDER UI
+            // Render
             document.getElementById('qText').innerHTML = currentQ.Question;
             const imgEl = document.getElementById('qImage');
             if(currentQ.Image && currentQ.Image.startsWith('http')) {
@@ -266,24 +294,24 @@
 
         function handleAnswer(selectedText) {
             const feedback = document.getElementById('feedback');
-            const mario = document.getElementById('mario');
+            const hero = document.getElementById('hero');
 
             if(selectedText.trim() === currentQ.Answer.trim()) {
                 // CORRECT
                 playCoinSound();
                 feedback.innerHTML = "CORRECT!"; feedback.className = "correct";
-                mario.classList.remove('hero-jump'); void mario.offsetWidth; mario.classList.add('hero-jump');
+                hero.classList.remove('hero-jump'); void hero.offsetWidth; hero.classList.add('hero-jump');
                 
                 gameState.score += 200; 
                 gameState.coins += 10;
-                gameState.questionsAnsweredLevel++; // Track progress in current level
+                gameState.questionsAnsweredLevel++; 
                 
-                // STREAK FIRE
-                if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
+                // UNLOCK CHECK
+                checkUnlocks();
 
-                // LEVEL UP (Every 10 questions)
+                // LEVEL UP LOGIC
                 if(gameState.questionsAnsweredLevel >= 10) {
-                    gameState.questionsAnsweredLevel = 0; // Reset counter
+                    gameState.questionsAnsweredLevel = 0; 
                     gameState.stage++;
                     
                     if(gameState.stage > 3) { 
@@ -291,21 +319,88 @@
                         gameState.stage = 1; 
                         doLevelClear(); 
                     } else { 
-                        // Mini celebration for stage clear
                         confetti({ particleCount: 50, spread: 50, origin: { y: 0.8 } });
                         new Audio('clear.mp3').play().catch(()=>{}); 
                     }
+                    updateWorldTheme();
                 }
                 
                 saveGame();
                 setTimeout(loadNextQuestion, 1500);
             } else {
-                // WRONG - RESET STREAK
+                // WRONG - DAMAGE ANIMATION
                 playBonkSound();
+                document.body.classList.add('damage-effect');
+                setTimeout(() => document.body.classList.remove('damage-effect'), 500);
+                
                 feedback.innerHTML = "TRY AGAIN"; feedback.className = "wrong";
-                gameState.streak = 0; // Punish streak
-                document.getElementById('streakDisplay').classList.remove('on-fire');
+                gameState.streak = 0; 
                 saveGame();
+            }
+        }
+
+        function checkUnlocks() {
+            // Unlock Luigi at 1000
+            if(gameState.score >= 1000 && !gameState.unlocked.includes('luigi')) {
+                gameState.unlocked.push('luigi');
+                alert("🎉 NEW CHARACTER UNLOCKED: LUIGI!");
+                updateCharSelect();
+            }
+            // Unlock Peach at 3000
+            if(gameState.score >= 3000 && !gameState.unlocked.includes('peach')) {
+                gameState.unlocked.push('peach');
+                alert("🎉 NEW CHARACTER UNLOCKED: PEACH!");
+                updateCharSelect();
+            }
+        }
+
+        function selectChar(charName) {
+            if(gameState.unlocked.includes(charName)) {
+                gameState.character = charName;
+                setHeroImage(charName);
+                updateCharSelect();
+                saveGame();
+            } else {
+                alert("Keep playing to unlock this character!");
+            }
+        }
+
+        function setHeroImage(name) {
+            document.getElementById('hero').src = name + ".png";
+        }
+
+        function updateCharSelect() {
+            ['mario', 'luigi', 'peach'].forEach(char => {
+                const icon = document.getElementById('char-' + char);
+                const label = document.getElementById('label-' + char);
+                
+                // Reset classes
+                icon.classList.remove('selected', 'unlocked');
+                
+                if(gameState.unlocked.includes(char)) {
+                    icon.classList.add('unlocked');
+                    if(label) label.style.display = 'none'; // Hide points required
+                }
+                if(gameState.character === char) {
+                    icon.classList.add('selected');
+                }
+            });
+        }
+
+        function updateWorldTheme() {
+            const body = document.body;
+            const bossImg = document.getElementById('boss');
+            
+            // Check if it's a Boss Level (Stage 3 of any world)
+            if (gameState.stage === 3) {
+                body.style.backgroundColor = "var(--boss-dark)";
+                bossImg.style.display = "block"; // SHOW BOWSER
+            } else {
+                bossImg.style.display = "none"; // HIDE BOWSER
+                // Normal World Themes
+                if (gameState.world === 1) body.style.backgroundColor = "var(--sky-blue)";
+                else if (gameState.world === 2) body.style.backgroundColor = "var(--cave-black)";
+                else body.style.backgroundColor = "#b84e00";
             }
         }
 
@@ -327,19 +422,11 @@
             else { bgm.pause(); btn.innerText="MUSIC: OFF"; }
         }
 
-        function updateWorldTheme() {
-            if (gameState.world === 1) document.body.style.backgroundColor = "var(--sky-blue)";
-            else if (gameState.world === 2) document.body.style.backgroundColor = "var(--cave-black)";
-            else if (gameState.world >= 3) document.body.style.backgroundColor = "var(--brick-brown)";
-        }
-
         function checkStreak() {
             const today = new Date().toDateString();
             const yesterday = new Date(Date.now() - 86400000).toDateString();
             if (gameState.lastLogin === yesterday) { gameState.streak++; gameState.lastLogin = today; saveGame(); } 
             else if (gameState.lastLogin !== today) { gameState.streak = 1; gameState.lastLogin = today; saveGame(); }
-            
-            if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
         }
         function saveGame() { localStorage.setItem('marioMathState', JSON.stringify(gameState)); updateUI(); }
         function updateUI() {

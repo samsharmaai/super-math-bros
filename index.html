@@ -72,12 +72,13 @@
             border-radius: 15px;
             border: 2px solid rgba(255,255,255,0.3);
             width: 90%;
+            min-height: 60px;
         }
 
-        /* --- NEW LOADING BAR STYLES --- */
+        /* LOADING BAR */
         #loading-container {
             width: 80%;
-            display: none; /* Hidden by default */
+            display: none; 
             flex-direction: column;
             align-items: center;
             margin-top: 10px;
@@ -94,23 +95,13 @@
         .progress-fill {
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(
-                45deg,
-                #ffde00,
-                #ffde00 10px,
-                #ff9d00 10px,
-                #ff9d00 20px
-            );
-            /* Animation to show activity */
+            background: repeating-linear-gradient(45deg, #ffde00, #ffde00 10px, #ff9d00 10px, #ff9d00 20px);
             animation: barberpole 1s linear infinite;
             width: 100%;
         }
-        @keyframes barberpole {
-            from { background-position: 0 0; }
-            to { background-position: 40px 0; }
-        }
+        @keyframes barberpole { from { background-position: 0 0; } to { background-position: 40px 0; } }
 
-        /* Dynamic Image */
+        /* IMAGE & ANSWERS */
         .quiz-image {
             max-height: 150px;
             max-width: 90%;
@@ -193,9 +184,7 @@
         
         <div id="loading-container">
             <div style="font-size: 0.6em; margin-bottom:5px;">DOWNLOADING CURRICULUM...</div>
-            <div class="progress-shell">
-                <div class="progress-fill"></div>
-            </div>
+            <div class="progress-shell"><div class="progress-fill"></div></div>
         </div>
 
         <img id="qImage" class="quiz-image" src="" alt="Quiz Image">
@@ -209,22 +198,37 @@
 
     <script>
         // --- CONFIGURATION ---
+        // REPLACE THIS WITH YOUR LINK
         const rawSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
+        // We use a proxy to bypass security blocks on large sheets
         const sheetURL = "https://corsproxy.io/?" + encodeURIComponent(rawSheetURL);
+
+        // --- BACKUP QUESTIONS (In case Sheet fails) ---
+        const backupQuestions = [
+            {Question: "What is 10 + 10?", Option1: "20", Option2: "30", Option3: "40", Answer: "20", Category: "Math"},
+            {Question: "Which is a square?", Option1: "Circle", Option2: "Square", Option3: "Triangle", Answer: "Square", Category: "Math"},
+            {Question: "Who is Mario's brother?", Option1: "Wario", Option2: "Luigi", Option3: "Bowser", Answer: "Luigi", Category: "Fun"}
+        ];
 
         // --- SOUNDS ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
-        function playTone(freq, type, duration) {
+        function playCoinSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+duration);
-            osc.start(); osc.stop(audioCtx.currentTime+duration);
+            osc.type = 'square'; osc.frequency.setValueAtTime(987, audioCtx.currentTime); osc.frequency.setValueAtTime(1318, audioCtx.currentTime+0.08);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.6);
+            osc.start(); osc.stop(audioCtx.currentTime+0.6);
         }
-        function playCoinSound() { playTone(987, 'square', 0.1); setTimeout(() => playTone(1318, 'square', 0.4), 80); }
-        function playBonkSound() { playTone(150, 'sawtooth', 0.3); }
+        function playBonkSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime+0.3);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
+            osc.start(); osc.stop(audioCtx.currentTime+0.3);
+        }
 
         // --- APP LOGIC ---
         const gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0 };
@@ -235,10 +239,9 @@
         function initApp() {
             const saved = JSON.parse(localStorage.getItem('marioMathState'));
             if(saved) Object.assign(gameState, saved);
-            
             checkStreak(); updateUI(); updateWorldTheme();
-            
-            // --- NEW CACHING LOGIC ---
+
+            // 1. Try to load from Cache first
             const cachedData = localStorage.getItem('mathQuestionsCache');
             const cacheTime = localStorage.getItem('mathCacheTime');
             const now = new Date().getTime();
@@ -246,71 +249,218 @@
 
             if (cachedData && cacheTime && (now - cacheTime < CACHE_DURATION)) {
                 console.log("Using cached questions");
-                allQuestions = JSON.parse(cachedData);
-                loadNextQuestion();
-            } 
-            else {
-                console.log("Fetching new questions...");
-                document.getElementById('qText').innerText = ""; 
-                // SHOW LOADING BAR
-                document.getElementById('loading-container').style.display = 'flex';
-                
-                if(rawSheetURL.includes("PASTE_YOUR")) {
-                    document.getElementById('qText').innerText = "Update Sheet URL!";
+                try {
+                    allQuestions = JSON.parse(cachedData);
+                    loadNextQuestion();
                     return;
-                }
+                } catch(e) { console.log("Cache corrupted"); }
+            } 
 
-                Papa.parse(sheetURL, {
-                    download: true, header: true, skipEmptyLines: true,
-                    complete: function(results) {
-                        allQuestions = results.data.filter(r => r.Question && r.Answer);
+            // 2. If no cache, fetch from web
+            console.log("Fetching new questions...");
+            document.getElementById('qText').innerText = ""; 
+            document.getElementById('loading-container').style.display = 'flex'; // Show Bar
+
+            // TIMEOUT SAFEGUARD: If sheet takes > 8 seconds, load backup
+            const loadTimeout = setTimeout(() => {
+                if(allQuestions.length === 0) {
+                    console.warn("Sheet took too long. Loading backup.");
+                    document.getElementById('loading-container').style.display = 'none';
+                    allQuestions = backupQuestions;
+                    loadNextQuestion();
+                    document.getElementById('qText').innerText = "Offline Mode (Sheet Slow)";
+                }
+            }, 8000);
+
+            Papa.parse(sheetURL, {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(results) {
+                    clearTimeout(loadTimeout); // Cancel timeout
+                    const cleanData = results.data.filter(r => r.Question && r.Answer);
+                    
+                    if(cleanData.length > 0) {
+                        allQuestions = cleanData;
+                        // Save to cache
+                        try {
+                            localStorage.setItem('mathQuestionsCache', JSON.stringify(allQuestions));
+                            localStorage.setItem('mathCacheTime', now);
+                        } catch (e) { console.warn("Cache full"); }
                         
-                        if(allQuestions.length > 0) {
-                            try {
-                                localStorage.setItem('mathQuestionsCache', JSON.stringify(allQuestions));
-                                localStorage.setItem('mathCacheTime', now);
-                            } catch (e) { console.warn("Cache failed"); }
-                            
-                            // Hide Bar and Start
-                            document.getElementById('loading-container').style.display = 'none';
-                            loadNextQuestion();
-                        } else {
-                            document.getElementById('qText').innerText = "Sheet Empty?";
-                            document.getElementById('loading-container').style.display = 'none';
-                        }
-                    },
-                    error: (err) => { 
-                        console.error(err);
-                        if(cachedData) {
-                            console.log("Network error, using expired cache");
-                            allQuestions = JSON.parse(cachedData);
-                            document.getElementById('loading-container').style.display = 'none';
-                            loadNextQuestion();
-                        } else {
-                            document.getElementById('loading-container').style.display = 'none';
-                            document.getElementById('qText').innerText = "Error Loading. Check Internet."; 
-                        }
+                        document.getElementById('loading-container').style.display = 'none';
+                        loadNextQuestion();
+                    } else {
+                        // Parsed but empty?
+                        document.getElementById('loading-container').style.display = 'none';
+                        allQuestions = backupQuestions;
+                        loadNextQuestion();
+                        alert("Sheet loaded but looked empty. Check format.");
                     }
-                });
-            }
+                },
+                error: (err) => { 
+                    clearTimeout(loadTimeout);
+                    console.error(err);
+                    document.getElementById('loading-container').style.display = 'none';
+                    
+                    if(cachedData) {
+                        // Use old cache if new fetch fails
+                        allQuestions = JSON.parse(cachedData);
+                        loadNextQuestion();
+                    } else {
+                        // Total failure -> Use backup
+                        allQuestions = backupQuestions;
+                        loadNextQuestion();
+                        document.getElementById('qText').innerText = "Network Error (Using Backup)"; 
+                    }
+                }
+            });
         }
 
         function loadNextQuestion() {
             document.getElementById('feedback').innerText = "";
             const isFunTurn = (gameState.questionsAnsweredLevel === 4 || gameState.questionsAnsweredLevel === 9);
+            
             let pool = [];
             if(isFunTurn) {
-                pool = allQuestions.filter(q => q.Category === 'Fun');
+                pool = allQuestions.filter(q => q.Category && q.Category.includes('Fun'));
                 if(pool.length === 0) pool = allQuestions; 
             } else {
-                pool = allQuestions.filter(q => !q.Category || q.Category === 'Math');
+                pool = allQuestions.filter(q => !q.Category || !q.Category.includes('Fun'));
             }
 
             let available = pool.filter(q => !recentQuestions.includes(q.Question));
             if(available.length === 0) available = pool; 
 
+            // Safety: If pool is somehow empty
+            if(available.length === 0) {
+                document.getElementById('qText').innerText = "No Questions Found!";
+                return;
+            }
+
             const qIndex = Math.floor(Math.random() * available.length);
             currentQ = available[qIndex];
 
             recentQuestions.push(currentQ.Question);
-            if(recentQuestions.length > 5) recent
+            if(recentQuestions.length > 5) recentQuestions.shift();
+
+            document.getElementById('qText').innerHTML = currentQ.Question;
+            
+            // Image handling
+            const imgEl = document.getElementById('qImage');
+            if(currentQ.Image && currentQ.Image.trim().startsWith('http')) {
+                imgEl.src = currentQ.Image.trim(); 
+                imgEl.style.display = 'block';
+                imgEl.onerror = function() { this.style.display='none'; }; // Hide if broken link
+            } else { 
+                imgEl.style.display = 'none'; 
+            }
+
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = ""; 
+            const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3].sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                if(!opt) return; 
+                const btn = document.createElement('button');
+                btn.className = 'brick-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt);
+                answersDiv.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedText) {
+            const feedback = document.getElementById('feedback');
+            const mario = document.getElementById('mario');
+
+            if(selectedText.trim() === currentQ.Answer.trim()) {
+                playCoinSound();
+                feedback.innerHTML = "CORRECT!"; feedback.className = "correct";
+                mario.classList.remove('hero-jump'); void mario.offsetWidth; mario.classList.add('hero-jump');
+                
+                gameState.score += 200; gameState.coins += 10;
+                gameState.questionsAnsweredLevel++; 
+                
+                if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
+
+                if(gameState.questionsAnsweredLevel >= 10) {
+                    gameState.questionsAnsweredLevel = 0; 
+                    gameState.stage++;
+                    
+                    const bgm = document.getElementById('bgm');
+                    const isMusicOn = !bgm.paused; 
+
+                    if(gameState.stage > 3) { 
+                        gameState.world++; gameState.stage = 1; 
+                        doLevelClear(); 
+                    } else { 
+                        if(isMusicOn) bgm.pause();
+                        confetti({ particleCount: 50, spread: 50, origin: { y: 0.8 } });
+                        new Audio('clear.mp3').play().catch(()=>{}); 
+                        setTimeout(() => {
+                            if(isMusicOn) { bgm.currentTime = 0; bgm.play(); }
+                        }, 4000);
+                    }
+                }
+                
+                saveGame();
+                setTimeout(loadNextQuestion, 1500);
+            } else {
+                playBonkSound();
+                feedback.innerHTML = "TRY AGAIN"; feedback.className = "wrong";
+                gameState.streak = 0; 
+                document.getElementById('streakDisplay').classList.remove('on-fire');
+                saveGame();
+            }
+        }
+
+        function doLevelClear() {
+            const bgm = document.getElementById('bgm');
+            const overlay = document.getElementById('levelClearOverlay');
+            const isMusicOn = !bgm.paused;
+            if (isMusicOn) bgm.pause();
+
+            overlay.style.display = 'flex';
+            confetti({ particleCount: 200, spread: 90 });
+
+            const sfx = new Audio('clear.mp3'); sfx.play().catch(()=>{});
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                updateWorldTheme();
+                if (isMusicOn) { bgm.currentTime = 0; bgm.play(); }
+            }, 5000);
+        }
+
+        function toggleMusic() {
+            const bgm = document.getElementById('bgm');
+            const btn = document.querySelector('.music-btn');
+            if(bgm.paused) { bgm.play().catch(()=>{}); btn.innerText="MUSIC: ON"; }
+            else { bgm.pause(); btn.innerText="MUSIC: OFF"; }
+        }
+
+        function updateWorldTheme() {
+            if (gameState.world === 1) document.body.style.backgroundColor = "var(--sky-blue)";
+            else if (gameState.world === 2) document.body.style.backgroundColor = "var(--cave-black)";
+            else if (gameState.world >= 3) document.body.style.backgroundColor = "var(--brick-brown)";
+        }
+
+        function checkStreak() {
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            if (gameState.lastLogin === yesterday) { gameState.streak++; gameState.lastLogin = today; saveGame(); } 
+            else if (gameState.lastLogin !== today) { gameState.streak = 1; gameState.lastLogin = today; saveGame(); }
+            
+            if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
+        }
+        function saveGame() { localStorage.setItem('marioMathState', JSON.stringify(gameState)); updateUI(); }
+        function updateUI() {
+            document.getElementById('coinDisplay').innerText = gameState.coins.toString().padStart(2, '0');
+            document.getElementById('scoreDisplay').innerText = gameState.score.toString().padStart(6, '0');
+            document.getElementById('streakDisplay').innerText = gameState.streak.toString();
+            document.getElementById('levelDisplay').innerText = gameState.world + "-" + gameState.stage;
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

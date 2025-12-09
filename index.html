@@ -51,75 +51,53 @@
         }
         @keyframes burn { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 15px red; } }
 
-        /* --- QUESTION AREA --- */
-        .question-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 60px;
-        }
-
-        .question-text {
-            font-family: 'Verdana', sans-serif; 
-            font-weight: bold;
-            font-size: 1.6em;
-            letter-spacing: 0.5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            line-height: 1.4;
-            margin-bottom: 20px;
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 15px;
-            border: 2px solid rgba(255,255,255,0.3);
-            width: 90%;
-        }
-
-        /* --- SCORECARD MODAL (New!) --- */
+        /* --- SCORECARD MODAL (NEW) --- */
         #scorecard-overlay {
-            display: none; /* Hidden by default */
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.85); 
-            z-index: 2000;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9); z-index: 2000;
             flex-direction: column; justify-content: center; align-items: center;
             animation: fadeIn 0.3s;
         }
-
         .scorecard-box {
-            background: #e45c10; /* Mario Brick Color */
-            border: 4px solid #fff;
-            box-shadow: 8px 8px 0 #000;
-            border-radius: 10px;
-            padding: 20px;
-            width: 80%;
-            max-width: 400px;
-            text-align: center;
+            background: #e45c10; border: 4px solid #fff; box-shadow: 8px 8px 0 #000;
+            border-radius: 10px; padding: 20px; width: 85%; max-width: 400px; text-align: center;
         }
-
         .level-title { font-size: 1.5em; margin-bottom: 20px; text-shadow: 2px 2px 0 #000; }
-        
         .stars-container { font-size: 3em; margin-bottom: 20px; height: 60px; }
         .star { display: inline-block; opacity: 0; transform: scale(0); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .star.pop { opacity: 1; transform: scale(1); }
-
         .stat-row { 
-            display: flex; justify-content: space-between; margin: 10px 0; 
-            font-family: 'Verdana', sans-serif; font-size: 0.9em; font-weight: bold; text-shadow: 1px 1px 0 #000;
+            display: flex; justify-content: space-between; margin: 15px 0; 
+            font-family: 'Verdana', sans-serif; font-size: 1em; font-weight: bold; text-shadow: 1px 1px 0 #000;
         }
-
         .continue-btn {
             background: #4caf50; border: 2px solid #fff; color: white;
             padding: 15px 30px; font-family: 'Press Start 2P', cursive; margin-top: 20px;
-            cursor: pointer; box-shadow: 0 4px 0 #2e7d32; font-size: 0.8em;
+            cursor: pointer; box-shadow: 0 6px 0 #2e7d32; font-size: 0.8em; border-radius: 5px;
         }
-        .continue-btn:active { transform: translateY(4px); box-shadow: 0 0 0; }
+        .continue-btn:active { transform: translateY(6px); box-shadow: 0 0 0; }
+
+        /* --- QUESTION AREA --- */
+        .question-container {
+            flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 60px;
+        }
+
+        .question-text {
+            font-family: 'Verdana', sans-serif; font-weight: bold; font-size: 1.6em; letter-spacing: 0.5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); line-height: 1.4;
+            margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px;
+            border-radius: 15px; border: 2px solid rgba(255,255,255,0.3); width: 90%;
+        }
 
         /* Loading Bar */
         #loading-container { width: 80%; display: none; flex-direction: column; align-items: center; margin-top: 10px; }
         .progress-shell { width: 100%; height: 20px; background: #000; border: 2px solid white; border-radius: 10px; overflow: hidden; }
         .progress-fill { width: 100%; height: 100%; background: repeating-linear-gradient(45deg, #ffde00, #ffde00 10px, #ff9d00 10px, #ff9d00 20px); animation: barberpole 1s linear infinite; }
         @keyframes barberpole { from { background-position: 0 0; } to { background-position: 40px 0; } }
+        
+        #force-start-btn {
+            display: none; margin-top: 20px; font-size: 0.6em; background: #333; color: white; border: 1px solid white; padding: 10px; cursor: pointer;
+        }
 
         /* Images & Answers */
         .quiz-image { max-height: 150px; max-width: 90%; border: 4px solid white; border-radius: 10px; margin-bottom: 20px; box-shadow: 5px 5px 0px rgba(0,0,0,0.5); background: white; display: none; }
@@ -185,6 +163,306 @@
         <div id="loading-container">
             <div style="font-size: 0.6em; margin-bottom:5px;">DOWNLOADING CURRICULUM...</div>
             <div class="progress-shell"><div class="progress-fill"></div></div>
+            <button id="force-start-btn" onclick="forceOfflineMode()">Taking too long? Tap here to start</button>
         </div>
 
         <img id="qImage" class="quiz-image" src="" alt="Quiz Image">
+        <div id="feedback"></div>
+        <div id="answers" class="answers-grid"></div>
+    </div>
+
+    <img src="mario.png" id="mario" class="hero-img" alt="Mario" onerror="this.style.display='none'">
+    <div class="grass"></div>
+    <div class="ground"></div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const rawSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
+        // Switched to a more reliable proxy for large files
+        const sheetURL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawSheetURL);
+
+        // --- BACKUP QUESTIONS ---
+        const backupQuestions = [
+            {Question: "What is 10 + 10?", Option1: "20", Option2: "30", Option3: "40", Answer: "20", Category: "Math"},
+            {Question: "Who is Mario's brother?", Option1: "Wario", Option2: "Luigi", Option3: "Bowser", Answer: "Luigi", Category: "Fun"}
+        ];
+
+        // --- SOUNDS ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playTone(freq, type, duration) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+duration);
+            osc.start(); osc.stop(audioCtx.currentTime+duration);
+        }
+        function playCoinSound() { playTone(987, 'square', 0.1); setTimeout(() => playTone(1318, 'square', 0.4), 80); }
+        function playBonkSound() { playTone(150, 'sawtooth', 0.3); }
+
+        // --- APP LOGIC ---
+        const gameState = { 
+            streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, 
+            questionsAnsweredLevel: 0,
+            correctInLevel: 0 
+        };
+        let allQuestions = [];
+        let recentQuestions = []; 
+        let currentQ = {};
+
+        function initApp() {
+            const saved = JSON.parse(localStorage.getItem('marioMathState'));
+            if(saved) Object.assign(gameState, saved);
+            if(typeof gameState.correctInLevel === 'undefined') gameState.correctInLevel = 0;
+
+            checkStreak(); updateUI(); updateWorldTheme();
+
+            // 1. CACHE CHECK
+            const cachedData = localStorage.getItem('mathQuestionsCache');
+            const cacheTime = localStorage.getItem('mathCacheTime');
+            const now = new Date().getTime();
+            const CACHE_DURATION = 24 * 60 * 60 * 1000; 
+
+            if (cachedData && cacheTime && (now - cacheTime < CACHE_DURATION)) {
+                console.log("Using cached questions");
+                try {
+                    allQuestions = JSON.parse(cachedData);
+                    loadNextQuestion();
+                    return;
+                } catch(e) { console.log("Cache corrupted"); }
+            } 
+
+            // 2. FETCH
+            console.log("Fetching...");
+            document.getElementById('qText').innerText = ""; 
+            document.getElementById('loading-container').style.display = 'flex'; 
+
+            // Show manual skip button after 3 seconds
+            setTimeout(() => {
+                document.getElementById('force-start-btn').style.display = 'block';
+            }, 3000);
+
+            // Timeout safety
+            const loadTimeout = setTimeout(() => {
+                if(allQuestions.length === 0) forceOfflineMode();
+            }, 10000);
+
+            Papa.parse(sheetURL, {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(results) {
+                    clearTimeout(loadTimeout);
+                    const cleanData = results.data.filter(r => r.Question && r.Answer);
+                    if(cleanData.length > 0) {
+                        allQuestions = cleanData;
+                        try {
+                            localStorage.setItem('mathQuestionsCache', JSON.stringify(allQuestions));
+                            localStorage.setItem('mathCacheTime', now);
+                        } catch (e) { console.warn("Cache full"); }
+                        document.getElementById('loading-container').style.display = 'none';
+                        loadNextQuestion();
+                    } else {
+                        forceOfflineMode();
+                    }
+                },
+                error: (err) => { 
+                    clearTimeout(loadTimeout);
+                    forceOfflineMode();
+                }
+            });
+        }
+
+        function forceOfflineMode() {
+            document.getElementById('loading-container').style.display = 'none';
+            // Try expired cache first
+            const cachedData = localStorage.getItem('mathQuestionsCache');
+            if(cachedData) {
+                allQuestions = JSON.parse(cachedData);
+            } else {
+                allQuestions = backupQuestions;
+            }
+            loadNextQuestion();
+            // Optional: Alert user
+            // alert("Played offline mode due to connection issues.");
+        }
+
+        function loadNextQuestion() {
+            document.getElementById('feedback').innerText = "";
+            
+            // FUN MIX Logic
+            const isFunTurn = (gameState.questionsAnsweredLevel === 4 || gameState.questionsAnsweredLevel === 9);
+            let pool = [];
+            if(isFunTurn) {
+                pool = allQuestions.filter(q => q.Category && q.Category.includes('Fun'));
+                if(pool.length === 0) pool = allQuestions; 
+            } else {
+                pool = allQuestions.filter(q => !q.Category || !q.Category.includes('Fun'));
+            }
+
+            let available = pool.filter(q => !recentQuestions.includes(q.Question));
+            if(available.length === 0) available = pool; 
+
+            // Safety if pool is empty
+            if(available.length === 0) {
+                document.getElementById('qText').innerText = "Questions loading...";
+                return;
+            }
+
+            const qIndex = Math.floor(Math.random() * available.length);
+            currentQ = available[qIndex];
+
+            recentQuestions.push(currentQ.Question);
+            if(recentQuestions.length > 5) recentQuestions.shift();
+
+            document.getElementById('qText').innerHTML = currentQ.Question;
+            
+            const imgEl = document.getElementById('qImage');
+            if(currentQ.Image && currentQ.Image.trim().startsWith('http')) {
+                imgEl.src = currentQ.Image.trim(); imgEl.style.display = 'block';
+                imgEl.onerror = function() { this.style.display='none'; };
+            } else { imgEl.style.display = 'none'; }
+
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = ""; 
+            const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3].sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                if(!opt) return; 
+                const btn = document.createElement('button');
+                btn.className = 'brick-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt);
+                answersDiv.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedText) {
+            const feedback = document.getElementById('feedback');
+            const mario = document.getElementById('mario');
+
+            if(selectedText.trim() === currentQ.Answer.trim()) {
+                // CORRECT
+                playCoinSound();
+                feedback.innerHTML = "CORRECT!"; feedback.className = "correct";
+                mario.classList.remove('hero-jump'); void mario.offsetWidth; mario.classList.add('hero-jump');
+                
+                gameState.score += 200; 
+                gameState.coins += 10;
+                gameState.questionsAnsweredLevel++; 
+                gameState.correctInLevel++; 
+                
+                if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
+
+                if(gameState.questionsAnsweredLevel >= 10) {
+                    showScorecard(); // Show scorecard after 10 Qs
+                } else {
+                    saveGame();
+                    setTimeout(loadNextQuestion, 1500);
+                }
+            } else {
+                // WRONG
+                playBonkSound();
+                feedback.innerHTML = "TRY AGAIN"; feedback.className = "wrong";
+                gameState.streak = 0; 
+                document.getElementById('streakDisplay').classList.remove('on-fire');
+                gameState.questionsAnsweredLevel++; // Count attempt
+                
+                if(gameState.questionsAnsweredLevel >= 10) {
+                    showScorecard();
+                } else {
+                    saveGame();
+                }
+            }
+        }
+
+        function showScorecard() {
+            const bgm = document.getElementById('bgm');
+            const overlay = document.getElementById('scorecard-overlay');
+            const isMusicOn = !bgm.paused;
+            if (isMusicOn) bgm.pause();
+
+            // Calculate Stars
+            let stars = 1;
+            if(gameState.correctInLevel >= 8) stars = 2;
+            if(gameState.correctInLevel >= 10) stars = 3;
+
+            // Reset UI
+            document.getElementById('star1').classList.remove('pop');
+            document.getElementById('star2').classList.remove('pop');
+            document.getElementById('star3').classList.remove('pop');
+            document.getElementById('star1').style.display = 'none';
+            document.getElementById('star2').style.display = 'none';
+            document.getElementById('star3').style.display = 'none';
+
+            // Update Stats
+            let acc = Math.round((gameState.correctInLevel / 10) * 100);
+            document.getElementById('score-accuracy').innerText = acc + "%";
+            document.getElementById('score-coins').innerText = "+" + (gameState.correctInLevel * 10);
+
+            overlay.style.display = 'flex';
+            confetti({ particleCount: 200, spread: 90 });
+            new Audio('clear.mp3').play().catch(()=>{});
+
+            // Animate
+            if(stars >= 1) { document.getElementById('star1').style.display='inline-block'; setTimeout(() => document.getElementById('star1').classList.add('pop'), 500); }
+            if(stars >= 2) { document.getElementById('star2').style.display='inline-block'; setTimeout(() => document.getElementById('star2').classList.add('pop'), 1000); }
+            if(stars >= 3) { document.getElementById('star3').style.display='inline-block'; setTimeout(() => document.getElementById('star3').classList.add('pop'), 1500); }
+        }
+
+        function nextLevel() {
+            const bgm = document.getElementById('bgm');
+            document.getElementById('scorecard-overlay').style.display = 'none';
+            
+            gameState.questionsAnsweredLevel = 0;
+            gameState.correctInLevel = 0;
+            gameState.stage++;
+            
+            if(gameState.stage > 3) { 
+                gameState.world++; 
+                gameState.stage = 1; 
+                updateWorldTheme();
+            }
+
+            saveGame();
+            loadNextQuestion();
+
+            // Check if music was conceptually "On" (via button text)
+            const btnText = document.querySelector('.music-btn').innerText;
+            if (btnText.includes("ON")) {
+                bgm.currentTime = 0;
+                bgm.play();
+            }
+        }
+
+        function toggleMusic() {
+            const bgm = document.getElementById('bgm');
+            const btn = document.querySelector('.music-btn');
+            if(bgm.paused) { bgm.play().catch(()=>{}); btn.innerText="MUSIC: ON"; }
+            else { bgm.pause(); btn.innerText="MUSIC: OFF"; }
+        }
+
+        function updateWorldTheme() {
+            if (gameState.world === 1) document.body.style.backgroundColor = "var(--sky-blue)";
+            else if (gameState.world === 2) document.body.style.backgroundColor = "var(--cave-black)";
+            else if (gameState.world >= 3) document.body.style.backgroundColor = "var(--brick-brown)";
+        }
+
+        function checkStreak() {
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            if (gameState.lastLogin === yesterday) { gameState.streak++; gameState.lastLogin = today; saveGame(); } 
+            else if (gameState.lastLogin !== today) { gameState.streak = 1; gameState.lastLogin = today; saveGame(); }
+            if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
+        }
+        function saveGame() { localStorage.setItem('marioMathState', JSON.stringify(gameState)); updateUI(); }
+        function updateUI() {
+            document.getElementById('coinDisplay').innerText = gameState.coins.toString().padStart(2, '0');
+            document.getElementById('scoreDisplay').innerText = gameState.score.toString().padStart(6, '0');
+            document.getElementById('streakDisplay').innerText = gameState.streak.toString();
+            document.getElementById('levelDisplay').innerText = gameState.world + "-" + gameState.stage;
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

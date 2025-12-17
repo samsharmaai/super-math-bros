@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Math World 3 - Fast Load</title>
+    <title>Super Math World 3 - Authentic Economy</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Verdana&display=swap" rel="stylesheet"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -176,7 +176,7 @@
                 <span class="star" id="star1">⭐</span><span class="star" id="star2">⭐</span><span class="star" id="star3">⭐</span>
             </div>
             <div class="stat-row"><span>Accuracy:</span><span id="score-accuracy" style="color:#ffde00">100%</span></div>
-            <div class="stat-row"><span>Bonus Coins:</span><span id="score-coins" style="color:#ffde00">+0</span></div>
+            <div class="stat-row"><span>Bonus Pts:</span><span id="score-coins" style="color:#ffde00">+1000</span></div>
             <button class="continue-btn" onclick="nextLevel()">CONTINUE ▶</button>
         </div>
     </div>
@@ -238,22 +238,46 @@
         } catch(e) { console.log("Firebase not configured yet"); }
 
         // --- DIRECT SHEET LOAD (No Proxy) ---
-        // We use the direct google link with specific fetch modes
         const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
 
-        // --- SOUNDS ---
+        // --- AUDIO ENGINE (With 1-UP Synthesizer) ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
-        function playTone(freq, type, duration) {
+
+        function playTone(freq, type, duration, startTime = 0) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+duration);
-            osc.start(); osc.stop(audioCtx.currentTime+duration);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime + startTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + startTime + duration);
+            osc.start(audioCtx.currentTime + startTime);
+            osc.stop(audioCtx.currentTime + startTime + duration);
         }
-        function playCoinSound() { playTone(987, 'square', 0.1); setTimeout(() => playTone(1318, 'square', 0.4), 80); }
-        function playBonkSound() { playTone(150, 'sawtooth', 0.3); }
+
+        function playCoinSound() {
+            // Classic Coin: B5 then E6
+            playTone(987, 'square', 0.1, 0); 
+            playTone(1318, 'square', 0.4, 0.08); 
+        }
+
+        function playOneUpSound() {
+            // The "1-Up" Arpeggio: E6 G6 E7 C7 D7 G7
+            const speed = 0.12;
+            playTone(1318, 'square', speed, 0);         // E6
+            playTone(1567, 'square', speed, speed);     // G6
+            playTone(2637, 'square', speed, speed*2);   // E7
+            playTone(2093, 'square', speed, speed*3);   // C7
+            playTone(2349, 'square', speed, speed*4);   // D7
+            playTone(3135, 'square', speed + 0.4, speed*5); // G7
+        }
+
+        function playBonkSound() { 
+            playTone(150, 'sawtooth', 0.3, 0); 
+        }
 
         // --- APP LOGIC ---
         const gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0 };
@@ -359,7 +383,6 @@
                 {Question: "Red Color?", Option1: "Blue", Option2: "Red", Option3: "Green", Answer: "Red", Category: "Offline"}
             ];
             loadNextQuestion();
-            // Only alert if we haven't already
             if(!window.offlineAlertShown) {
                 alert("⚠️ Loaded Offline Mode (Check Internet)");
                 window.offlineAlertShown = true;
@@ -399,13 +422,25 @@
             logAttempt(isCorrect, currentQ);
 
             if(isCorrect) {
-                playCoinSound();
-                feedback.innerHTML = "CORRECT!"; feedback.className = "correct";
+                // AUTHENTIC MARIO LOGIC
+                const oldCoins = gameState.coins;
+                gameState.coins += 1; // 1 Coin per answer (HARD CURRENCY)
+                gameState.score += 200; // 200 Points per answer (VANITY SCORE)
+                
+                // CHECK FOR 100 COIN MILESTONE (1-UP TRIGGER)
+                if (Math.floor(gameState.coins / 100) > Math.floor(oldCoins / 100)) {
+                    playOneUpSound(); // Ding-ding-ding!
+                    feedback.innerHTML = "1-UP! (100 COINS!)";
+                    confetti({ particleCount: 300, spread: 100 });
+                } else {
+                    playCoinSound();
+                    feedback.innerHTML = "CORRECT!";
+                }
+
+                feedback.className = "correct";
                 mario.classList.remove('hero-jump'); void mario.offsetWidth; mario.classList.add('hero-jump');
                 
-                gameState.score += 200; gameState.coins += 10;
                 gameState.questionsAnsweredLevel++; gameState.correctInLevel++;
-                
                 if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
 
                 if(gameState.questionsAnsweredLevel >= 10) { showScorecard(); } 
@@ -435,19 +470,28 @@
             
             let acc = Math.round((gameState.correctInLevel / 10) * 100);
             document.getElementById('score-accuracy').innerText = acc + "%";
-            document.getElementById('score-coins').innerText = "+" + (gameState.correctInLevel * 10);
+            
+            // BONUS IS NOW POINTS (Not Coins, to avoid inflation)
+            let bonusPts = (gameState.correctInLevel * 100);
+            gameState.score += bonusPts; 
+            document.getElementById('score-coins').innerText = "+" + bonusPts + " PTS";
 
             overlay.style.display = 'flex';
-            confetti({ particleCount: 200, spread: 90 });
+            if(stars === 3) confetti({ particleCount: 200, spread: 90 });
 
             if(stars >= 1) setTimeout(() => document.getElementById('star1').classList.add('pop'), 500);
             if(stars >= 2) setTimeout(() => document.getElementById('star2').classList.add('pop'), 1000);
             if(stars >= 3) setTimeout(() => document.getElementById('star3').classList.add('pop'), 1500);
+            
+            saveGame(); // Save the new score
         }
 
         function nextLevel() {
             document.getElementById('scorecard-overlay').style.display = 'none';
-            gameState.questionsAnsweredLevel = 0; gameState.correctInLevel = 0; gameState.stage++;
+            // Reset Level stats only. COINS ARE KEPT FOREVER.
+            gameState.questionsAnsweredLevel = 0; gameState.correctInLevel = 0; 
+            
+            gameState.stage++;
             if(gameState.stage > 3) { gameState.world++; gameState.stage = 1; updateWorldTheme(); }
             saveGame(); loadNextQuestion();
             const btnText = document.querySelector('.music-btn').innerText;

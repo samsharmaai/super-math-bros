@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Math World 3 - Debug Mode</title>
+    <title>Super Math World 3 - Fast Load</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Verdana&display=swap" rel="stylesheet"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -237,9 +237,9 @@
 
         } catch(e) { console.log("Firebase not configured yet"); }
 
-        // --- SHEET CONFIG ---
-        const rawSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
-        const sheetURL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawSheetURL) + "&t=" + new Date().getTime();
+        // --- DIRECT SHEET LOAD (No Proxy) ---
+        // We use the direct google link with specific fetch modes
+        const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
 
         // --- SOUNDS ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -266,7 +266,6 @@
                 const pass = document.getElementById('password').value;
                 const btn = document.getElementById('loginBtn');
                 
-                // Visual Feedback
                 btn.innerText = "CONNECTING...";
                 document.getElementById('login-error').innerText = "";
 
@@ -281,7 +280,6 @@
                         btn.innerText = "SUCCESS!";
                         currentUserEmail = userCredential.user.email;
                         document.getElementById('login-overlay').style.display = 'none';
-                        // initApp called by onAuthStateChanged
                     })
                     .catch((error) => {
                         btn.innerText = "LOGIN & PLAY";
@@ -322,38 +320,50 @@
 
             console.log("Fetching questions...");
             document.getElementById('loading-container').style.display = 'flex';
-            setTimeout(() => { document.getElementById('force-start-btn').style.display = 'block'; }, 4000);
+            setTimeout(() => { document.getElementById('force-start-btn').style.display = 'block'; }, 7000);
 
-            Papa.parse(sheetURL, {
-                download: true, header: true, skipEmptyLines: true,
-                complete: function(results) {
-                    const cleanData = results.data.filter(r => r.Question && r.Answer);
-                    if(cleanData.length > 0) {
-                        allQuestions = cleanData;
-                        document.getElementById('loading-container').style.display = 'none';
-                        loadNextQuestion();
-                    } else { 
-                        console.log("Empty sheet data received");
-                        forceOfflineMode(); 
-                    }
-                },
-                error: (err) => { 
-                    console.log("Sheet load error");
-                    forceOfflineMode(); 
-                }
-            });
+            // DIRECT FETCH METHOD (Bypassing Papa Parse network loader)
+            fetch(sheetURL)
+                .then(response => {
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    return response.text();
+                })
+                .then(csvText => {
+                    Papa.parse(csvText, {
+                        header: true, 
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            const cleanData = results.data.filter(r => r.Question && r.Answer);
+                            if(cleanData.length > 0) {
+                                allQuestions = cleanData;
+                                document.getElementById('loading-container').style.display = 'none';
+                                loadNextQuestion();
+                            } else { 
+                                console.log("Empty sheet data");
+                                forceOfflineMode(); 
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error("Fetch Error:", error);
+                    forceOfflineMode();
+                });
         }
 
         function forceOfflineMode() {
             document.getElementById('loading-container').style.display = 'none';
-            // Fallback questions if sheet fails
             allQuestions = [
                 {Question: "10 + 10 = ?", Option1: "20", Option2: "30", Option3: "40", Answer: "20", Category: "Offline"},
                 {Question: "5 + 5 = ?", Option1: "10", Option2: "15", Option3: "25", Answer: "10", Category: "Offline"},
                 {Question: "Red Color?", Option1: "Blue", Option2: "Red", Option3: "Green", Answer: "Red", Category: "Offline"}
             ];
             loadNextQuestion();
-            alert("⚠️ Connection Issue: Loaded Offline Mode (Only 3 backup questions)");
+            // Only alert if we haven't already
+            if(!window.offlineAlertShown) {
+                alert("⚠️ Loaded Offline Mode (Check Internet)");
+                window.offlineAlertShown = true;
+            }
         }
 
         function loadNextQuestion() {

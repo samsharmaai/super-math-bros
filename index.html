@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Math World 3</title>
+    <title>Super Math World 3 - Logged In</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Verdana&display=swap" rel="stylesheet"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
         :root {
@@ -34,6 +38,28 @@
             overscroll-behavior: none;
         }
 
+        /* --- LOGIN OVERLAY --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--mario-red);
+            z-index: 3000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: #fff; border: 4px solid black; padding: 20px; border-radius: 10px;
+            width: 80%; max-width: 300px; box-shadow: 10px 10px 0 rgba(0,0,0,0.3);
+        }
+        .login-input {
+            width: 90%; padding: 10px; margin: 10px 0; font-family: 'Verdana'; font-size: 1em;
+            border: 2px solid #ccc; border-radius: 5px;
+        }
+        .login-btn {
+            background: #4caf50; color: white; border: none; padding: 15px; width: 100%;
+            font-family: 'Press Start 2P'; cursor: pointer; margin-top: 10px;
+            box-shadow: 0 4px 0 #2e7d32;
+        }
+        .login-btn:active { transform: translateY(4px); box-shadow: none; }
+
         /* --- HUD --- */
         .hud {
             display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -51,12 +77,11 @@
         }
         @keyframes burn { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 15px red; } }
 
-        /* --- SCORECARD MODAL (NEW) --- */
+        /* --- SCORECARD --- */
         #scorecard-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.9); z-index: 2000;
             flex-direction: column; justify-content: center; align-items: center;
-            animation: fadeIn 0.3s;
         }
         .scorecard-box {
             background: #e45c10; border: 4px solid #fff; box-shadow: 8px 8px 0 #000;
@@ -77,7 +102,7 @@
         }
         .continue-btn:active { transform: translateY(6px); box-shadow: 0 0 0; }
 
-        /* --- QUESTION AREA --- */
+        /* --- GAMEPLAY --- */
         .question-container {
             flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 60px;
         }
@@ -89,17 +114,13 @@
             border-radius: 15px; border: 2px solid rgba(255,255,255,0.3); width: 90%;
         }
 
-        /* Loading Bar */
         #loading-container { width: 80%; display: none; flex-direction: column; align-items: center; margin-top: 10px; }
         .progress-shell { width: 100%; height: 20px; background: #000; border: 2px solid white; border-radius: 10px; overflow: hidden; }
         .progress-fill { width: 100%; height: 100%; background: repeating-linear-gradient(45deg, #ffde00, #ffde00 10px, #ff9d00 10px, #ff9d00 20px); animation: barberpole 1s linear infinite; }
         @keyframes barberpole { from { background-position: 0 0; } to { background-position: 40px 0; } }
         
-        #force-start-btn {
-            display: none; margin-top: 20px; font-size: 0.6em; background: #333; color: white; border: 1px solid white; padding: 10px; cursor: pointer;
-        }
+        #force-start-btn { display: none; margin-top: 20px; font-size: 0.6em; background: #333; color: white; border: 1px solid white; padding: 10px; cursor: pointer; }
 
-        /* Images & Answers */
         .quiz-image { max-height: 150px; max-width: 90%; border: 4px solid white; border-radius: 10px; margin-bottom: 20px; box-shadow: 5px 5px 0px rgba(0,0,0,0.5); background: white; display: none; }
         .answers-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 95%; max-width: 500px; }
         .brick-btn {
@@ -115,35 +136,35 @@
         #feedback { font-family: 'Press Start 2P', cursive; font-size: 1.2em; height: 20px; margin-bottom: 10px; text-shadow: 2px 2px 0 black; }
         .correct { color: #5eff5e; } .wrong { color: #ff5e5e; }
 
-        /* Decor */
         .ground { position: fixed; bottom: 0; left: 0; width: 100%; height: 40px; background-color: #b84e00; border-top: 4px solid #000; z-index: 5; }
         .grass { position: fixed; bottom: 40px; left: 0; width: 100%; height: 10px; background-color: #00aa00; border-top: 4px solid black; z-index: 5; }
         .hero-img { position: fixed; bottom: 50px; left: 20px; height: 70px; z-index: 6; image-rendering: pixelated; }
         .hero-jump { animation: jump 0.6s ease-out; }
         @keyframes jump { 0% { transform: translateY(0); } 50% { transform: translateY(-120px); } 100% { transform: translateY(0); } }
-
         .music-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: 2px solid white; padding: 5px 10px; font-size: 0.5em; cursor: pointer; z-index: 100; font-family: 'Press Start 2P', cursive; }
     </style>
 </head>
 <body>
     <audio id="bgm" loop><source src="music.mp3" type="audio/mpeg"></audio>
     
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2 style="color:black; margin-bottom: 20px;">PLAYER LOGIN</h2>
+            <input type="email" id="email" class="login-input" placeholder="Email" value="mario@math.com">
+            <input type="password" id="password" class="login-input" placeholder="Password">
+            <button class="login-btn" onclick="appLogin()">START GAME</button>
+            <div id="login-error" style="color:red; font-size:0.7em; margin-top:10px;"></div>
+        </div>
+    </div>
+
     <div id="scorecard-overlay">
         <div class="scorecard-box">
             <div class="level-title">LEVEL CLEAR!</div>
             <div class="stars-container">
-                <span class="star" id="star1">⭐</span>
-                <span class="star" id="star2">⭐</span>
-                <span class="star" id="star3">⭐</span>
+                <span class="star" id="star1">⭐</span><span class="star" id="star2">⭐</span><span class="star" id="star3">⭐</span>
             </div>
-            <div class="stat-row">
-                <span>Accuracy:</span>
-                <span id="score-accuracy" style="color:#ffde00">100%</span>
-            </div>
-            <div class="stat-row">
-                <span>Bonus Coins:</span>
-                <span id="score-coins" style="color:#ffde00">+0</span>
-            </div>
+            <div class="stat-row"><span>Accuracy:</span><span id="score-accuracy" style="color:#ffde00">100%</span></div>
+            <div class="stat-row"><span>Bonus Coins:</span><span id="score-coins" style="color:#ffde00">+0</span></div>
             <button class="continue-btn" onclick="nextLevel()">CONTINUE ▶</button>
         </div>
     </div>
@@ -158,14 +179,12 @@
     </div>
 
     <div class="question-container">
-        <div id="qText" class="question-text">Loading...</div>
-        
+        <div id="qText" class="question-text">Waiting for Login...</div>
         <div id="loading-container">
             <div style="font-size: 0.6em; margin-bottom:5px;">DOWNLOADING CURRICULUM...</div>
             <div class="progress-shell"><div class="progress-fill"></div></div>
-            <button id="force-start-btn" onclick="forceOfflineMode()">Taking too long? Tap here to start</button>
+            <button id="force-start-btn" onclick="forceOfflineMode()">Taking too long? Tap here</button>
         </div>
-
         <img id="qImage" class="quiz-image" src="" alt="Quiz Image">
         <div id="feedback"></div>
         <div id="answers" class="answers-grid"></div>
@@ -176,16 +195,32 @@
     <div class="ground"></div>
 
     <script>
-        // --- CONFIGURATION ---
-        const rawSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
-        // Switched to a more reliable proxy for large files
-        const sheetURL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawSheetURL);
+        // --- 1. FIREBASE CONFIGURATION (PASTE KEYS HERE) ---
+        // Go to Firebase Console -> Project Settings -> General -> Scroll down to "Your apps"
 
-        // --- BACKUP QUESTIONS ---
-        const backupQuestions = [
-            {Question: "What is 10 + 10?", Option1: "20", Option2: "30", Option3: "40", Answer: "20", Category: "Math"},
-            {Question: "Who is Mario's brother?", Option1: "Wario", Option2: "Luigi", Option3: "Bowser", Answer: "Luigi", Category: "Fun"}
-        ];
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3aHdoyrVWmOwnM5cEn3mueyEzG_QdBN0",
+            authDomain: "super-math-tracker.firebaseapp.com",
+            projectId: "super-math-tracker",
+            storageBucket: "super-math-tracker.firebasestorage.app",
+            messagingSenderId: "193983274782",
+            appId: "1:193983274782:web:bab9f49ce52df2802e730f",
+            measurementId: "G-RB7770405Z"
+        };
+
+
+        
+        // Initialize Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            var db = firebase.firestore();
+            var auth = firebase.auth();
+        } catch(e) { console.log("Firebase not configured yet"); }
+
+        // --- SHEET CONFIG ---
+        const rawSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREhCuPrIB_HZ6Pa1IKHHrusqwgQddjZNGhnjr4W2TRG-jAuBgtakUZZdIQTHEQbjYniUaEpvVh1fXI/pub?output=csv";
+        const sheetURL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawSheetURL);
 
         // --- SOUNDS ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -202,130 +237,87 @@
         function playBonkSound() { playTone(150, 'sawtooth', 0.3); }
 
         // --- APP LOGIC ---
-        const gameState = { 
-            streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, 
-            questionsAnsweredLevel: 0,
-            correctInLevel: 0 
-        };
-        let allQuestions = [];
-        let recentQuestions = []; 
-        let currentQ = {};
+        const gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0 };
+        let allQuestions = []; let recentQuestions = []; let currentQ = {}; let currentUserEmail = "guest";
+
+        // LOGIN FUNCTION
+        function appLogin() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            
+            if(!firebase.apps.length) { alert("Please edit the HTML and paste your Firebase Config keys first!"); return; }
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    currentUserEmail = userCredential.user.email;
+                    document.getElementById('login-overlay').style.display = 'none';
+                    initApp(); // Start game
+                })
+                .catch((error) => {
+                    document.getElementById('login-error').innerText = "Error: " + error.message;
+                });
+        }
+
+        function logAttempt(isCorrect, questionData) {
+            if(!db) return;
+            // Send data to Firebase
+            db.collection("math_logs").add({
+                user: currentUserEmail,
+                timestamp: new Date(),
+                question: questionData.Question,
+                category: questionData.Category || "General", // Will use "General" if column missing
+                result: isCorrect ? "Correct" : "Wrong",
+                world: gameState.world
+            }).then(() => console.log("Logged to DB"));
+        }
 
         function initApp() {
             const saved = JSON.parse(localStorage.getItem('marioMathState'));
             if(saved) Object.assign(gameState, saved);
             if(typeof gameState.correctInLevel === 'undefined') gameState.correctInLevel = 0;
-
             checkStreak(); updateUI(); updateWorldTheme();
 
-            // 1. CACHE CHECK
-            const cachedData = localStorage.getItem('mathQuestionsCache');
-            const cacheTime = localStorage.getItem('mathCacheTime');
-            const now = new Date().getTime();
-            const CACHE_DURATION = 24 * 60 * 60 * 1000; 
-
-            if (cachedData && cacheTime && (now - cacheTime < CACHE_DURATION)) {
-                console.log("Using cached questions");
-                try {
-                    allQuestions = JSON.parse(cachedData);
-                    loadNextQuestion();
-                    return;
-                } catch(e) { console.log("Cache corrupted"); }
-            } 
-
-            // 2. FETCH
-            console.log("Fetching...");
-            document.getElementById('qText').innerText = ""; 
-            document.getElementById('loading-container').style.display = 'flex'; 
-
-            // Show manual skip button after 3 seconds
-            setTimeout(() => {
-                document.getElementById('force-start-btn').style.display = 'block';
-            }, 3000);
-
-            // Timeout safety
-            const loadTimeout = setTimeout(() => {
-                if(allQuestions.length === 0) forceOfflineMode();
-            }, 10000);
+            // Load Data
+            console.log("Fetching questions...");
+            document.getElementById('loading-container').style.display = 'flex';
+            setTimeout(() => { document.getElementById('force-start-btn').style.display = 'block'; }, 3000);
 
             Papa.parse(sheetURL, {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
-                    clearTimeout(loadTimeout);
                     const cleanData = results.data.filter(r => r.Question && r.Answer);
                     if(cleanData.length > 0) {
                         allQuestions = cleanData;
-                        try {
-                            localStorage.setItem('mathQuestionsCache', JSON.stringify(allQuestions));
-                            localStorage.setItem('mathCacheTime', now);
-                        } catch (e) { console.warn("Cache full"); }
                         document.getElementById('loading-container').style.display = 'none';
                         loadNextQuestion();
-                    } else {
-                        forceOfflineMode();
-                    }
+                    } else { forceOfflineMode(); }
                 },
-                error: (err) => { 
-                    clearTimeout(loadTimeout);
-                    forceOfflineMode();
-                }
+                error: (err) => { forceOfflineMode(); }
             });
         }
 
         function forceOfflineMode() {
             document.getElementById('loading-container').style.display = 'none';
-            // Try expired cache first
-            const cachedData = localStorage.getItem('mathQuestionsCache');
-            if(cachedData) {
-                allQuestions = JSON.parse(cachedData);
-            } else {
-                allQuestions = backupQuestions;
-            }
+            allQuestions = [{Question: "10+10?", Option1: "20", Option2: "30", Option3: "40", Answer: "20", Category: "Offline"}];
             loadNextQuestion();
-            // Optional: Alert user
-            // alert("Played offline mode due to connection issues.");
         }
 
         function loadNextQuestion() {
             document.getElementById('feedback').innerText = "";
+            let pool = allQuestions; 
+            // Simple random logic
+            const qIndex = Math.floor(Math.random() * pool.length);
+            currentQ = pool[qIndex];
             
-            // FUN MIX Logic
-            const isFunTurn = (gameState.questionsAnsweredLevel === 4 || gameState.questionsAnsweredLevel === 9);
-            let pool = [];
-            if(isFunTurn) {
-                pool = allQuestions.filter(q => q.Category && q.Category.includes('Fun'));
-                if(pool.length === 0) pool = allQuestions; 
-            } else {
-                pool = allQuestions.filter(q => !q.Category || !q.Category.includes('Fun'));
-            }
-
-            let available = pool.filter(q => !recentQuestions.includes(q.Question));
-            if(available.length === 0) available = pool; 
-
-            // Safety if pool is empty
-            if(available.length === 0) {
-                document.getElementById('qText').innerText = "Questions loading...";
-                return;
-            }
-
-            const qIndex = Math.floor(Math.random() * available.length);
-            currentQ = available[qIndex];
-
-            recentQuestions.push(currentQ.Question);
-            if(recentQuestions.length > 5) recentQuestions.shift();
-
             document.getElementById('qText').innerHTML = currentQ.Question;
-            
             const imgEl = document.getElementById('qImage');
             if(currentQ.Image && currentQ.Image.trim().startsWith('http')) {
                 imgEl.src = currentQ.Image.trim(); imgEl.style.display = 'block';
-                imgEl.onerror = function() { this.style.display='none'; };
             } else { imgEl.style.display = 'none'; }
 
             const answersDiv = document.getElementById('answers');
             answersDiv.innerHTML = ""; 
             const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3].sort(() => Math.random() - 0.5);
-
             options.forEach(opt => {
                 if(!opt) return; 
                 const btn = document.createElement('button');
@@ -339,99 +331,65 @@
         function handleAnswer(selectedText) {
             const feedback = document.getElementById('feedback');
             const mario = document.getElementById('mario');
+            const isCorrect = (selectedText.trim() === currentQ.Answer.trim());
 
-            if(selectedText.trim() === currentQ.Answer.trim()) {
-                // CORRECT
+            // LOG THE ATTEMPT TO DATABASE
+            logAttempt(isCorrect, currentQ);
+
+            if(isCorrect) {
                 playCoinSound();
                 feedback.innerHTML = "CORRECT!"; feedback.className = "correct";
                 mario.classList.remove('hero-jump'); void mario.offsetWidth; mario.classList.add('hero-jump');
                 
-                gameState.score += 200; 
-                gameState.coins += 10;
-                gameState.questionsAnsweredLevel++; 
-                gameState.correctInLevel++; 
+                gameState.score += 200; gameState.coins += 10;
+                gameState.questionsAnsweredLevel++; gameState.correctInLevel++;
                 
                 if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
 
-                if(gameState.questionsAnsweredLevel >= 10) {
-                    showScorecard(); // Show scorecard after 10 Qs
-                } else {
-                    saveGame();
-                    setTimeout(loadNextQuestion, 1500);
-                }
+                if(gameState.questionsAnsweredLevel >= 10) { showScorecard(); } 
+                else { saveGame(); setTimeout(loadNextQuestion, 1500); }
             } else {
-                // WRONG
                 playBonkSound();
                 feedback.innerHTML = "TRY AGAIN"; feedback.className = "wrong";
                 gameState.streak = 0; 
                 document.getElementById('streakDisplay').classList.remove('on-fire');
-                gameState.questionsAnsweredLevel++; // Count attempt
+                gameState.questionsAnsweredLevel++;
                 
-                if(gameState.questionsAnsweredLevel >= 10) {
-                    showScorecard();
-                } else {
-                    saveGame();
-                }
+                if(gameState.questionsAnsweredLevel >= 10) { showScorecard(); } 
+                else { saveGame(); }
             }
         }
 
         function showScorecard() {
             const bgm = document.getElementById('bgm');
             const overlay = document.getElementById('scorecard-overlay');
-            const isMusicOn = !bgm.paused;
-            if (isMusicOn) bgm.pause();
+            if (!bgm.paused) bgm.pause();
 
-            // Calculate Stars
             let stars = 1;
             if(gameState.correctInLevel >= 8) stars = 2;
             if(gameState.correctInLevel >= 10) stars = 3;
 
-            // Reset UI
-            document.getElementById('star1').classList.remove('pop');
-            document.getElementById('star2').classList.remove('pop');
-            document.getElementById('star3').classList.remove('pop');
-            document.getElementById('star1').style.display = 'none';
-            document.getElementById('star2').style.display = 'none';
-            document.getElementById('star3').style.display = 'none';
-
-            // Update Stats
+            document.getElementById('star1').className = 'star'; document.getElementById('star2').className = 'star'; document.getElementById('star3').className = 'star';
+            
             let acc = Math.round((gameState.correctInLevel / 10) * 100);
             document.getElementById('score-accuracy').innerText = acc + "%";
             document.getElementById('score-coins').innerText = "+" + (gameState.correctInLevel * 10);
 
             overlay.style.display = 'flex';
             confetti({ particleCount: 200, spread: 90 });
-            new Audio('clear.mp3').play().catch(()=>{});
 
-            // Animate
-            if(stars >= 1) { document.getElementById('star1').style.display='inline-block'; setTimeout(() => document.getElementById('star1').classList.add('pop'), 500); }
-            if(stars >= 2) { document.getElementById('star2').style.display='inline-block'; setTimeout(() => document.getElementById('star2').classList.add('pop'), 1000); }
-            if(stars >= 3) { document.getElementById('star3').style.display='inline-block'; setTimeout(() => document.getElementById('star3').classList.add('pop'), 1500); }
+            if(stars >= 1) setTimeout(() => document.getElementById('star1').classList.add('pop'), 500);
+            if(stars >= 2) setTimeout(() => document.getElementById('star2').classList.add('pop'), 1000);
+            if(stars >= 3) setTimeout(() => document.getElementById('star3').classList.add('pop'), 1500);
         }
 
         function nextLevel() {
-            const bgm = document.getElementById('bgm');
             document.getElementById('scorecard-overlay').style.display = 'none';
-            
-            gameState.questionsAnsweredLevel = 0;
-            gameState.correctInLevel = 0;
-            gameState.stage++;
-            
-            if(gameState.stage > 3) { 
-                gameState.world++; 
-                gameState.stage = 1; 
-                updateWorldTheme();
-            }
-
-            saveGame();
-            loadNextQuestion();
-
-            // Check if music was conceptually "On" (via button text)
+            gameState.questionsAnsweredLevel = 0; gameState.correctInLevel = 0; gameState.stage++;
+            if(gameState.stage > 3) { gameState.world++; gameState.stage = 1; updateWorldTheme(); }
+            saveGame(); loadNextQuestion();
             const btnText = document.querySelector('.music-btn').innerText;
-            if (btnText.includes("ON")) {
-                bgm.currentTime = 0;
-                bgm.play();
-            }
+            if (btnText.includes("ON")) { document.getElementById('bgm').play(); }
         }
 
         function toggleMusic() {
@@ -446,7 +404,6 @@
             else if (gameState.world === 2) document.body.style.backgroundColor = "var(--cave-black)";
             else if (gameState.world >= 3) document.body.style.backgroundColor = "var(--brick-brown)";
         }
-
         function checkStreak() {
             const today = new Date().toDateString();
             const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -461,8 +418,6 @@
             document.getElementById('streakDisplay').innerText = gameState.streak.toString();
             document.getElementById('levelDisplay').innerText = gameState.world + "-" + gameState.stage;
         }
-
-        initApp();
     </script>
 </body>
 </html>

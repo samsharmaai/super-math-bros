@@ -160,12 +160,83 @@
         .ground { position: fixed; bottom: 0; left: 0; width: 100%; height: 40px; background-color: #b84e00; border-top: 4px solid #000; z-index: 5; }
         .grass { position: fixed; bottom: 40px; left: 0; width: 100%; height: 10px; background-color: #00aa00; border-top: 4px solid black; z-index: 5; }
         
-        .hero-img { 
-            position: fixed; bottom: 50px; left: 20px; height: 70px; z-index: 10; 
-            image-rendering: pixelated; 
+        .hero-hit {
+            position: fixed; bottom: 38px; left: 8px; z-index: 11;
+            margin: 0; padding: 12px; border: 0; background: transparent;
+            line-height: 0; cursor: pointer; appearance: none; -webkit-appearance: none;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+            user-select: none; -webkit-user-select: none;
         }
-        .hero-jump { animation: jump 0.6s ease-out; }
-        @keyframes jump { 0% { transform: translateY(0); } 50% { transform: translateY(-120px); } 100% { transform: translateY(0); } }
+        .hero-hit:focus { outline: none; }
+        .hero-img {
+            display: block; height: 70px; width: auto;
+            image-rendering: pixelated; pointer-events: none;
+        }
+        .hero-jump { animation: jump 0.62s linear; }
+        @keyframes jump {
+            0% { transform: translateY(0); animation-timing-function: cubic-bezier(0.15, 0.75, 0.3, 1); }
+            48% { transform: translateY(-120px); animation-timing-function: cubic-bezier(0.45, 0.02, 0.8, 0.45); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Question-block burst. Pointer events stay off so the next answer is never blocked. */
+        .qblock-fx {
+            position: fixed; width: 48px; height: 48px; z-index: 12;
+            pointer-events: none;
+        }
+        .qblock {
+            position: absolute; inset: 0;
+            background: #f8d020;
+            border: 4px solid #000;
+            box-shadow: inset 4px 4px 0 #fff3a0, inset -4px -4px 0 #d48900;
+            display: flex; align-items: center; justify-content: center;
+            animation: qblock-in 0.16s ease-out;
+        }
+        .qblock::before, .qblock::after {
+            content: ''; position: absolute; width: 6px; height: 6px; background: #e8a010;
+        }
+        .qblock::before { top: 3px; left: 3px; box-shadow: 28px 0 0 #e8a010; }
+        .qblock::after { bottom: 3px; left: 3px; background: #c47a08; box-shadow: 28px 0 0 #c47a08; }
+        .qmark { position: relative; z-index: 1; display: block; filter: drop-shadow(2px 2px 0 #7a4510); }
+        @keyframes qblock-in {
+            0% { transform: translateY(10px) scale(0.7); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .qblock-fx.is-hit .qblock { animation: qblock-hit 0.28s ease-out forwards; }
+        @keyframes qblock-hit {
+            0% { transform: translateY(0) scale(1); opacity: 1; filter: brightness(1); }
+            35% { transform: translateY(-12px) scale(1.05, 0.92); opacity: 1; filter: brightness(1.35); }
+            100% { transform: translateY(-4px) scale(1.2); opacity: 0; }
+        }
+        .qfrag {
+            position: absolute; left: 15px; top: 16px; width: 14px; height: 12px;
+            background: #f8d020; border: 2px solid #000;
+            box-shadow: inset -2px -2px 0 #d48900, inset 2px 2px 0 #fff3a0;
+            opacity: 0;
+        }
+        .qblock-fx.is-hit .qfrag { animation: frag-burst 0.62s ease-in forwards; animation-delay: 0.1s; }
+        @keyframes frag-burst {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+            40% { transform: translate(calc(var(--dx) * 0.55), calc(var(--dy) * 0.2 - 14px)) rotate(calc(var(--rot) * 0.4)); opacity: 1; }
+            100% { transform: translate(var(--dx), calc(var(--dy) + 26px)) rotate(var(--rot)); opacity: 0; }
+        }
+        .qcoin {
+            position: absolute; left: 50%; top: 10px; width: 16px; height: 20px; margin-left: -8px;
+            border-radius: 50%; border: 2px solid #000; opacity: 0;
+            background: radial-gradient(circle at 35% 30%, #fff7b0, #ffd100 42%, #e09800);
+        }
+        .qcoin::after {
+            content: ''; position: absolute; left: 4px; top: 3px; width: 4px; height: 6px;
+            background: rgba(255,255,255,0.85); border-radius: 50%;
+        }
+        .qblock-fx.is-hit .qcoin { animation: coin-pop 0.58s ease-out forwards; animation-delay: 0.08s; }
+        @keyframes coin-pop {
+            0% { transform: translateY(6px) scale(0.3); opacity: 1; }
+            30% { transform: translateY(-28px) scale(1.12, 1.12); opacity: 1; }
+            50% { transform: translateY(-40px) scale(0.35, 1); opacity: 1; }
+            70% { transform: translateY(-52px) scale(1, 1); opacity: 1; }
+            100% { transform: translateY(-68px) scale(0.85); opacity: 0; }
+        }
         
         .music-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: 2px solid white; padding: 5px 10px; font-size: 0.5em; cursor: pointer; z-index: 100; font-family: 'Press Start 2P', cursive; }
     </style>
@@ -220,8 +291,10 @@
         <div id="answers" class="answers-grid"></div>
     </div>
 
-    <img src="mario.png" id="mario" class="hero-img" alt="Mario" 
-         onerror="this.src='https://upload.wikimedia.org/wikipedia/en/9/99/MarioSMBW.png'; this.onerror=null;">
+    <button type="button" id="marioJumpBtn" class="hero-hit" aria-label="Make Mario jump">
+        <img src="mario.png" id="mario" class="hero-img" alt="Mario" draggable="false"
+             onerror="this.src='https://upload.wikimedia.org/wikipedia/en/9/99/MarioSMBW.png'; this.onerror=null;">
+    </button>
          
     <div class="grass"></div>
     <div class="ground"></div>
@@ -293,6 +366,167 @@
 
         function playBonkSound() { 
             playTone(150, 'sawtooth', 0.3, 0); 
+        }
+
+        // Block-break chime. Context is created on the first tap/click so iOS will allow it.
+        // The MUSIC button only starts or stops the background track; coin, bonk, and 1-up
+        // effects already play while that track is off, and this chime follows the same rule.
+        let rewardAudioCtx = null;
+        let jumpSerial = 0;
+        let blockFx = null;
+        const MARIO_JUMP_PX = 120;
+        const BLOCK_SIZE = 48;
+
+        function unlockRewardAudio() {
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return null;
+                if (!rewardAudioCtx) rewardAudioCtx = new AC();
+                if (rewardAudioCtx.state === 'suspended') rewardAudioCtx.resume();
+                const buffer = rewardAudioCtx.createBuffer(1, 1, 22050);
+                const silent = rewardAudioCtx.createBufferSource();
+                silent.buffer = buffer;
+                silent.connect(rewardAudioCtx.destination);
+                silent.start(0);
+            } catch (e) {}
+            try {
+                if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            } catch (e) {}
+            return rewardAudioCtx;
+        }
+
+        function playBlockChime() {
+            try {
+                const ctx = rewardAudioCtx;
+                if (!ctx) return;
+                if (ctx.state === 'suspended') ctx.resume();
+                const now = ctx.currentTime + 0.01;
+
+                const bump = ctx.createOscillator();
+                const bumpGain = ctx.createGain();
+                bump.type = 'sine';
+                bump.frequency.setValueAtTime(196, now);
+                bump.frequency.exponentialRampToValueAtTime(72, now + 0.09);
+                bumpGain.gain.setValueAtTime(0.0001, now);
+                bumpGain.gain.exponentialRampToValueAtTime(0.14, now + 0.012);
+                bumpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+                bump.connect(bumpGain);
+                bumpGain.connect(ctx.destination);
+                bump.start(now);
+                bump.stop(now + 0.11);
+
+                const dur = 0.14;
+                const frames = Math.max(1, Math.floor(ctx.sampleRate * dur));
+                const noiseBuf = ctx.createBuffer(1, frames, ctx.sampleRate);
+                const data = noiseBuf.getChannelData(0);
+                for (let i = 0; i < frames; i++) {
+                    const env = 1 - i / frames;
+                    data[i] = (Math.random() * 2 - 1) * env * env;
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = noiseBuf;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 1400;
+                const noiseGain = ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.11, now + 0.07);
+                noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+                noise.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(ctx.destination);
+                noise.start(now + 0.07);
+                noise.stop(now + 0.24);
+
+                [784, 1046.5, 1318.5].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    const t0 = now + 0.06 + i * 0.055;
+                    osc.frequency.setValueAtTime(freq, t0);
+                    gain.gain.setValueAtTime(0.0001, t0);
+                    gain.gain.exponentialRampToValueAtTime(0.06, t0 + 0.018);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t0);
+                    osc.stop(t0 + 0.24);
+                });
+            } catch (e) {}
+        }
+
+        function startMarioJump(force) {
+            const mario = document.getElementById('mario');
+            if (!mario) return null;
+            if (!force && mario.classList.contains('hero-jump')) return null;
+            const serial = ++jumpSerial;
+            mario.classList.remove('hero-jump');
+            void mario.offsetWidth;
+            const rect = mario.getBoundingClientRect();
+            mario.classList.add('hero-jump');
+            const clearJump = (e) => {
+                if (e && e.animationName !== 'jump') return;
+                if (serial !== jumpSerial) return;
+                mario.classList.remove('hero-jump');
+            };
+            mario.addEventListener('animationend', clearJump, { once: true });
+            setTimeout(clearJump, 900);
+            return rect;
+        }
+
+        function clearBlockFx() {
+            if (!blockFx) return;
+            blockFx.timers.forEach(clearTimeout);
+            if (blockFx.el && blockFx.el.parentNode) blockFx.el.remove();
+            blockFx = null;
+        }
+
+        function spawnQuestionBlock(originRect) {
+            clearBlockFx();
+            const el = document.createElement('div');
+            el.className = 'qblock-fx';
+            el.setAttribute('aria-hidden', 'true');
+            const left = originRect.left + (originRect.width - BLOCK_SIZE) / 2;
+            const top = Math.max(8, originRect.top - MARIO_JUMP_PX - BLOCK_SIZE + 10);
+            el.style.left = Math.round(left) + 'px';
+            el.style.top = Math.round(top) + 'px';
+
+            const block = document.createElement('div');
+            block.className = 'qblock';
+            block.innerHTML = '<svg class="qmark" viewBox="0 0 10 12" width="22" height="26" aria-hidden="true" shape-rendering="crispEdges"><rect x="2" y="0" width="6" height="2" fill="#fff6c8"/><rect x="1" y="2" width="2" height="2" fill="#fff6c8"/><rect x="7" y="2" width="2" height="2" fill="#fff6c8"/><rect x="6" y="4" width="2" height="2" fill="#fff6c8"/><rect x="4" y="6" width="2" height="2" fill="#fff6c8"/><rect x="4" y="10" width="2" height="2" fill="#fff6c8"/></svg>';
+            el.appendChild(block);
+
+            const coin = document.createElement('div');
+            coin.className = 'qcoin';
+            el.appendChild(coin);
+
+            [[-34, -26, -150], [32, -34, 140], [-26, 18, -70], [28, 24, 110], [-4, -46, 50], [6, 34, -40]].forEach(([dx, dy, rot]) => {
+                const frag = document.createElement('i');
+                frag.className = 'qfrag';
+                frag.style.setProperty('--dx', dx + 'px');
+                frag.style.setProperty('--dy', dy + 'px');
+                frag.style.setProperty('--rot', rot + 'deg');
+                el.appendChild(frag);
+            });
+
+            document.body.appendChild(el);
+            const timers = [
+                setTimeout(() => {
+                    if (!el.isConnected) return;
+                    el.classList.add('is-hit');
+                    playBlockChime();
+                }, 290),
+                setTimeout(() => {
+                    if (el.parentNode) el.remove();
+                    if (blockFx && blockFx.el === el) blockFx = null;
+                }, 1300)
+            ];
+            blockFx = { el, timers };
+        }
+
+        function celebrateCorrect() {
+            unlockRewardAudio();
+            const rect = startMarioJump(true);
+            if (rect) spawnQuestionBlock(rect);
         }
 
         // --- APP LOGIC ---
@@ -476,7 +710,6 @@
             if(isInputLocked) return;
 
             const feedback = document.getElementById('feedback');
-            const mario = document.getElementById('mario');
             const isCorrect = (selectedText.trim() === currentQ.Answer.trim());
 
             logAttempt(isCorrect, currentQ);
@@ -503,7 +736,7 @@
 
                 gameState.score += 200; 
                 feedback.className = "correct";
-                mario.classList.remove('hero-jump'); void mario.offsetWidth; mario.classList.add('hero-jump');
+                try { celebrateCorrect(); } catch (e) {}
                 
                 gameState.questionsAnsweredLevel++; gameState.correctInLevel++;
                 if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
@@ -623,6 +856,14 @@
             document.getElementById('scoreDisplay').innerText = gameState.score.toString().padStart(6, '0');
             document.getElementById('streakDisplay').innerText = gameState.streak.toString();
             document.getElementById('levelDisplay').innerText = gameState.world + "-" + gameState.stage;
+        }
+
+        const marioJumpBtn = document.getElementById('marioJumpBtn');
+        if (marioJumpBtn) {
+            marioJumpBtn.addEventListener('pointerdown', function () {
+                try { unlockRewardAudio(); } catch (e) {}
+                startMarioJump(false);
+            });
         }
     </script>
 </body>

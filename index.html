@@ -523,7 +523,6 @@
                 btnElement.style.border = "4px solid red";
                 btnElement.style.color = "#aaa";
 
-                gameState.streak = 0; 
                 document.getElementById('streakDisplay').classList.remove('on-fire');
                 gameState.questionsAnsweredLevel++;
                 
@@ -604,11 +603,39 @@
             else if (gameState.world === 2) document.body.style.backgroundColor = "var(--cave-black)";
             else if (gameState.world >= 3) document.body.style.backgroundColor = "var(--brick-brown)";
         }
+        function localDateString(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        function normalizeLastLogin(value) {
+            if (typeof value !== 'string' || !value) return null;
+            const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+            if (iso) {
+                const y = +iso[1], mo = +iso[2], day = +iso[3];
+                const dt = new Date(y, mo - 1, day);
+                if (dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === day) return value;
+                return null;
+            }
+            const months = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+            const oldFmt = /^(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{4})$/.exec(value);
+            if (!oldFmt) return null;
+            const y = +oldFmt[3], mo = months[oldFmt[1]], day = +oldFmt[2];
+            const dt = new Date(y, mo, day);
+            if (dt.getFullYear() !== y || dt.getMonth() !== mo || dt.getDate() !== day) return null;
+            return localDateString(dt);
+        }
+
         function checkStreak() {
-            const today = new Date().toDateString();
-            const yesterday = new Date(Date.now() - 86400000).toDateString();
-            if (gameState.lastLogin === yesterday) { gameState.streak++; gameState.lastLogin = today; saveGame(); } 
-            else if (gameState.lastLogin !== today) { gameState.streak = 1; gameState.lastLogin = today; saveGame(); }
+            const now = new Date();
+            const today = localDateString(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+            const yesterday = localDateString(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
+            const lastLogin = normalizeLastLogin(gameState.lastLogin);
+            if (lastLogin === yesterday) { gameState.streak++; gameState.lastLogin = today; saveGame(); }
+            else if (lastLogin !== today) { gameState.streak = 1; gameState.lastLogin = today; saveGame(); }
+            else if (gameState.lastLogin !== today) { gameState.lastLogin = today; saveGame(); }
             if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
         }
         function saveGame() { 

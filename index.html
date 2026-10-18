@@ -834,14 +834,22 @@
             if(!db || currentUserEmail === 'guest') return Promise.resolve();
             
             return db.collection('users').doc(currentUserEmail).get().then((doc) => {
+                var cloudData = null;
                 if (doc.exists) {
                     console.log("Cloud save found!");
-                    const cloudData = doc.data();
+                    cloudData = doc.data();
                     Object.assign(gameState, cloudData);
                 } else {
                     console.log("New user, creating cloud save...");
-                    saveGame(); 
                 }
+                // Union browser + cloud friends before any save. A cloud profile from
+                // before the collection, or an empty list, must not erase Luigi.
+                try { restoreCollectedCharacters(cloudData); } catch (e) {}
+                var cloudFriends = cloudData ? sanitizeCharacters(cloudData.characters).length : 0;
+                var cloudGold = cloudData ? sanitizeCharacters(cloudData.goldCharacters).length : 0;
+                var keptFriends = sanitizeCharacters(gameState.characters).length;
+                var keptGold = sanitizeCharacters(gameState.goldCharacters).length;
+                if (!doc.exists || keptFriends > cloudFriends || keptGold > cloudGold) saveGame();
             }).catch((error) => {
                 console.error("Error loading cloud data:", error);
                 const saved = readSavedState();
@@ -850,6 +858,7 @@
         }
 
         function saveGame() {
+            try { restoreCollectedCharacters(null); } catch (e) {}
             try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {}
             if(db && currentUserEmail !== 'guest') {
                 db.collection('users').doc(currentUserEmail).set(gameState, { merge: true });
@@ -1132,6 +1141,7 @@
             if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
         }
         function saveGame() { 
+            try { restoreCollectedCharacters(null); } catch (e) {}
             try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {} 
             if(db && currentUserEmail !== 'guest') {
                 db.collection('users').doc(currentUserEmail).set(gameState, { merge: true });
@@ -1186,17 +1196,194 @@
             '................','................','.....KKKKKK.....','....KYYYYYYK....','...KYWWYYYYYK...','...KYWYYYYYYK...','...KYYYYYYYYK...','...KYYYYYYYYK...','...KYYYYYYYYK...','...KYYYYYYDDK...','...KYYYYYDDDK...','...KYYYYYYYYK...','....KYYYYYYK....','.....KKKKKK.....','................','................'
         ]};
 
-        function sanitizeCharacters(list) {
-            var known = {};
-            var out = [];
-            var i;
-            for (i = 0; i < CHARACTERS.length; i++) known[CHARACTERS[i].id] = true;
-            if (!Array.isArray(list)) return out;
-            for (i = 0; i < list.length; i++) {
-                var id = list[i];
-                if (typeof id === 'string' && known[id] && out.indexOf(id) === -1) out.push(id);
+        function canonicalCharacterId(value) {
+            var id, i, character;
+            if (typeof value !== 'string') return null;
+            id = value.trim().toLowerCase();
+            if (id.indexOf('gold:') === 0) id = id.slice(5).trim();
+            else if (id.indexOf('gold ') === 0) id = id.slice(5).trim();
+            for (i = 0; i < CHARACTERS.length; i++) {
+                character = CHARACTERS[i];
+                if (id === character.id || id === character.name.toLowerCase() || id === character.short.toLowerCase()) return character.id;
             }
-            return out;
+            return null;
+        }
+
+        function extractCharacterIds(value, into, depth) {
+            var i, key, id;
+            if (!into) into = [];
+            if (value == null || depth > 6) return into;
+            if (typeof value === 'string') {
+                id = canonicalCharacterId(value);
+                if (id && into.indexOf(id) === -1) into.push(id);
+                else if (!id && /[,|]/.test(value)) {
+                    var parts = value.split(/[,|]/);
+                    for (i = 0; i < parts.length; i++) extractCharacterIds(parts[i], into, depth + 1);
+                }
+                return into;
+            }
+            if (typeof value === 'number' || typeof value === 'boolean') return into;
+            if (Array.isArray(value)) {
+                for (i = 0; i < value.length; i++) extractCharacterIds(value[i], into, depth + 1);
+                return into;
+            }
+            if (typeof value === 'object') {
+                if (typeof value.id === 'string') extractCharacterIds(value.id, into, depth + 1);
+                var keys = Object.keys(value);
+                for (i = 0; i < keys.length; i++) {
+                    key = keys[i];
+                    id = canonicalCharacterId(key);
+                    if (id && into.indexOf(id) === -1) into.push(id);
+                    extractCharacterIds(value[key], into, depth + 1);
+                }
+            }
+            return into;
+        }
+
+        function orderCharacterIds(ids) {
+            var ordered = [];
+            var i;
+            for (i = 0; i < CHARACTERS.length; i++) {
+                if (ids.indexOf(CHARACTERS[i].id) !== -1) ordered.push(CHARACTERS[i].id);
+            }
+            return ordered;
+        }
+
+        function sanitizeCharacters(list) {
+            return orderCharacterIds(extractCharacterIds(list, [], 0));
+        }
+
+        function readCharacterBackup() {
+            try {
+                if (!window.localStorage) return null;
+                var raw = localStorage.getItem('marioMathCharacterBackup');
+                if (!raw) return null;
+                var saved = JSON.parse(raw);
+                if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return null;
+                return saved;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function writeCharacterBackup(characters, goldCharacters) {
+            try {
+                if (!window.localStorage) return;
+                if ((!characters || !characters.length) && (!goldCharacters || !goldCharacters.length)) return;
+                localStorage.setItem('marioMathCharacterBackup', JSON.stringify({
+                    characters: characters || [],
+                    goldCharacters: goldCharacters || []
+                }));
+            } catch (e) {}
+        }
+
+        function collectIdsFromSave(state, gold) {
+            var ids = [];
+            var fields = gold
+                ? ['goldCharacters', 'goldFound', 'collectedGold']
+                : ['characters', 'foundCharacters', 'collectedCharacters', 'collection', 'dailyCharacters', 'surprises'];
+            var i;
+            if (!state || typeof state !== 'object') return ids;
+            for (i = 0; i < fields.length; i++) extractCharacterIds(state[fields[i]], ids, 0);
+            if (typeof state.playAs === 'string') {
+                if (gold && state.playAs.indexOf('gold:') === 0) extractCharacterIds(state.playAs.slice(5), ids, 0);
+                else if (!gold && state.playAs.indexOf('gold:') !== 0) extractCharacterIds(state.playAs, ids, 0);
+            }
+            return ids;
+        }
+
+        function saveHasClaimDate(state) {
+            return !!(state && normalizeLastLogin(state.dailySurpriseDate));
+        }
+
+        function adoptSavedCharacters(sources) {
+            var owned = [];
+            var gold = [];
+            var claimed = false;
+            var i, j, ids;
+            var list = [];
+            for (i = 0; i < sources.length; i++) if (sources[i]) list.push(sources[i]);
+            var backup = readCharacterBackup();
+            if (backup) list.push(backup);
+            for (i = 0; i < list.length; i++) {
+                ids = collectIdsFromSave(list[i], false);
+                for (j = 0; j < ids.length; j++) if (owned.indexOf(ids[j]) === -1) owned.push(ids[j]);
+                ids = collectIdsFromSave(list[i], true);
+                for (j = 0; j < ids.length; j++) if (gold.indexOf(ids[j]) === -1) gold.push(ids[j]);
+                if (saveHasClaimDate(list[i])) claimed = true;
+            }
+            if (gold.length) {
+                for (i = 0; i < CHARACTERS.length; i++) {
+                    if (owned.indexOf(CHARACTERS[i].id) === -1) owned.push(CHARACTERS[i].id);
+                }
+            } else if (!owned.length && claimed && !sourcesHaveUnparsedFriends(list)) {
+                owned.push('luigi');
+            }
+            return { characters: orderCharacterIds(owned), goldCharacters: orderCharacterIds(gold) };
+        }
+
+        function fieldHasContent(value) {
+            if (value == null || value === '') return false;
+            if (typeof value === 'string') return value.trim() !== '';
+            if (Array.isArray(value)) return value.length > 0;
+            if (typeof value === 'object') return Object.keys(value).length > 0;
+            return false;
+        }
+
+        function sourcesHaveUnparsedFriends(sources) {
+            var keys = ['characters', 'foundCharacters', 'collectedCharacters', 'collection', 'dailyCharacters', 'surprises', 'goldCharacters', 'goldFound', 'collectedGold'];
+            var i, j, value;
+            for (i = 0; i < sources.length; i++) {
+                if (!sources[i]) continue;
+                for (j = 0; j < keys.length; j++) {
+                    value = sources[i][keys[j]];
+                    if (fieldHasContent(value) && !extractCharacterIds(value, [], 0).length) return true;
+                }
+            }
+            return false;
+        }
+
+        function firstUnparsedFriends(sources, gold) {
+            var keys = gold ? ['goldCharacters', 'goldFound', 'collectedGold'] : ['characters', 'foundCharacters', 'collectedCharacters', 'collection', 'dailyCharacters', 'surprises'];
+            var i, j, value;
+            for (i = 0; i < sources.length; i++) {
+                if (!sources[i]) continue;
+                for (j = 0; j < keys.length; j++) {
+                    value = sources[i][keys[j]];
+                    if (fieldHasContent(value) && !extractCharacterIds(value, [], 0).length) return value;
+                }
+            }
+            return null;
+        }
+
+        function restoreCollectedCharacters(extra) {
+            var sources = [readSavedState(), extra, gameState];
+            var adopted = adoptSavedCharacters(sources);
+            var raw;
+            if (adopted.characters.length) gameState.characters = adopted.characters;
+            else {
+                raw = firstUnparsedFriends(sources, false);
+                if (raw) gameState.characters = raw;
+                else gameState.characters = [];
+            }
+            if (adopted.goldCharacters.length) gameState.goldCharacters = adopted.goldCharacters;
+            else {
+                raw = firstUnparsedFriends(sources, true);
+                if (raw) gameState.goldCharacters = raw;
+                else gameState.goldCharacters = [];
+            }
+            gameState.playAs = sanitizePlayAs(gameState.playAs, sanitizeCharacters(gameState.characters), sanitizeCharacters(gameState.goldCharacters));
+            // Keep the newest claim day from the browser or the cloud. A profile
+            // that never stored that day must not erase it, or today's prize can be claimed twice.
+            var recoveredDate = null;
+            var s, d;
+            for (s = 0; s < sources.length; s++) {
+                if (!sources[s]) continue;
+                d = normalizeLastLogin(sources[s].dailySurpriseDate);
+                if (d && (!recoveredDate || d > recoveredDate)) recoveredDate = d;
+            }
+            if (recoveredDate) gameState.dailySurpriseDate = recoveredDate;
+            writeCharacterBackup(sanitizeCharacters(gameState.characters), sanitizeCharacters(gameState.goldCharacters));
         }
 
         function characterById(id) {
@@ -1258,11 +1445,9 @@
         }
 
         function prepareCollection() {
-            gameState.characters = sanitizeCharacters(gameState.characters);
-            gameState.goldCharacters = sanitizeCharacters(gameState.goldCharacters);
+            try { restoreCollectedCharacters(null); } catch (e) {}
             gameState.dailySurpriseDate = normalizeLastLogin(gameState.dailySurpriseDate);
             gameState.dailyCorrectByDay = sanitizeDailyCounts(gameState.dailyCorrectByDay);
-            gameState.playAs = sanitizePlayAs(gameState.playAs, gameState.characters, gameState.goldCharacters);
             try { applyHero(); } catch (e) {}
         }
 
@@ -1489,10 +1674,15 @@
         function selectPlayAs(playAs) {
             var saved, choice;
             if (!appStarted) {
+                if (!readSavedState() && window.localStorage && localStorage.getItem('marioMathState')) return;
                 saved = readSavedState() || {};
-                choice = sanitizePlayAs(playAs, currentOwned(saved), currentGold(saved));
+                var adoptedLogin = adoptSavedCharacters([saved]);
+                if (adoptedLogin.characters.length) saved.characters = adoptedLogin.characters;
+                if (adoptedLogin.goldCharacters.length) saved.goldCharacters = adoptedLogin.goldCharacters;
+                choice = sanitizePlayAs(playAs, saved.characters, saved.goldCharacters);
                 saved.playAs = choice;
                 try { localStorage.setItem('marioMathState', JSON.stringify(saved)); } catch (e) {}
+                try { writeCharacterBackup(saved.characters, saved.goldCharacters); } catch (e) {}
                 try { renderCollection(); } catch (e) {}
                 return;
             }
@@ -1505,9 +1695,10 @@
 
         function renderCollection() {
             var source = appStarted ? gameState : (readSavedState() || gameState);
-            var owned = currentOwned(source);
-            var goldOwned = currentGold(source);
-            var play = currentPlayAs(source);
+            var adoptedView = adoptSavedCharacters([source]);
+            var owned = adoptedView.characters;
+            var goldOwned = adoptedView.goldCharacters;
+            var play = sanitizePlayAs(source && source.playAs, owned, goldOwned);
             var ownedMap = {};
             var goldMap = {};
             var i;
@@ -1834,11 +2025,13 @@
             var peek = readSavedState();
             if (peek) {
                 var peekCount = document.getElementById('collectionBtnCount');
-                var peekOwned = sanitizeCharacters(peek.characters).length;
-                var peekGold = sanitizeCharacters(peek.goldCharacters).length;
+                var peekAdopt = adoptSavedCharacters([peek]);
+                var peekOwned = peekAdopt.characters.length;
+                var peekGold = peekAdopt.goldCharacters.length;
                 var peekBtn = document.getElementById('collectionBtn');
                 if (peekCount) peekCount.textContent = collectionButtonText(peekOwned, peekGold);
                 if (peekBtn && peekOwned >= CHARACTERS.length) peekBtn.classList.add('is-gold');
+                writeCharacterBackup(peekAdopt.characters, peekAdopt.goldCharacters);
             }
             applySurpriseTestNote();
         } catch (e) {}

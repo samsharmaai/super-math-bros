@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Super Math World 3 - Final</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5c94fc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Super Math World">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Verdana&display=swap" rel="stylesheet"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -170,8 +176,11 @@
         .hero-hit:focus { outline: none; }
         .hero-img {
             display: block; height: 70px; width: auto;
-            image-rendering: pixelated; pointer-events: none;
+            image-rendering: pixelated; image-rendering: crisp-edges; pointer-events: none;
         }
+        .hero-img[hidden] { display: none !important; }
+        .hero-canvas { width: 70px; height: 70px; }
+        .hero-canvas.is-gold { filter: drop-shadow(0 0 3px #ffe56a); }
         .hero-jump { animation: jump 0.62s linear; }
         @keyframes jump {
             0% { transform: translateY(0); animation-timing-function: cubic-bezier(0.15, 0.75, 0.3, 1); }
@@ -263,8 +272,8 @@
         .surprise-test-note[hidden] { display: none !important; }
 
         .daily-surprise {
-            display: flex; justify-content: center; position: relative; z-index: 20;
-            margin: 2px 0 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; z-index: 20; margin: 2px 0 8px;
         }
         .daily-surprise[hidden] { display: none !important; }
         .mystery-hit {
@@ -292,6 +301,22 @@
         .mystery-block::after { bottom: 3px; left: 3px; background: #c47a08; box-shadow: 28px 0 0 #c47a08; }
         .mystery-block .qmark { position: relative; z-index: 1; display: block; filter: drop-shadow(2px 2px 0 #7a4510); }
         .daily-label { font-size: 11px; color: #fff3a0; text-shadow: 2px 2px 0 #000; }
+        .surprise-progress {
+            font-family: Verdana, sans-serif; font-size: 13px; font-weight: 700;
+            color: #fff; text-shadow: 2px 2px 0 #000; margin-top: 2px; line-height: 1.35;
+            max-width: 320px;
+        }
+        .daily-surprise.is-locked .mystery-wrap { animation: none; filter: saturate(0.65) brightness(0.88); }
+        .daily-surprise.is-locked .mystery-block { animation: none; }
+        .daily-surprise.is-ready .mystery-wrap { animation: mystery-glow 0.55s ease-in-out infinite alternate; }
+        .daily-surprise.is-ready .surprise-progress { color: #fff6b0; }
+        .daily-surprise.is-locked.is-nudged .mystery-block { animation: surprise-nudge 0.28s linear; }
+        @keyframes surprise-nudge {
+            0% { transform: translateX(0); }
+            30% { transform: translateX(-4px); }
+            60% { transform: translateX(4px); }
+            100% { transform: translateX(0); }
+        }
         .mystery-frag {
             position: absolute; left: 16px; top: 16px; width: 12px; height: 10px;
             background: #f8d020; border: 2px solid #000; opacity: 0; pointer-events: none;
@@ -359,12 +384,52 @@
             font-family: Verdana, sans-serif; font-size: 11px; font-weight: 700; line-height: 1.2;
             margin-top: 2px; text-shadow: 1px 1px 0 #000; word-break: break-word;
         }
+        .collection-tabs { display: flex; gap: 8px; margin: 2px 0 8px; }
+        .collection-tab {
+            flex: 1; appearance: none; -webkit-appearance: none;
+            font-family: 'Press Start 2P', cursive; font-size: 0.58em; line-height: 1.4;
+            padding: 10px 4px; border: 3px solid #000; border-radius: 6px;
+            background: rgba(0,0,0,0.28); color: #fff; cursor: pointer;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+        }
+        .collection-tab.is-on { background: #ffde00; color: #1a1a1a; }
+        .collection-tab.gold-tab.is-on { background: #ffe14a; color: #3a2800; }
+        .collection-playing {
+            font-family: Verdana, sans-serif; font-size: 14px; font-weight: 700;
+            color: #b6ffb0; text-shadow: 1px 1px 0 #000; margin-bottom: 6px;
+        }
+        button.char-card {
+            appearance: none; -webkit-appearance: none; color: #fff; font: inherit;
+            text-align: center; cursor: pointer; width: 100%;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+            user-select: none; -webkit-user-select: none;
+        }
+        button.char-card:focus { outline: 2px solid #fff; outline-offset: 1px; }
+        button.char-card:active { transform: translateY(2px); }
+        .char-card.locked { cursor: default; }
+        .char-card.is-selected {
+            border-color: #5eff5e; box-shadow: inset 0 0 0 2px #5eff5e;
+            background: rgba(94, 255, 94, 0.28);
+        }
+        .char-card.gold-card.unlocked { border-color: #ffe98a; background: rgba(255, 210, 40, 0.22); }
+        .char-play {
+            font-family: Verdana, sans-serif; font-size: 11px; font-weight: 700;
+            color: #fff3a0; margin-top: 2px; line-height: 1.2;
+        }
+        .char-card.is-selected .char-play { color: #b6ffb0; }
+        .mario-mini {
+            height: 64px; width: auto; max-width: 100%;
+            display: block; margin: 0 auto; object-fit: contain;
+        }
+        .collection-btn.is-gold span { color: #ffe14a; }
         @media (max-height: 680px) {
             .question-container { justify-content: flex-start; margin-bottom: 78px; padding-top: 2px; }
             .daily-surprise { margin-bottom: 4px; }
         }
         @media (prefers-reduced-motion: reduce) {
-            .mystery-block, .mystery-wrap { animation: none; }
+            .mystery-block, .mystery-wrap,
+            .daily-surprise.is-ready .mystery-wrap,
+            .daily-surprise.is-locked.is-nudged .mystery-block { animation: none; }
             .surprise-card.pop { animation: none; }
         }
     </style>
@@ -423,6 +488,7 @@
             </span>
             <span class="daily-label">Daily Surprise!</span>
         </button>
+        <div id="surpriseProgress" class="surprise-progress">0 / 10 to unlock today's surprise</div>
     </div>
 
     <div class="question-container">
@@ -440,6 +506,7 @@
     <button type="button" id="marioJumpBtn" class="hero-hit" aria-label="Make Mario jump">
         <img src="mario.png" id="mario" class="hero-img" alt="Mario" draggable="false"
              onerror="this.src='https://upload.wikimedia.org/wikipedia/en/9/99/MarioSMBW.png'; this.onerror=null;">
+        <canvas id="heroSprite" class="hero-img hero-canvas" width="70" height="70" data-size="70" hidden aria-hidden="true"></canvas>
     </button>
          
     <div class="grass"></div>
@@ -459,7 +526,12 @@
     <div id="collectionOverlay" class="collection-overlay" hidden onclick="closeCollection()">
         <div class="collection-box" role="dialog" aria-modal="true" aria-labelledby="collectionTitle" onclick="event.stopPropagation()">
             <div class="collection-title" id="collectionTitle">CHARACTER COLLECTION</div>
+            <div class="collection-tabs" role="tablist">
+                <button type="button" class="collection-tab is-on" id="collectionTabNormal" role="tab" aria-selected="true" onclick="setCollectionPage('normal')">FRIENDS</button>
+                <button type="button" class="collection-tab gold-tab" id="collectionTabGold" role="tab" aria-selected="false" onclick="setCollectionPage('gold')">GOLD</button>
+            </div>
             <div class="collection-count" id="collectionCountLabel">0 / 8 found</div>
+            <div class="collection-playing" id="collectionPlaying">Playing as Mario</div>
             <p class="collection-hint" id="collectionHint"></p>
             <div class="collection-grid" id="collectionGrid"></div>
             <button type="button" class="continue-btn" id="collectionClose" onclick="closeCollection()">CLOSE</button>
@@ -622,7 +694,8 @@
         }
 
         function startMarioJump(force) {
-            const mario = document.getElementById('mario');
+            const sprite = document.getElementById('heroSprite');
+            const mario = (sprite && !sprite.hidden) ? sprite : document.getElementById('mario');
             if (!mario) return null;
             if (!force && mario.classList.contains('hero-jump')) return null;
             const serial = ++jumpSerial;
@@ -697,7 +770,7 @@
         }
 
         // --- APP LOGIC ---
-        let gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0, characters: [], dailySurpriseDate: null };
+        let gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0, characters: [], dailySurpriseDate: null, goldCharacters: [], playAs: 'mario', dailyCorrectByDay: {} };
         let allQuestions = []; let recentQuestions = []; let currentQ = {}; let currentUserEmail = "guest";
         let appStarted = false;
         
@@ -926,7 +999,7 @@
                 
                 gameState.questionsAnsweredLevel++; gameState.correctInLevel++;
                 if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
-                try { grantDailySurprise(); } catch (e) {}
+                try { recordDailyCorrect(); } catch (e) {}
 
                 if(gameState.questionsAnsweredLevel >= 10) { showScorecard(); } 
                 else { saveGame(); setTimeout(loadNextQuestion, 1500); }
@@ -1071,6 +1144,7 @@
             document.getElementById('streakDisplay').innerText = gameState.streak.toString();
             document.getElementById('levelDisplay').innerText = gameState.world + "-" + gameState.stage;
             try { updateCollectionButton(); } catch (e) {}
+            try { refreshSurpriseProgress(); } catch (e) {}
         }
 
         // --- DAILY SURPRISE & CHARACTER COLLECTION ---
@@ -1078,6 +1152,8 @@
         // daily surprise only. Streak dates are not affected.
         var dailyClaimLock = false;
         var dailyOpenTimer = null;
+        var collectionPage = 'normal';
+        var DAILY_GOAL = 10;
 
         var CHARACTERS = [
             { id: 'luigi', name: 'Luigi', short: 'Luigi', fact: 'Luigi is the tall brother in green. He is brave even when he feels nervous!', colors: { K:'#141414', G:'#2eba34', S:'#f2c7a0', B:'#2440c8', Y:'#ffdc28', N:'#78401e', W:'#f5f5f5' }, pixels: [
@@ -1123,9 +1199,103 @@
             return out;
         }
 
+        function characterById(id) {
+            var i;
+            for (i = 0; i < CHARACTERS.length; i++) {
+                if (CHARACTERS[i].id === id) return CHARACTERS[i];
+            }
+            return null;
+        }
+
+        function sanitizePlayAs(value, owned, goldOwned) {
+            var id;
+            if (value === 'mario' || value == null || value === '') return 'mario';
+            if (typeof value !== 'string') return 'mario';
+            if (value.indexOf('gold:') === 0) {
+                id = value.slice(5);
+                if (characterById(id) && goldOwned.indexOf(id) !== -1) return 'gold:' + id;
+                return 'mario';
+            }
+            if (characterById(value) && owned.indexOf(value) !== -1) return value;
+            return 'mario';
+        }
+
+        function playAsName(playAs) {
+            var character;
+            if (!playAs || playAs === 'mario') return 'Mario';
+            if (playAs.indexOf('gold:') === 0) {
+                character = characterById(playAs.slice(5));
+                return character ? ('Gold ' + character.name) : 'Mario';
+            }
+            character = characterById(playAs);
+            return character ? character.name : 'Mario';
+        }
+
+        function currentOwned(state) {
+            return sanitizeCharacters(state && state.characters);
+        }
+
+        function currentGold(state) {
+            return sanitizeCharacters(state && state.goldCharacters);
+        }
+
+        function currentPlayAs(state) {
+            return sanitizePlayAs(state && state.playAs, currentOwned(state), currentGold(state));
+        }
+
+        function sanitizeDailyCounts(bag) {
+            var clean = {};
+            var keys, i, value;
+            if (!bag || typeof bag !== 'object' || Array.isArray(bag)) return clean;
+            keys = Object.keys(bag);
+            for (i = 0; i < keys.length; i++) {
+                if (!normalizeLastLogin(keys[i])) continue;
+                value = bag[keys[i]];
+                if (typeof value !== 'number' || !isFinite(value) || value < 0) continue;
+                clean[keys[i]] = Math.floor(value);
+            }
+            return clean;
+        }
+
         function prepareCollection() {
             gameState.characters = sanitizeCharacters(gameState.characters);
+            gameState.goldCharacters = sanitizeCharacters(gameState.goldCharacters);
             gameState.dailySurpriseDate = normalizeLastLogin(gameState.dailySurpriseDate);
+            gameState.dailyCorrectByDay = sanitizeDailyCounts(gameState.dailyCorrectByDay);
+            gameState.playAs = sanitizePlayAs(gameState.playAs, gameState.characters, gameState.goldCharacters);
+            try { applyHero(); } catch (e) {}
+        }
+
+        function applyHero() {
+            var img = document.getElementById('mario');
+            var canvas = document.getElementById('heroSprite');
+            var btn = document.getElementById('marioJumpBtn');
+            var play = currentPlayAs(gameState);
+            var gold = false;
+            var id = play;
+            var character = null;
+            if (img) img.classList.remove('hero-jump');
+            if (canvas) {
+                canvas.classList.remove('hero-jump');
+                canvas.classList.remove('is-gold');
+            }
+            if (play.indexOf('gold:') === 0) {
+                gold = true;
+                id = play.slice(5);
+            }
+            if (play !== 'mario') character = characterById(id);
+            if (!character) {
+                if (canvas) canvas.hidden = true;
+                if (img) { img.hidden = false; img.alt = 'Mario'; }
+                if (btn) btn.setAttribute('aria-label', 'Make Mario jump');
+                return;
+            }
+            if (!canvas) return;
+            if (img) img.hidden = true;
+            canvas.hidden = false;
+            if (gold) canvas.classList.add('is-gold');
+            try { paintSprite(canvas, character, false, gold); } catch (e) {}
+            if (btn) btn.setAttribute('aria-label', 'Make ' + playAsName(play) + ' jump');
         }
 
         function surpriseDayOverride() {
@@ -1152,7 +1322,32 @@
             return normalizeLastLogin(state.dailySurpriseDate) === today;
         }
 
-        function paintSprite(canvas, sprite, locked) {
+        function toGoldColor(hex) {
+            var r, g, b, lum, mix, targetR, targetG, targetB;
+            function clamp(n) { n = Math.round(n); if (n < 0) return 0; if (n > 255) return 255; return n; }
+            function h(n) { var s = clamp(n).toString(16); return s.length === 1 ? '0' + s : s; }
+            if (typeof hex !== 'string' || hex.charAt(0) !== '#') return '#e6b422';
+            if (hex.length === 4) {
+                r = parseInt(hex.charAt(1) + hex.charAt(1), 16);
+                g = parseInt(hex.charAt(2) + hex.charAt(2), 16);
+                b = parseInt(hex.charAt(3) + hex.charAt(3), 16);
+            } else if (hex.length === 7) {
+                r = parseInt(hex.slice(1, 3), 16);
+                g = parseInt(hex.slice(3, 5), 16);
+                b = parseInt(hex.slice(5, 7), 16);
+            } else {
+                return '#e6b422';
+            }
+            if (isNaN(r) || isNaN(g) || isNaN(b)) return '#e6b422';
+            lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            targetR = 90 + lum * 165;
+            targetG = 48 + lum * 176;
+            targetB = 6 + lum * 64;
+            mix = 0.86;
+            return '#' + h(r * (1 - mix) + targetR * mix) + h(g * (1 - mix) + targetG * mix) + h(b * (1 - mix) + targetB * mix);
+        }
+
+        function paintSprite(canvas, sprite, locked, gold) {
             if (!canvas || !sprite || !sprite.pixels || !sprite.pixels.length) return;
             var ctx = canvas.getContext('2d');
             if (!ctx) return;
@@ -1185,72 +1380,197 @@
                 for (var x = 0; x < row.length; x++) {
                     var ch = row.charAt(x);
                     if (ch === '.' || ch === ' ') continue;
-                    if (locked) ctx.fillStyle = ch === 'K' ? '#070b14' : '#243356';
+                    if (locked && gold) ctx.fillStyle = ch === 'K' ? '#140e04' : '#6a5420';
+                    else if (locked) ctx.fillStyle = ch === 'K' ? '#070b14' : '#243356';
+                    else if (gold) ctx.fillStyle = toGoldColor((sprite.colors && sprite.colors[ch]) || '#141414');
                     else ctx.fillStyle = (sprite.colors && sprite.colors[ch]) || '#141414';
                     ctx.fillRect(ox + x * scale, oy + y * scale, scale, scale);
                 }
             }
         }
 
+        function collectionButtonText(ownedCount, goldCount) {
+            var total = CHARACTERS.length;
+            if (ownedCount < total) return ownedCount + '/' + total;
+            return 'G' + goldCount + '/' + total;
+        }
+
         function updateCollectionButton() {
-            var n = sanitizeCharacters(gameState.characters).length;
+            var ownedCount = currentOwned(gameState).length;
+            var goldCount = currentGold(gameState).length;
             var total = CHARACTERS.length;
             var countEl = document.getElementById('collectionBtnCount');
-            if (countEl) countEl.textContent = n + '/' + total;
             var btn = document.getElementById('collectionBtn');
-            if (btn) btn.setAttribute('aria-label', 'Character collection, ' + n + ' of ' + total + ' found');
+            var label;
+            if (countEl) countEl.textContent = collectionButtonText(ownedCount, goldCount);
+            if (!btn) return;
+            if (ownedCount >= total) btn.classList.add('is-gold');
+            else btn.classList.remove('is-gold');
+            if (ownedCount < total) label = 'Character collection, ' + ownedCount + ' of ' + total + ' found';
+            else label = 'Character collection, ' + goldCount + ' of ' + total + ' gold found';
+            btn.setAttribute('aria-label', label);
         }
 
-        function collectionHint(n, total, claimed) {
-            if (n >= total && claimed) return 'All collected! Come back tomorrow for bonus coins.';
-            if (n >= total) return 'All collected! Answer one question right for bonus coins.';
-            if (claimed) return 'Come back tomorrow for a new friend!';
-            return 'Answer one question right to open the daily surprise!';
-        }
-
-        function renderCollection() {
-            var source = appStarted ? gameState : (readSavedState() || gameState);
-            var owned = sanitizeCharacters(source && source.characters);
-            var ownedMap = {};
-            var i;
-            for (i = 0; i < owned.length; i++) ownedMap[owned[i]] = true;
-            var n = owned.length;
+        function collectionHintText(ownedCount, goldCount, claimed, ready) {
             var total = CHARACTERS.length;
-            var countEl = document.getElementById('collectionCountLabel');
-            if (countEl) countEl.textContent = n + ' / ' + total + ' found';
-            var hintEl = document.getElementById('collectionHint');
-            if (hintEl) hintEl.textContent = collectionHint(n, total, dateClaimed(source));
-            var grid = document.getElementById('collectionGrid');
-            if (!grid) return;
-            grid.textContent = '';
-            for (i = 0; i < CHARACTERS.length; i++) {
-                var character = CHARACTERS[i];
-                var unlocked = !!ownedMap[character.id];
-                var card = document.createElement('div');
-                card.className = 'char-card ' + (unlocked ? 'unlocked' : 'locked');
-                card.setAttribute('aria-label', unlocked ? character.name : 'Locked character');
-                var art = document.createElement('div');
-                art.className = 'char-art';
-                var canvas = document.createElement('canvas');
-                canvas.width = 72;
-                canvas.height = 72;
-                canvas.setAttribute('data-size', '72');
-                canvas.setAttribute('data-fit', 'cell');
-                canvas.setAttribute('aria-hidden', 'true');
-                try { paintSprite(canvas, character, !unlocked); } catch (e) {}
-                art.appendChild(canvas);
-                if (!unlocked) {
-                    var q = document.createElement('span');
+            var allNormal = ownedCount >= total;
+            var allGold = goldCount >= total;
+            if (allNormal && allGold && claimed) return 'All collected! Come back tomorrow for bonus coins.';
+            if (allNormal && allGold) return 'All collected! Get 10 correct to unlock bonus coins.';
+            if (allNormal && claimed) return 'Come back tomorrow for a shiny gold friend!';
+            if (allNormal && ready) return 'Today\'s gold surprise is ready! Tap the glowing block.';
+            if (allNormal) return 'Get 10 correct answers to unlock a shiny gold friend!';
+            if (claimed) return 'Come back tomorrow for a new friend!';
+            if (ready) return 'Today\'s surprise is ready! Tap the glowing block.';
+            return 'Get 10 correct answers to unlock today\'s surprise!';
+        }
+
+        function appendCharacterCard(grid, opts) {
+            var card, art, nameEl, playEl, img, q;
+            if (opts.unlocked) {
+                card = document.createElement('button');
+                card.type = 'button';
+                card.onclick = function () { selectPlayAs(opts.playAs); };
+                card.setAttribute('aria-pressed', opts.selected ? 'true' : 'false');
+                card.setAttribute('aria-label', opts.selected ? (opts.label + ', playing now') : ('Play as ' + opts.label));
+            } else {
+                card = document.createElement('div');
+                card.setAttribute('aria-label', 'Locked character');
+            }
+            card.className = 'char-card ' + (opts.unlocked ? 'unlocked' : 'locked') + (opts.gold ? ' gold-card' : '') + (opts.selected ? ' is-selected' : '');
+            art = document.createElement('div');
+            art.className = 'char-art';
+            if (opts.mario) {
+                img = document.createElement('img');
+                img.src = 'mario.png';
+                img.alt = '';
+                img.className = 'mario-mini';
+                img.draggable = false;
+                art.appendChild(img);
+            } else {
+                art.appendChild(makeArtCanvas(opts.sprite, !opts.unlocked, opts.gold));
+                if (!opts.unlocked) {
+                    q = document.createElement('span');
                     q.className = 'char-q';
                     q.textContent = '?';
                     art.appendChild(q);
                 }
-                var name = document.createElement('div');
-                name.className = 'char-name';
-                name.textContent = unlocked ? character.short : '?';
-                card.appendChild(art);
-                card.appendChild(name);
-                grid.appendChild(card);
+            }
+            nameEl = document.createElement('div');
+            nameEl.className = 'char-name';
+            nameEl.textContent = opts.unlocked ? opts.shortName : '?';
+            card.appendChild(art);
+            card.appendChild(nameEl);
+            if (opts.unlocked) {
+                playEl = document.createElement('div');
+                playEl.className = 'char-play';
+                playEl.textContent = opts.selected ? 'Playing' : 'Play as';
+                card.appendChild(playEl);
+            }
+            grid.appendChild(card);
+        }
+
+        function makeArtCanvas(sprite, locked, gold) {
+            var canvas = document.createElement('canvas');
+            canvas.width = 72;
+            canvas.height = 72;
+            canvas.setAttribute('data-size', '72');
+            canvas.setAttribute('data-fit', 'cell');
+            canvas.setAttribute('aria-hidden', 'true');
+            try { paintSprite(canvas, sprite, locked, gold); } catch (e) {}
+            return canvas;
+        }
+
+        function setCollectionPage(page) {
+            collectionPage = page === 'gold' ? 'gold' : 'normal';
+            try { renderCollection(); } catch (e) {}
+        }
+
+        function selectPlayAs(playAs) {
+            var saved, choice;
+            if (!appStarted) {
+                saved = readSavedState() || {};
+                choice = sanitizePlayAs(playAs, currentOwned(saved), currentGold(saved));
+                saved.playAs = choice;
+                try { localStorage.setItem('marioMathState', JSON.stringify(saved)); } catch (e) {}
+                try { renderCollection(); } catch (e) {}
+                return;
+            }
+            choice = sanitizePlayAs(playAs, currentOwned(gameState), currentGold(gameState));
+            gameState.playAs = choice;
+            try { saveGame(); } catch (e) {}
+            try { applyHero(); } catch (e) {}
+            try { renderCollection(); } catch (e) {}
+        }
+
+        function renderCollection() {
+            var source = appStarted ? gameState : (readSavedState() || gameState);
+            var owned = currentOwned(source);
+            var goldOwned = currentGold(source);
+            var play = currentPlayAs(source);
+            var ownedMap = {};
+            var goldMap = {};
+            var i;
+            var total = CHARACTERS.length;
+            var onGold = collectionPage === 'gold';
+            var countEl = document.getElementById('collectionCountLabel');
+            var hintEl = document.getElementById('collectionHint');
+            var playingEl = document.getElementById('collectionPlaying');
+            var grid = document.getElementById('collectionGrid');
+            var tabNormal = document.getElementById('collectionTabNormal');
+            var tabGold = document.getElementById('collectionTabGold');
+            var claimed = dateClaimed(source);
+            var ready = surpriseIsReady(source);
+            for (i = 0; i < owned.length; i++) ownedMap[owned[i]] = true;
+            for (i = 0; i < goldOwned.length; i++) goldMap[goldOwned[i]] = true;
+            if (tabNormal) {
+                tabNormal.classList.toggle('is-on', !onGold);
+                tabNormal.setAttribute('aria-selected', onGold ? 'false' : 'true');
+            }
+            if (tabGold) {
+                tabGold.classList.toggle('is-on', onGold);
+                tabGold.setAttribute('aria-selected', onGold ? 'true' : 'false');
+            }
+            if (countEl) {
+                countEl.textContent = onGold
+                    ? (goldOwned.length + ' / ' + total + ' gold found')
+                    : (owned.length + ' / ' + total + ' found');
+            }
+            if (playingEl) playingEl.textContent = 'Playing as ' + playAsName(play);
+            if (hintEl) {
+                if (onGold && owned.length < total) hintEl.textContent = 'Find all 8 friends first. Then one shiny gold friend appears each day!';
+                else hintEl.textContent = collectionHintText(owned.length, goldOwned.length, claimed, ready);
+            }
+            if (!grid) return;
+            grid.textContent = '';
+            if (!onGold) {
+                appendCharacterCard(grid, {
+                    mario: true, unlocked: true, selected: play === 'mario', gold: false,
+                    playAs: 'mario', label: 'Mario', shortName: 'Mario'
+                });
+                for (i = 0; i < CHARACTERS.length; i++) {
+                    appendCharacterCard(grid, {
+                        sprite: CHARACTERS[i],
+                        unlocked: !!ownedMap[CHARACTERS[i].id],
+                        selected: play === CHARACTERS[i].id,
+                        gold: false,
+                        playAs: CHARACTERS[i].id,
+                        label: CHARACTERS[i].name,
+                        shortName: CHARACTERS[i].short
+                    });
+                }
+                return;
+            }
+            for (i = 0; i < CHARACTERS.length; i++) {
+                appendCharacterCard(grid, {
+                    sprite: CHARACTERS[i],
+                    unlocked: !!goldMap[CHARACTERS[i].id],
+                    selected: play === ('gold:' + CHARACTERS[i].id),
+                    gold: true,
+                    playAs: 'gold:' + CHARACTERS[i].id,
+                    label: 'Gold ' + CHARACTERS[i].name,
+                    shortName: '\u2605 ' + CHARACTERS[i].short
+                });
             }
         }
 
@@ -1287,6 +1607,54 @@
             }
         }
 
+        function dailyCorrectCountFor(state) {
+            var today = surpriseToday();
+            var bag, n;
+            if (!state || !today) return 0;
+            bag = sanitizeDailyCounts(state.dailyCorrectByDay);
+            n = bag[today];
+            if (typeof n !== 'number' || !isFinite(n) || n < 0) return 0;
+            return Math.floor(n);
+        }
+
+        function surpriseIsReady(state) {
+            return !dateClaimed(state) && dailyCorrectCountFor(state) >= DAILY_GOAL;
+        }
+
+        function inGoldHunt() {
+            return currentOwned(gameState).length >= CHARACTERS.length && currentGold(gameState).length < CHARACTERS.length;
+        }
+
+        function surpriseProgressText(count) {
+            var n = count;
+            var what = inGoldHunt() ? 'today\'s gold surprise' : 'today\'s surprise';
+            if (n < 0) n = 0;
+            if (n > DAILY_GOAL) n = DAILY_GOAL;
+            if (n >= DAILY_GOAL) return n + ' / ' + DAILY_GOAL + ' \u2014 tap to open ' + what + '!';
+            return n + ' / ' + DAILY_GOAL + ' to unlock ' + what;
+        }
+
+        function refreshSurpriseProgress() {
+            var el = document.getElementById('dailySurprise');
+            var progress = document.getElementById('surpriseProgress');
+            var label = document.querySelector('#dailySurprise .daily-label');
+            var hit = document.getElementById('mysteryHit');
+            var count, ready, claimed, goldPhase;
+            if (!el) return;
+            claimed = dateClaimed(gameState);
+            count = dailyCorrectCountFor(gameState);
+            ready = !claimed && count >= DAILY_GOAL;
+            goldPhase = inGoldHunt();
+            el.classList.toggle('is-ready', ready);
+            el.classList.toggle('is-locked', !ready && !claimed);
+            if (progress) progress.textContent = surpriseProgressText(count);
+            if (label) label.textContent = goldPhase ? 'Gold Surprise!' : 'Daily Surprise!';
+            if (hit) {
+                if (ready) hit.setAttribute('aria-label', goldPhase ? 'Gold Surprise. Tap to open it.' : 'Daily Surprise. Tap to open it.');
+                else hit.setAttribute('aria-label', surpriseProgressText(count));
+            }
+        }
+
         function refreshDailySurprise() {
             applySurpriseTestNote();
             var el = document.getElementById('dailySurprise');
@@ -1296,18 +1664,36 @@
                 return;
             }
             el.hidden = false;
+            refreshSurpriseProgress();
+        }
+
+        function recordDailyCorrect() {
+            var today, bag, n;
+            if (dateClaimed(gameState)) return;
+            today = surpriseToday();
+            if (!today) return;
+            bag = sanitizeDailyCounts(gameState.dailyCorrectByDay);
+            n = bag[today];
+            if (typeof n !== 'number' || !isFinite(n) || n < 0) n = 0;
+            bag[today] = Math.floor(n) + 1;
+            gameState.dailyCorrectByDay = bag;
+            try { refreshSurpriseProgress(); } catch (e) {}
         }
 
         function pokeMysteryBlock() {
+            var el;
             try { unlockRewardAudio(); } catch (e) {}
-            var el = document.getElementById('dailySurprise');
+            el = document.getElementById('dailySurprise');
             if (!el || el.hidden || el.classList.contains('is-opening')) return;
-            var feedback = document.getElementById('feedback');
-            if (!feedback) return;
-            if (feedback.className === 'wrong') return;
-            if (feedback.className === 'correct' && feedback.textContent && feedback.textContent.indexOf('Answer one') !== 0) return;
-            feedback.className = 'correct';
-            feedback.textContent = 'Answer one to open it!';
+            if (dateClaimed(gameState)) return;
+            if (dailyCorrectCountFor(gameState) >= DAILY_GOAL) {
+                try { grantDailySurprise(); } catch (e) {}
+                return;
+            }
+            el.classList.remove('is-nudged');
+            void el.offsetWidth;
+            el.classList.add('is-nudged');
+            try { refreshSurpriseProgress(); } catch (e) {}
         }
 
         function playSurpriseSound() {
@@ -1335,18 +1721,20 @@
             } catch (e) {}
         }
 
-        function showSurpriseCard(character, bonus) {
+        function showSurpriseCard(character, bonus, gold) {
             var overlay = document.getElementById('surpriseOverlay');
             var canvas = document.getElementById('surpriseCanvas');
             var nameEl = document.getElementById('surpriseName');
             var factEl = document.getElementById('surpriseFact');
             var bonusEl = document.getElementById('surpriseBonus');
             var card = document.getElementById('surpriseCard');
+            var kicker = document.querySelector('#surpriseCard .surprise-kicker');
             if (!overlay) return;
+            if (kicker) kicker.textContent = (character && gold) ? 'GOLD SURPRISE!' : 'DAILY SURPRISE!';
             try {
                 if (character) {
-                    paintSprite(canvas, character, false);
-                    if (nameEl) nameEl.textContent = character.name;
+                    paintSprite(canvas, character, false, !!gold);
+                    if (nameEl) nameEl.textContent = gold ? ('Gold ' + character.name) : character.name;
                     if (factEl) factEl.textContent = character.fact;
                 } else {
                     paintSprite(canvas, COIN_ART, false);
@@ -1365,12 +1753,14 @@
             if (closeBtn && closeBtn.focus) closeBtn.focus();
             try {
                 if (typeof confetti === 'function') {
-                    confetti({ particleCount: character ? 80 : 40, spread: 70, origin: { y: 0.55 } });
+                    var burst = { particleCount: character ? 80 : 40, spread: 70, origin: { y: 0.55 } };
+                    if (gold) burst.colors = ['#ffde00', '#fff6b0', '#e6a800', '#ffffff'];
+                    confetti(burst);
                 }
             } catch (e) {}
         }
 
-        function openDailyBlock(character, bonus) {
+        function openDailyBlock(character, bonus, gold) {
             var el = document.getElementById('dailySurprise');
             if (el) el.classList.add('is-opening');
             if (dailyOpenTimer) clearTimeout(dailyOpenTimer);
@@ -1380,34 +1770,48 @@
                     el.classList.remove('is-opening');
                     el.hidden = true;
                 }
-                try { showSurpriseCard(character, bonus); } catch (e) {}
+                try { showSurpriseCard(character, bonus, gold); } catch (e) {}
             }, 620);
         }
 
+        function nextMissingCharacter(list) {
+            var i;
+            for (i = 0; i < CHARACTERS.length; i++) {
+                if (list.indexOf(CHARACTERS[i].id) === -1) return CHARACTERS[i];
+            }
+            return null;
+        }
+
         function grantDailySurprise() {
+            var today, next, gold, bonus, beforeBonus;
             if (dailyClaimLock || dateClaimed(gameState)) return;
-            var today = surpriseToday();
+            if (dailyCorrectCountFor(gameState) < DAILY_GOAL) return;
+            today = surpriseToday();
             if (!today) return;
             dailyClaimLock = true;
             try { unlockRewardAudio(); } catch (e) {}
             try { playSurpriseSound(); } catch (e) {}
             gameState.characters = sanitizeCharacters(gameState.characters);
-            var next = null;
-            for (var i = 0; i < CHARACTERS.length; i++) {
-                if (gameState.characters.indexOf(CHARACTERS[i].id) === -1) { next = CHARACTERS[i]; break; }
+            gameState.goldCharacters = sanitizeCharacters(gameState.goldCharacters);
+            next = nextMissingCharacter(gameState.characters);
+            gold = false;
+            if (!next) {
+                next = nextMissingCharacter(gameState.goldCharacters);
+                gold = !!next;
             }
-            var bonus = next ? 5 : (4 + Math.floor(Math.random() * 7));
-            if (next) gameState.characters.push(next.id);
+            bonus = next ? 5 : (4 + Math.floor(Math.random() * 7));
+            if (next && !gold) gameState.characters.push(next.id);
+            if (next && gold) gameState.goldCharacters.push(next.id);
             gameState.dailySurpriseDate = today;
             if (typeof gameState.coins === 'number' && isFinite(gameState.coins)) {
-                var beforeBonus = gameState.coins;
+                beforeBonus = gameState.coins;
                 gameState.coins += bonus;
                 if (Math.floor(gameState.coins / 100) > Math.floor(beforeBonus / 100)) {
                     try { playOneUpSound(); } catch (e) {}
                 }
             }
             try { saveGame(); } catch (e) {}
-            openDailyBlock(next, bonus);
+            openDailyBlock(next, bonus, gold);
         }
 
         document.addEventListener('visibilitychange', function () {
@@ -1430,7 +1834,11 @@
             var peek = readSavedState();
             if (peek) {
                 var peekCount = document.getElementById('collectionBtnCount');
-                if (peekCount) peekCount.textContent = sanitizeCharacters(peek.characters).length + '/' + CHARACTERS.length;
+                var peekOwned = sanitizeCharacters(peek.characters).length;
+                var peekGold = sanitizeCharacters(peek.goldCharacters).length;
+                var peekBtn = document.getElementById('collectionBtn');
+                if (peekCount) peekCount.textContent = collectionButtonText(peekOwned, peekGold);
+                if (peekBtn && peekOwned >= CHARACTERS.length) peekBtn.classList.add('is-gold');
             }
             applySurpriseTestNote();
         } catch (e) {}

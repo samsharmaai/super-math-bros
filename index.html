@@ -82,7 +82,9 @@
             margin: 6px auto 0; max-width: 560px; padding: 6px 8px;
             background: rgba(0,0,0,0.55); border: 2px solid #fff; z-index: 5;
             white-space: pre-line;
+            transition: opacity 0.5s ease;
         }
+        .player-note.is-fading { opacity: 0; }
         .player-note.is-guest, .player-note.is-error { background: #8a1c12; }
         .collection-account {
             font-family: Verdana, sans-serif; font-size: 13px; line-height: 1.35;
@@ -464,7 +466,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-19c</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-19d</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -801,7 +803,11 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-19c';
+        var APP_BUILD = '2026-10-19d';
+        var statusFadeTimer = null;
+        var statusHideTimer = null;
+        var statusFadeStarted = false;
+        var statusDismissed = false;
         let allQuestions = []; let recentQuestions = []; let currentQ = {}; let currentUserEmail = "guest";
         let appStarted = false;
         
@@ -1148,14 +1154,21 @@
         }
 
         function logAttempt(isCorrect, questionData) {
-            if(!db || currentUserEmail === "guest") return;
+            var email;
+            if (!db || !questionData || currentUserEmail === "guest") return;
+            try {
+                email = (auth && auth.currentUser && auth.currentUser.email) ? auth.currentUser.email : "";
+            } catch (e) { email = ""; }
+            if (!email) return;
             db.collection("math_logs").add({
-                user: currentUserEmail,
+                user: email,
                 timestamp: new Date(),
                 question: questionData.Question,
                 category: questionData.Category || "General",
                 result: isCorrect ? "Correct" : "Wrong",
                 world: gameState.world
+            }).catch(function (err) {
+                console.error("Answer log failed", err);
             });
         }
 
@@ -1432,19 +1445,74 @@
             if (cloudStatusText) return line + '\n' + cloudStatusText;
             return line + '\nOne cloud save for this login.';
         }
+        function accountNoteSticks() {
+            var guest = !currentUserEmail || currentUserEmail === 'guest';
+            if (guest) return true;
+            return cloudStatusText.indexOf('Cloud save failed') === 0 || cloudStatusText.indexOf('Old copy') === 0;
+        }
+
+        function cancelStatusFade() {
+            if (statusFadeTimer) clearTimeout(statusFadeTimer);
+            if (statusHideTimer) clearTimeout(statusHideTimer);
+            statusFadeTimer = null;
+            statusHideTimer = null;
+            statusFadeStarted = false;
+            var note = document.getElementById('playerNote');
+            if (note) note.classList.remove('is-fading');
+        }
+
+        function hideQuietStatus() {
+            var note = document.getElementById('playerNote');
+            var collectionNote = document.getElementById('collectionAccountNote');
+            statusDismissed = true;
+            statusFadeStarted = false;
+            statusFadeTimer = null;
+            statusHideTimer = null;
+            if (note) {
+                note.classList.remove('is-fading');
+                note.hidden = true;
+            }
+            if (collectionNote) collectionNote.textContent = '';
+        }
+
+        function scheduleStatusFade() {
+            if (statusFadeStarted || statusDismissed || accountNoteSticks()) return;
+            if (cloudStatusText !== 'Saved to the cloud.') return;
+            statusFadeStarted = true;
+            statusFadeTimer = setTimeout(function () {
+                var note;
+                statusFadeTimer = null;
+                if (accountNoteSticks() || statusDismissed) return;
+                note = document.getElementById('playerNote');
+                if (note) note.classList.add('is-fading');
+                statusHideTimer = setTimeout(hideQuietStatus, 500);
+            }, 3500);
+        }
+
         function showAccountNote() {
             var note = document.getElementById('playerNote');
             var collectionNote = document.getElementById('collectionAccountNote');
             var text = accountLabel();
             var guest = !currentUserEmail || currentUserEmail === 'guest';
+            var sticks = accountNoteSticks();
             var failed = !guest && (cloudStatusText.indexOf('Cloud save failed') === 0 || cloudStatusText.indexOf('Old copy') === 0);
-            if (note) {
+            if (sticks) cancelStatusFade();
+            if (!sticks && statusDismissed) {
+                if (note) {
+                    note.hidden = true;
+                    note.classList.remove('is-fading');
+                }
+                if (collectionNote) collectionNote.textContent = '';
+                return;
+            }
+            if (note && !note.classList.contains('is-fading')) {
                 note.hidden = false;
                 note.textContent = text;
                 note.classList.toggle('is-guest', guest);
                 note.classList.toggle('is-error', failed);
             }
             if (collectionNote) collectionNote.textContent = text;
+            if (!sticks) scheduleStatusFade();
         }
         function updateUI() {
             document.getElementById('coinDisplay').innerText = gameState.coins.toString().padStart(2, '0');

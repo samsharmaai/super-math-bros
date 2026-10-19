@@ -103,10 +103,13 @@
     <div class="container">
         <h1>📊 Parent Dashboard</h1>
         <div class="sub-header">Review Mario Math Performance</div>
+        <p id="dash-status" class="sub-header"></p>
+        <p id="report-error" style="color:#8a1c12; font-size:0.9em;"></p>
 
         <div id="login-section">
             <p><strong>Checking Login...</strong></p>
             <div id="manual-login" style="display:none; flex-direction:column; align-items:center; gap:10px;">
+                <p style="font-size:0.9em; max-width:320px;">Use the same email and password as the game.</p>
                 <input type="email" id="email" placeholder="Email" value="mario@math.com">
                 <input type="password" id="password" placeholder="Password">
                 <button onclick="loginAndFetch()">LOGIN</button>
@@ -161,10 +164,14 @@
                 if (user) {
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('dashboard-section').style.display = 'block';
+                    document.getElementById('dash-status').textContent = 'Signed in as ' + (user.email || 'this account') + '. Reading the answer log...';
                     generateReport();
                 } else {
+                    document.getElementById('dashboard-section').style.display = 'none';
+                    document.getElementById('login-section').style.display = 'flex';
                     document.getElementById('manual-login').style.display = 'flex';
                     document.querySelector('#login-section p').style.display = 'none';
+                    document.getElementById('dash-status').textContent = '';
                 }
             });
         } catch(e) { console.error("Firebase Error", e); }
@@ -183,17 +190,63 @@
         
         let globalLogs = [], categoryStats = [], questionStats = [], sessionStats = [];
 
-        async function generateReport() {
-            const snapshot = await db.collection("math_logs").orderBy("timestamp", "desc").get();
-            globalLogs = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {...data, timestamp: new Date(data.timestamp.seconds * 1000)};
-            });
+        function asDate(value) {
+            var parsed;
+            if (!value) return null;
+            if (typeof value.toDate === 'function') {
+                try { return value.toDate(); } catch (e) { return null; }
+            }
+            if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
+            parsed = new Date(value);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
 
-            if(globalLogs.length === 0) {
-                document.getElementById('cat-table-body').innerHTML = "<tr><td colspan='4'>No data yet.</td></tr>";
+        async function fetchLogs() {
+            try {
+                return await db.collection("math_logs").orderBy("timestamp", "desc").get();
+            } catch (err) {
+                var code = err && err.code ? String(err.code) : "";
+                var message = err && err.message ? String(err.message) : "";
+                if (code === "failed-precondition" || message.indexOf("index") !== -1) {
+                    return await db.collection("math_logs").get();
+                }
+                throw err;
+            }
+        }
+
+        async function generateReport() {
+            const errorEl = document.getElementById('report-error');
+            if (errorEl) errorEl.textContent = "";
+            if (!auth || !auth.currentUser) {
+                if (errorEl) errorEl.textContent = "Sign in before the answer log can be read.";
                 return;
             }
+            let snapshot;
+            try {
+                snapshot = await fetchLogs();
+            } catch (err) {
+                if (errorEl) errorEl.textContent = "Could not read the answer log: " + (err && err.message ? err.message : "unknown error");
+                return;
+            }
+            globalLogs = snapshot.docs.map(doc => {
+                const data = doc.data() || {};
+                return {
+                    user: data.user,
+                    question: data.question,
+                    category: data.category,
+                    result: data.result,
+                    world: data.world,
+                    timestamp: asDate(data.timestamp)
+                };
+            }).filter(log => log.timestamp);
+            globalLogs.sort((a, b) => b.timestamp - a.timestamp);
+
+            if(globalLogs.length === 0) {
+                document.getElementById('cat-table-body').innerHTML = "<tr><td colspan='4'>No answers logged for this login yet.</td></tr>";
+                document.getElementById('dash-status').textContent = 'Signed in as ' + (auth.currentUser.email || 'this account') + '. No answers in the log yet.';
+                return;
+            }
+            document.getElementById('dash-status').textContent = 'Signed in as ' + (auth.currentUser.email || 'this account') + '. Newest answer ' + globalLogs[0].timestamp.toLocaleString() + '.';
 
             processData();
             renderSummary();

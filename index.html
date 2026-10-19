@@ -70,6 +70,20 @@
             background: #999; color: white; border: none; padding: 10px; width: 100%;
             font-family: 'Press Start 2P'; cursor: pointer; margin-top: 10px; font-size: 0.7em;
         }
+        .account-note {
+            font-family: Verdana, sans-serif; font-size: 13px; line-height: 1.35;
+            color: #222; margin: 10px 0 0;
+        }
+        .player-note {
+            font-family: Verdana, sans-serif; font-size: 13px; line-height: 1.35;
+            margin: 6px auto 0; max-width: 560px; padding: 6px 8px;
+            background: rgba(0,0,0,0.55); border: 2px solid #fff; z-index: 5;
+        }
+        .player-note.is-guest { background: #8a1c12; }
+        .collection-account {
+            font-family: Verdana, sans-serif; font-size: 13px; line-height: 1.35;
+            color: #fff; margin: 0 0 8px; text-shadow: 1px 1px 0 #000;
+        }
 
         /* --- HUD --- */
         .hud {
@@ -445,6 +459,7 @@
             
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
+            <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -474,6 +489,7 @@
         <div class="hud-item"><span class="streak-title">🔥STREAK</span><span id="streakDisplay">0</span></div>
         <div class="hud-item"><span>WORLD</span><span id="levelDisplay">1-1</span></div>
     </div>
+    <p id="playerNote" class="player-note" hidden></p>
 
     <div id="dailySurprise" class="daily-surprise" hidden>
         <button type="button" class="mystery-hit" id="mysteryHit" onclick="pokeMysteryBlock()" aria-label="Daily Surprise. Answer a question to open it.">
@@ -526,6 +542,7 @@
     <div id="collectionOverlay" class="collection-overlay" hidden onclick="closeCollection()">
         <div class="collection-box" role="dialog" aria-modal="true" aria-labelledby="collectionTitle" onclick="event.stopPropagation()">
             <div class="collection-title" id="collectionTitle">CHARACTER COLLECTION</div>
+            <p id="collectionAccountNote" class="collection-account"></p>
             <div class="collection-tabs" role="tablist">
                 <button type="button" class="collection-tab is-on" id="collectionTabNormal" role="tab" aria-selected="true" onclick="setCollectionPage('normal')">FRIENDS</button>
                 <button type="button" class="collection-tab gold-tab" id="collectionTabGold" role="tab" aria-selected="false" onclick="setCollectionPage('gold')">GOLD</button>
@@ -771,6 +788,9 @@
 
         // --- APP LOGIC ---
         let gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0, characters: [], dailySurpriseDate: null, goldCharacters: [], playAs: 'mario', dailyCorrectByDay: {} };
+        var lastRemote = null;
+        var writingCloud = false;
+        var cloudUnsub = null;
         let allQuestions = []; let recentQuestions = []; let currentQ = {}; let currentUserEmail = "guest";
         let appStarted = false;
         
@@ -838,31 +858,121 @@
                 if (doc.exists) {
                     console.log("Cloud save found!");
                     cloudData = doc.data();
+                    lastRemote = cloudData;
                     Object.assign(gameState, cloudData);
                 } else {
                     console.log("New user, creating cloud save...");
+                    lastRemote = null;
                 }
-                // Union browser + cloud friends before any save. A cloud profile from
-                // before the collection, or an empty list, must not erase Luigi.
+                // Friends use the same users/{email} save as coins and streak.
+                // Merge first so an empty cloud list cannot erase the tablet's friends.
                 try { restoreCollectedCharacters(cloudData); } catch (e) {}
-                var cloudFriends = cloudData ? sanitizeCharacters(cloudData.characters).length : 0;
-                var cloudGold = cloudData ? sanitizeCharacters(cloudData.goldCharacters).length : 0;
-                var keptFriends = sanitizeCharacters(gameState.characters).length;
-                var keptGold = sanitizeCharacters(gameState.goldCharacters).length;
-                if (!doc.exists || keptFriends > cloudFriends || keptGold > cloudGold) saveGame();
+                saveGame(true);
+                try { startCloudListener(); } catch (e) {}
+                if (appStarted) {
+                    try { applyHero(); } catch (e) {}
+                    try { refreshDailySurprise(); } catch (e) {}
+                    var collectionOpen = document.getElementById('collectionOverlay');
+                    if (collectionOpen && !collectionOpen.hidden) {
+                        try { renderCollection(); } catch (e) {}
+                    }
+                }
             }).catch((error) => {
                 console.error("Error loading cloud data:", error);
                 const saved = readSavedState();
                 if(saved) Object.assign(gameState, saved);
+                try { restoreCollectedCharacters(saved); } catch (e) {}
             });
         }
 
-        function saveGame() {
+        function startCloudListener() {
+            var email, ref;
+            if (!db || !currentUserEmail || currentUserEmail === 'guest') return;
+            if (cloudUnsub) {
+                try { cloudUnsub(); } catch (e) {}
+                cloudUnsub = null;
+            }
+            email = currentUserEmail;
+            try { ref = db.collection('users').doc(email); } catch (e) { return; }
+            if (!ref || typeof ref.onSnapshot !== 'function') return;
+            cloudUnsub = ref.onSnapshot(function (doc) {
+                var remote, fromCache, openEl;
+                if (currentUserEmail !== email || !doc || !doc.exists) return;
+                remote = doc.data();
+                if (!remote || typeof remote !== 'object') return;
+                if (writingCloud) {
+                    lastRemote = remote;
+                    return;
+                }
+                lastRemote = remote;
+                try { restoreCollectedCharacters(remote); } catch (e) {}
+                try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {}
+                try { updateUI(); } catch (e) {}
+                try { applyHero(); } catch (e) {}
+                try { refreshDailySurprise(); } catch (e) {}
+                openEl = document.getElementById('collectionOverlay');
+                if (openEl && !openEl.hidden) {
+                    try { renderCollection(); } catch (e) {}
+                }
+                fromCache = doc.metadata && doc.metadata.fromCache;
+                if (fromCache) return;
+                if (remoteIsBehind(remote)) saveGame(friendsBehind(remote));
+            }, function (err) {
+                console.error('Cloud sync listener failed', err);
+            });
+        }
+
+        function cloudPayload() {
+            var payload;
+            try { payload = JSON.parse(JSON.stringify(gameState)); }
+            catch (e) { return gameState; }
+            // An empty friends list must not replace the list already stored
+            // on users/{email}. Coins and streak are still written every time.
+            if (Array.isArray(payload.characters) && !sanitizeCharacters(payload.characters).length) delete payload.characters;
+            if (Array.isArray(payload.goldCharacters) && !sanitizeCharacters(payload.goldCharacters).length) delete payload.goldCharacters;
+            return payload;
+        }
+
+        function friendsBehind(remote) {
+            var remoteFriends, remoteGold, mineFriends, mineGold, i, myPlay, remotePlay;
+            if (!remote) return true;
+            remoteFriends = sanitizeCharacters(remote.characters);
+            remoteGold = sanitizeCharacters(remote.goldCharacters);
+            mineFriends = sanitizeCharacters(gameState.characters);
+            mineGold = sanitizeCharacters(gameState.goldCharacters);
+            for (i = 0; i < mineFriends.length; i++) if (remoteFriends.indexOf(mineFriends[i]) === -1) return true;
+            for (i = 0; i < mineGold.length; i++) if (remoteGold.indexOf(mineGold[i]) === -1) return true;
+            myPlay = sanitizePlayAs(gameState.playAs, mineFriends, mineGold);
+            remotePlay = sanitizePlayAs(remote.playAs, mineFriends, mineGold);
+            if (myPlay !== remotePlay && playAsStamp(gameState) > playAsStamp(remote)) return true;
+            return false;
+        }
+
+        function writeCloudGame(publishFriends) {
+            var pending, payload;
+            if (!db || !currentUserEmail || currentUserEmail === 'guest') return;
+            payload = cloudPayload();
+            if (publishFriends !== true) {
+                delete payload.characters;
+                delete payload.goldCharacters;
+                delete payload.playAs;
+                delete payload.playAsAt;
+            }
+            writingCloud = true;
+            try {
+                pending = db.collection('users').doc(currentUserEmail).set(payload, { merge: true });
+                if (pending && pending.catch) pending.catch(function (err) { console.error('Cloud save failed', err); });
+            } catch (e) {
+                console.error('Cloud save failed', e);
+            }
+            writingCloud = false;
+            try { lastRemote = JSON.parse(JSON.stringify(gameState)); } catch (e) {}
+        }
+
+        function saveGame(publishFriends) {
             try { restoreCollectedCharacters(null); } catch (e) {}
             try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {}
-            if(db && currentUserEmail !== 'guest') {
-                db.collection('users').doc(currentUserEmail).set(gameState, { merge: true });
-            }
+            writeCloudGame(publishFriends === true);
             updateUI();
         }
 
@@ -1140,19 +1250,36 @@
             else if (gameState.lastLogin !== today) { gameState.lastLogin = today; saveGame(); }
             if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
         }
-        function saveGame() { 
+        function saveGame(publishFriends) { 
             try { restoreCollectedCharacters(null); } catch (e) {}
             try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {} 
-            if(db && currentUserEmail !== 'guest') {
-                db.collection('users').doc(currentUserEmail).set(gameState, { merge: true });
-            }
+            writeCloudGame(publishFriends === true);
             updateUI(); 
+        }
+        function accountLabel() {
+            if (!currentUserEmail || currentUserEmail === 'guest') {
+                return 'Playing as guest. Progress stays on this device only.';
+            }
+            return 'Playing as ' + currentUserEmail + '. Friends, coins, and streak save to this account.';
+        }
+        function showAccountNote() {
+            var note = document.getElementById('playerNote');
+            var collectionNote = document.getElementById('collectionAccountNote');
+            var text = accountLabel();
+            var guest = !currentUserEmail || currentUserEmail === 'guest';
+            if (note) {
+                note.hidden = false;
+                note.textContent = text;
+                note.classList.toggle('is-guest', guest);
+            }
+            if (collectionNote) collectionNote.textContent = text;
         }
         function updateUI() {
             document.getElementById('coinDisplay').innerText = gameState.coins.toString().padStart(2, '0');
             document.getElementById('scoreDisplay').innerText = gameState.score.toString().padStart(6, '0');
             document.getElementById('streakDisplay').innerText = gameState.streak.toString();
             document.getElementById('levelDisplay').innerText = gameState.world + "-" + gameState.stage;
+            try { showAccountNote(); } catch (e) {}
             try { updateCollectionButton(); } catch (e) {}
             try { refreshSurpriseProgress(); } catch (e) {}
         }
@@ -1356,10 +1483,159 @@
             return null;
         }
 
+        function finiteNumber(value) {
+            if (typeof value === 'string' && value.trim() !== '' && isFinite(Number(value))) value = Number(value);
+            if (typeof value !== 'number' || !isFinite(value)) return null;
+            return value;
+        }
+
+        function maxNumber(values, fallback) {
+            var best = null;
+            var i, n;
+            for (i = 0; i < values.length; i++) {
+                n = finiteNumber(values[i]);
+                if (n == null) continue;
+                if (best == null || n > best) best = n;
+            }
+            return best == null ? fallback : best;
+        }
+
+        function syncSources(extra) {
+            return [readSavedState(), extra, lastRemote, gameState];
+        }
+
+        function mergedStreak(sources) {
+            var bestDate = null;
+            var bestStreak = null;
+            var undated = null;
+            var i, state, date, streak;
+            for (i = 0; i < sources.length; i++) {
+                state = sources[i];
+                if (!state) continue;
+                date = normalizeLastLogin(state.lastLogin);
+                streak = finiteNumber(state.streak);
+                if (streak == null) continue;
+                if (!date) {
+                    if (undated == null || streak > undated) undated = streak;
+                    continue;
+                }
+                if (!bestDate || date > bestDate || (date === bestDate && (bestStreak == null || streak > bestStreak))) {
+                    bestDate = date;
+                    bestStreak = streak;
+                }
+            }
+            if (bestDate) return { lastLogin: bestDate, streak: bestStreak };
+            if (undated != null) return { lastLogin: gameState.lastLogin, streak: undated };
+            return null;
+        }
+
+        function levelRank(state) {
+            var world, stage, questions;
+            if (!state) return -1;
+            world = finiteNumber(state.world);
+            stage = finiteNumber(state.stage);
+            questions = finiteNumber(state.questionsAnsweredLevel);
+            if (world == null) return -1;
+            return world * 1000 + (stage == null ? 0 : stage) * 50 + (questions == null ? 0 : questions);
+        }
+
+        function mergeDailyCounts(sources) {
+            var clean = {};
+            var i, bag, keys, k;
+            for (i = 0; i < sources.length; i++) {
+                if (!sources[i]) continue;
+                bag = sanitizeDailyCounts(sources[i].dailyCorrectByDay);
+                keys = Object.keys(bag);
+                for (k = 0; k < keys.length; k++) {
+                    if (clean[keys[k]] == null || bag[keys[k]] > clean[keys[k]]) clean[keys[k]] = bag[keys[k]];
+                }
+            }
+            return clean;
+        }
+
+        function choosePlayAs(sources, owned, goldOwned) {
+            var i, choice;
+            for (i = sources.length - 1; i >= 0; i--) {
+                if (!sources[i] || typeof sources[i].playAs !== 'string') continue;
+                choice = sanitizePlayAs(sources[i].playAs, owned, goldOwned);
+                if (choice !== 'mario') return choice;
+            }
+            return 'mario';
+        }
+
+        function playAsStamp(state) {
+            var stamp = finiteNumber(state && state.playAsAt);
+            return stamp == null ? 0 : stamp;
+        }
+
+        function resolvePlayAs(sources, owned, goldOwned) {
+            var best = null;
+            var bestStamp = 0;
+            var i, stamp;
+            for (i = 0; i < sources.length; i++) {
+                if (!sources[i]) continue;
+                stamp = playAsStamp(sources[i]);
+                if (stamp > bestStamp) {
+                    bestStamp = stamp;
+                    best = sources[i];
+                }
+            }
+            if (best && bestStamp > 0) {
+                gameState.playAsAt = bestStamp;
+                return sanitizePlayAs(best.playAs, owned, goldOwned);
+            }
+            return choosePlayAs(sources, owned, goldOwned);
+        }
+
+        function countsBehind(remoteBag, localBag) {
+            var local = sanitizeDailyCounts(localBag);
+            var remote = sanitizeDailyCounts(remoteBag);
+            var keys = Object.keys(local);
+            var i;
+            for (i = 0; i < keys.length; i++) {
+                if (remote[keys[i]] == null || local[keys[i]] > remote[keys[i]]) return true;
+            }
+            return false;
+        }
+
+        function remoteIsBehind(remote) {
+            var remoteFriends, remoteGold, mineFriends, mineGold, i;
+            var remoteCoins, myCoins, remoteStreak, myStreak, remoteDate, myDate;
+            var remoteScore, myScore, remoteClaim, myClaim, myPlay, remotePlay;
+            if (!remote) return true;
+            remoteFriends = sanitizeCharacters(remote.characters);
+            remoteGold = sanitizeCharacters(remote.goldCharacters);
+            mineFriends = sanitizeCharacters(gameState.characters);
+            mineGold = sanitizeCharacters(gameState.goldCharacters);
+            for (i = 0; i < mineFriends.length; i++) if (remoteFriends.indexOf(mineFriends[i]) === -1) return true;
+            for (i = 0; i < mineGold.length; i++) if (remoteGold.indexOf(mineGold[i]) === -1) return true;
+            remoteCoins = finiteNumber(remote.coins);
+            myCoins = finiteNumber(gameState.coins);
+            if (myCoins != null && (remoteCoins == null || myCoins > remoteCoins)) return true;
+            remoteDate = normalizeLastLogin(remote.lastLogin);
+            myDate = normalizeLastLogin(gameState.lastLogin);
+            remoteStreak = finiteNumber(remote.streak);
+            myStreak = finiteNumber(gameState.streak);
+            if (myDate && (!remoteDate || myDate > remoteDate)) return true;
+            if (myDate && remoteDate && myDate === remoteDate && myStreak != null && (remoteStreak == null || myStreak > remoteStreak)) return true;
+            remoteScore = finiteNumber(remote.score);
+            myScore = finiteNumber(gameState.score);
+            if (myScore != null && (remoteScore == null || myScore > remoteScore)) return true;
+            remoteClaim = normalizeLastLogin(remote.dailySurpriseDate);
+            myClaim = normalizeLastLogin(gameState.dailySurpriseDate);
+            if (myClaim && (!remoteClaim || myClaim > remoteClaim)) return true;
+            if (countsBehind(remote.dailyCorrectByDay, gameState.dailyCorrectByDay)) return true;
+            if (levelRank(gameState) > levelRank(remote)) return true;
+            myPlay = sanitizePlayAs(gameState.playAs, mineFriends, mineGold);
+            remotePlay = sanitizePlayAs(remote.playAs, mineFriends, mineGold);
+            if (myPlay !== 'mario' && myPlay !== remotePlay) return true;
+            return false;
+        }
+
         function restoreCollectedCharacters(extra) {
-            var sources = [readSavedState(), extra, gameState];
+            var sources = syncSources(extra);
             var adopted = adoptSavedCharacters(sources);
-            var raw;
+            var raw, owned, goldOwned, streakPick, recoveredDate, s, d, bestLevel, bestRank, rank;
             if (adopted.characters.length) gameState.characters = adopted.characters;
             else {
                 raw = firstUnparsedFriends(sources, false);
@@ -1372,18 +1648,40 @@
                 if (raw) gameState.goldCharacters = raw;
                 else gameState.goldCharacters = [];
             }
-            gameState.playAs = sanitizePlayAs(gameState.playAs, sanitizeCharacters(gameState.characters), sanitizeCharacters(gameState.goldCharacters));
-            // Keep the newest claim day from the browser or the cloud. A profile
-            // that never stored that day must not erase it, or today's prize can be claimed twice.
-            var recoveredDate = null;
-            var s, d;
+            owned = sanitizeCharacters(gameState.characters);
+            goldOwned = sanitizeCharacters(gameState.goldCharacters);
+            gameState.playAs = resolvePlayAs(sources, owned, goldOwned);
+            gameState.coins = maxNumber(sources.map(function (state) { return state && state.coins; }), gameState.coins);
+            gameState.score = maxNumber(sources.map(function (state) { return state && state.score; }), gameState.score);
+            streakPick = mergedStreak(sources);
+            if (streakPick) {
+                gameState.streak = streakPick.streak;
+                if (streakPick.lastLogin) gameState.lastLogin = streakPick.lastLogin;
+            }
+            recoveredDate = null;
             for (s = 0; s < sources.length; s++) {
                 if (!sources[s]) continue;
                 d = normalizeLastLogin(sources[s].dailySurpriseDate);
                 if (d && (!recoveredDate || d > recoveredDate)) recoveredDate = d;
             }
             if (recoveredDate) gameState.dailySurpriseDate = recoveredDate;
-            writeCharacterBackup(sanitizeCharacters(gameState.characters), sanitizeCharacters(gameState.goldCharacters));
+            gameState.dailyCorrectByDay = mergeDailyCounts(sources);
+            bestLevel = null;
+            bestRank = -1;
+            for (s = 0; s < sources.length; s++) {
+                rank = levelRank(sources[s]);
+                if (rank > bestRank) {
+                    bestRank = rank;
+                    bestLevel = sources[s];
+                }
+            }
+            if (bestLevel && bestRank >= 0) {
+                gameState.world = bestLevel.world;
+                gameState.stage = bestLevel.stage;
+                if (finiteNumber(bestLevel.questionsAnsweredLevel) != null) gameState.questionsAnsweredLevel = bestLevel.questionsAnsweredLevel;
+                if (finiteNumber(bestLevel.correctInLevel) != null) gameState.correctInLevel = bestLevel.correctInLevel;
+            }
+            writeCharacterBackup(owned, goldOwned);
         }
 
         function characterById(id) {
@@ -1681,6 +1979,7 @@
                 if (adoptedLogin.goldCharacters.length) saved.goldCharacters = adoptedLogin.goldCharacters;
                 choice = sanitizePlayAs(playAs, saved.characters, saved.goldCharacters);
                 saved.playAs = choice;
+                saved.playAsAt = Date.now();
                 try { localStorage.setItem('marioMathState', JSON.stringify(saved)); } catch (e) {}
                 try { writeCharacterBackup(saved.characters, saved.goldCharacters); } catch (e) {}
                 try { renderCollection(); } catch (e) {}
@@ -1688,7 +1987,8 @@
             }
             choice = sanitizePlayAs(playAs, currentOwned(gameState), currentGold(gameState));
             gameState.playAs = choice;
-            try { saveGame(); } catch (e) {}
+            gameState.playAsAt = Date.now();
+            try { saveGame(true); } catch (e) {}
             try { applyHero(); } catch (e) {}
             try { renderCollection(); } catch (e) {}
         }
@@ -1712,6 +2012,7 @@
             var tabGold = document.getElementById('collectionTabGold');
             var claimed = dateClaimed(source);
             var ready = surpriseIsReady(source);
+            try { showAccountNote(); } catch (e) {}
             for (i = 0; i < owned.length; i++) ownedMap[owned[i]] = true;
             for (i = 0; i < goldOwned.length; i++) goldMap[goldOwned[i]] = true;
             if (tabNormal) {
@@ -2001,7 +2302,7 @@
                     try { playOneUpSound(); } catch (e) {}
                 }
             }
-            try { saveGame(); } catch (e) {}
+            try { saveGame(true); } catch (e) {}
             openDailyBlock(next, bonus, gold);
         }
 

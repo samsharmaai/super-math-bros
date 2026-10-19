@@ -464,7 +464,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-19b</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-19c</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -796,11 +796,12 @@
         var lastRemote = null;
         var writingCloud = false;
         var writeQueued = false;
+        var friendsRejected = false;
         var cloudUnsub = null;
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-19b';
+        var APP_BUILD = '2026-10-19c';
         let allQuestions = []; let recentQuestions = []; let currentQ = {}; let currentUserEmail = "guest";
         let appStarted = false;
         
@@ -861,7 +862,22 @@
 
         // --- CLOUD SAVE LOGIC ---
         function accountDocId() {
-            return String(currentUserEmail || '').trim().toLowerCase();
+            // The coins-and-streak save that already works uses user.email
+            // exactly as Firebase Auth provides it.
+            return currentUserEmail || '';
+        }
+
+        function optionalCloudIds() {
+            var email = accountDocId();
+            var ids = [];
+            var lower, uid;
+            lower = String(email).trim().toLowerCase();
+            if (lower && lower !== email) ids.push(lower);
+            try {
+                uid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : '';
+            } catch (e) { uid = ''; }
+            if (uid && uid !== email && ids.indexOf(uid) === -1) ids.push(uid);
+            return ids;
         }
 
         function cloudErrorMessage(err) {
@@ -884,7 +900,7 @@
 
         function fetchUserDoc(id) {
             try {
-                return db.collection('users').doc(id).get({ source: 'server' }).then(function (doc) {
+                return db.collection('users').doc(id).get().then(function (doc) {
                     return doc && doc.exists ? doc.data() : null;
                 }).catch(function (err) {
                     return { __error: err, __id: id };
@@ -894,67 +910,77 @@
             }
         }
 
+        function readOptionalDocs() {
+            var ids = optionalCloudIds();
+            if (!ids.length) return Promise.resolve([]);
+            return Promise.all(ids.map(function (id) {
+                return fetchUserDoc(id).then(function (data) {
+                    if (!data || data.__error) return null;
+                    return data;
+                }).catch(function () { return null; });
+            })).then(function (list) {
+                var docs = [];
+                var i;
+                for (i = 0; i < list.length; i++) if (list[i]) docs.push(list[i]);
+                return docs;
+            }).catch(function () { return []; });
+        }
+
+        function applyCloudDocs(primary, extras) {
+            var docs = [];
+            var i;
+            extraCloudDocs = [];
+            if (primary && !primary.__error) {
+                docs.push(primary);
+                Object.assign(gameState, primary);
+            }
+            for (i = 0; i < extras.length; i++) {
+                docs.push(extras[i]);
+                Object.assign(gameState, extras[i]);
+            }
+            extraCloudDocs = docs;
+            lastRemote = primary && !primary.__error ? primary : (docs.length ? docs[docs.length - 1] : null);
+            try { restoreCollectedCharacters(lastRemote); } catch (e) {}
+            extraCloudDocs = [];
+            try { lastRemote = JSON.parse(JSON.stringify(gameState)); } catch (e) {}
+        }
+
         function loadCloudData() {
-            var emailId, ids, uid;
+            var emailId;
             if(!db || !currentUserEmail || currentUserEmail === 'guest') return Promise.resolve();
             emailId = accountDocId();
             if (!emailId) {
                 showCloudError({ code: 'missing-email', message: 'This login has no email, so devices cannot share a save.' });
                 return Promise.resolve();
             }
-            ids = [emailId];
-            if (currentUserEmail !== emailId) ids.push(currentUserEmail);
-            try {
-                uid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : '';
-            } catch (e) { uid = ''; }
-            if (uid && ids.indexOf(uid) === -1) ids.push(uid);
             cloudStatusText = 'Checking the cloud save...';
             try { showAccountNote(); } catch (e) {}
-            return Promise.all(ids.map(fetchUserDoc)).then(function (results) {
-                var emailResult = results[0];
-                var docs = [];
-                var i, data, saved;
-                if (emailResult && emailResult.__error) {
-                    // A failed read must not be followed by a write. Still
-                    // show any other copy we could read (a different-case
-                    // email or an older uid document) merged with this device.
-                    serverSeen = false;
-                    showCloudError(emailResult.__error);
-                    extraCloudDocs = [];
-                    for (i = 1; i < results.length; i++) {
-                        data = results[i];
-                        if (!data || data.__error) continue;
-                        extraCloudDocs.push(data);
+            return fetchUserDoc(emailId).then(function (emailResult) {
+                var failed = emailResult && emailResult.__error;
+                if (failed) serverSeen = false;
+                return readOptionalDocs().then(function (extras) {
+                    var saved;
+                    if (failed) {
+                        showCloudError(emailResult.__error);
+                        saved = readSavedState();
+                        if (saved) Object.assign(gameState, saved);
+                        try { applyCloudDocs(null, extras); } catch (e) {}
+                        try { updateUI(); } catch (e) {}
+                        return;
                     }
-                    saved = readSavedState();
-                    if (saved) Object.assign(gameState, saved);
-                    try { restoreCollectedCharacters(saved); } catch (e) {}
-                    extraCloudDocs = [];
-                    try { updateUI(); } catch (e) {}
-                    return;
-                }
-                serverSeen = true;
-                for (i = 0; i < results.length; i++) {
-                    data = results[i];
-                    if (!data || data.__error) continue;
-                    docs.push(data);
-                    Object.assign(gameState, data);
-                }
-                extraCloudDocs = docs;
-                lastRemote = docs.length ? docs[docs.length - 1] : null;
-                try { restoreCollectedCharacters(lastRemote); } catch (e) {}
-                extraCloudDocs = [];
-                try { lastRemote = JSON.parse(JSON.stringify(gameState)); } catch (e) {}
-                saveGame(true);
-                try { startCloudListener(); } catch (e) {}
-                if (appStarted) {
-                    try { applyHero(); } catch (e) {}
-                    try { refreshDailySurprise(); } catch (e) {}
-                    var collectionOpen = document.getElementById('collectionOverlay');
-                    if (collectionOpen && !collectionOpen.hidden) {
-                        try { renderCollection(); } catch (e) {}
+                    serverSeen = true;
+                    try { applyCloudDocs(emailResult, extras); } catch (e) {}
+                    saveGame(true);
+                    try { startCloudListener(); } catch (e) {}
+                    if (appStarted) {
+                        try { applyHero(); } catch (e) {}
+                        try { refreshDailySurprise(); } catch (e) {}
+                        var collectionOpen = document.getElementById('collectionOverlay');
+                        if (collectionOpen && !collectionOpen.hidden) {
+                            try { renderCollection(); } catch (e) {}
+                        }
                     }
-                }
+                });
             }).catch(function (error) {
                 serverSeen = false;
                 showCloudError(error);
@@ -994,7 +1020,7 @@
                 fromCache = doc.metadata && doc.metadata.fromCache;
                 if (fromCache) return;
                 serverSeen = true;
-                if (remoteIsBehind(remote)) saveGame(true);
+                if (remoteIsBehind(remote, friendsRejected)) saveGame(true);
             }, function (err) {
                 showCloudError(err);
             });
@@ -1008,6 +1034,27 @@
             // on users/{email}. Coins and streak are still written every time.
             if (Array.isArray(payload.characters) && !sanitizeCharacters(payload.characters).length) delete payload.characters;
             if (Array.isArray(payload.goldCharacters) && !sanitizeCharacters(payload.goldCharacters).length) delete payload.goldCharacters;
+            return payload;
+        }
+
+        function legacyPayload() {
+            var payload = cloudPayload();
+            delete payload.characters;
+            delete payload.goldCharacters;
+            delete payload.playAs;
+            delete payload.playAsAt;
+            return payload;
+        }
+
+        function friendPayload() {
+            var full = cloudPayload();
+            var payload = {};
+            if (full.characters) payload.characters = full.characters;
+            if (full.goldCharacters) payload.goldCharacters = full.goldCharacters;
+            if (full.characters || full.goldCharacters || full.playAsAt) {
+                if (full.playAs) payload.playAs = full.playAs;
+                if (full.playAsAt) payload.playAsAt = full.playAsAt;
+            }
             return payload;
         }
 
@@ -1033,7 +1080,7 @@
         }
 
         function writeCloudGame() {
-            var payload, ref, pending, queuedAfter;
+            var ref, pending, queuedAfter;
             if (!serverSeen || !db || !currentUserEmail || currentUserEmail === 'guest') return;
             if (!accountDocId()) return;
             if (writingCloud) {
@@ -1048,55 +1095,49 @@
             }
             writingCloud = true;
             writeQueued = false;
-            function settle(err) {
+            function finish(err, friendsErr) {
+                if (friendsErr) friendsRejected = true;
                 writingCloud = false;
                 if (err) showCloudError(err);
-                else showCloudOk();
+                else if (friendsErr) {
+                    cloudStatusText = 'Cloud save failed (' + accountDocId() + '): ' + cloudErrorMessage(friendsErr) + ' Coins, streak, and world were saved. Collected friends were not.';
+                    console.error(cloudStatusText, friendsErr);
+                    try { showAccountNote(); } catch (e) {}
+                } else showCloudOk();
                 try { rememberCloudWrite(); } catch (e) {}
                 if (err) showCloudError(err);
+                else if (friendsErr) {
+                    try { showAccountNote(); } catch (e) {}
+                }
                 queuedAfter = writeQueued;
                 writeQueued = false;
                 if (queuedAfter) writeCloudGame();
             }
-            function sendMerged(remote) {
-                if (remote && typeof remote === 'object') {
-                    try { restoreCollectedCharacters(remote); } catch (e) {}
-                }
-                payload = cloudPayload();
-                return ref.set(payload, { merge: true });
-            }
-            // Read the latest cloud copy inside the write, then send the
-            // merged game. A device that loaded earlier cannot replace a
-            // higher coin total, streak, world, or friend list that landed
-            // in the meantime. An empty friend list is left out of the payload.
-            if (typeof db.runTransaction === 'function') {
-                try {
-                    pending = db.runTransaction(function (transaction) {
-                        return Promise.resolve(transaction.get(ref)).then(function (doc) {
-                            var remote = doc && doc.exists ? doc.data() : null;
-                            if (remote && typeof remote === 'object') {
-                                try { restoreCollectedCharacters(remote); } catch (e) {}
-                            }
-                            payload = cloudPayload();
-                            transaction.set(ref, payload, { merge: true });
-                        });
+            // Same two calls the working coins-and-streak save uses:
+            // users/{user.email}.get() and .set(data, { merge: true }).
+            // Friend fields go in a second set so a rules rejection of those
+            // fields cannot block coins, streak, and world.
+            try {
+                pending = ref.get().then(function (doc) {
+                    var remote = doc && doc.exists ? doc.data() : null;
+                    var friends;
+                    if (remote && typeof remote === 'object') {
+                        try { restoreCollectedCharacters(remote); } catch (e) {}
+                    }
+                    return ref.set(legacyPayload(), { merge: true }).then(function () {
+                        if (friendsRejected) return null;
+                        friends = friendPayload();
+                        if (!Object.keys(friends).length) return null;
+                        return ref.set(friends, { merge: true }).then(function () { return null; }).catch(function (err) { return err; });
                     });
-                } catch (e) {
-                    settle(e);
-                    return;
-                }
-            } else {
-                try {
-                    pending = ref.get({ source: 'server' }).then(function (doc) {
-                        return sendMerged(doc && doc.exists ? doc.data() : null);
-                    });
-                } catch (e) {
-                    settle(e);
-                    return;
-                }
+                });
+            } catch (e) {
+                finish(e);
+                return;
             }
-            if (pending && pending.then) pending.then(function () { settle(); }).catch(function (err) { settle(err); });
-            else settle();
+            if (pending && pending.then) {
+                pending.then(function (friendsErr) { finish(null, friendsErr); }).catch(function (err) { finish(err); });
+            } else finish();
         }
 
         function saveGame(publishFriends) {
@@ -1755,7 +1796,7 @@
             return false;
         }
 
-        function remoteIsBehind(remote) {
+        function remoteIsBehind(remote, ignoreFriends) {
             var remoteFriends, remoteGold, mineFriends, mineGold, i;
             var remoteCoins, myCoins, remoteStreak, myStreak, remoteDate, myDate;
             var remoteScore, myScore, remoteClaim, myClaim, myPlay, remotePlay;
@@ -1764,8 +1805,10 @@
             remoteGold = sanitizeCharacters(remote.goldCharacters);
             mineFriends = sanitizeCharacters(gameState.characters);
             mineGold = sanitizeCharacters(gameState.goldCharacters);
-            for (i = 0; i < mineFriends.length; i++) if (remoteFriends.indexOf(mineFriends[i]) === -1) return true;
-            for (i = 0; i < mineGold.length; i++) if (remoteGold.indexOf(mineGold[i]) === -1) return true;
+            if (!ignoreFriends) {
+                for (i = 0; i < mineFriends.length; i++) if (remoteFriends.indexOf(mineFriends[i]) === -1) return true;
+                for (i = 0; i < mineGold.length; i++) if (remoteGold.indexOf(mineGold[i]) === -1) return true;
+            }
             remoteCoins = finiteNumber(remote.coins);
             myCoins = finiteNumber(gameState.coins);
             if (myCoins != null && (remoteCoins == null || myCoins > remoteCoins)) return true;
@@ -1783,6 +1826,7 @@
             if (myClaim && (!remoteClaim || myClaim > remoteClaim)) return true;
             if (countsBehind(remote.dailyCorrectByDay, gameState.dailyCorrectByDay)) return true;
             if (levelRank(gameState) > levelRank(remote)) return true;
+            if (ignoreFriends) return false;
             myPlay = sanitizePlayAs(gameState.playAs, mineFriends, mineGold);
             remotePlay = sanitizePlayAs(remote.playAs, mineFriends, mineGold);
             if (myPlay !== 'mario' && myPlay !== remotePlay) return true;

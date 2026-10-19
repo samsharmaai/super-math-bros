@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Super Math World 3 - Final</title>
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -78,8 +81,9 @@
             font-family: Verdana, sans-serif; font-size: 13px; line-height: 1.35;
             margin: 6px auto 0; max-width: 560px; padding: 6px 8px;
             background: rgba(0,0,0,0.55); border: 2px solid #fff; z-index: 5;
+            white-space: pre-line;
         }
-        .player-note.is-guest { background: #8a1c12; }
+        .player-note.is-guest, .player-note.is-error { background: #8a1c12; }
         .collection-account {
             font-family: Verdana, sans-serif; font-size: 13px; line-height: 1.35;
             color: #fff; margin: 0 0 8px; text-shadow: 1px 1px 0 #000;
@@ -460,6 +464,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-19b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -790,7 +795,12 @@
         let gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0, characters: [], dailySurpriseDate: null, goldCharacters: [], playAs: 'mario', dailyCorrectByDay: {} };
         var lastRemote = null;
         var writingCloud = false;
+        var writeQueued = false;
         var cloudUnsub = null;
+        var serverSeen = false;
+        var extraCloudDocs = [];
+        var cloudStatusText = '';
+        var APP_BUILD = '2026-10-19b';
         let allQuestions = []; let recentQuestions = []; let currentQ = {}; let currentUserEmail = "guest";
         let appStarted = false;
         
@@ -850,23 +860,91 @@
         }
 
         // --- CLOUD SAVE LOGIC ---
+        function accountDocId() {
+            return String(currentUserEmail || '').trim().toLowerCase();
+        }
+
+        function cloudErrorMessage(err) {
+            var code = err && (err.code || '');
+            var msg = err && err.message ? String(err.message) : 'Could not reach the cloud save';
+            if (code && msg.indexOf(String(code)) === -1) return code + ': ' + msg;
+            return msg;
+        }
+
+        function showCloudError(err) {
+            cloudStatusText = 'Cloud save failed (' + accountDocId() + '): ' + cloudErrorMessage(err);
+            console.error(cloudStatusText, err);
+            try { showAccountNote(); } catch (e) {}
+        }
+
+        function showCloudOk() {
+            cloudStatusText = 'Saved to the cloud.';
+            try { showAccountNote(); } catch (e) {}
+        }
+
+        function fetchUserDoc(id) {
+            try {
+                return db.collection('users').doc(id).get({ source: 'server' }).then(function (doc) {
+                    return doc && doc.exists ? doc.data() : null;
+                }).catch(function (err) {
+                    return { __error: err, __id: id };
+                });
+            } catch (err) {
+                return Promise.resolve({ __error: err, __id: id });
+            }
+        }
+
         function loadCloudData() {
-            if(!db || currentUserEmail === 'guest') return Promise.resolve();
-            
-            return db.collection('users').doc(currentUserEmail).get().then((doc) => {
-                var cloudData = null;
-                if (doc.exists) {
-                    console.log("Cloud save found!");
-                    cloudData = doc.data();
-                    lastRemote = cloudData;
-                    Object.assign(gameState, cloudData);
-                } else {
-                    console.log("New user, creating cloud save...");
-                    lastRemote = null;
+            var emailId, ids, uid;
+            if(!db || !currentUserEmail || currentUserEmail === 'guest') return Promise.resolve();
+            emailId = accountDocId();
+            if (!emailId) {
+                showCloudError({ code: 'missing-email', message: 'This login has no email, so devices cannot share a save.' });
+                return Promise.resolve();
+            }
+            ids = [emailId];
+            if (currentUserEmail !== emailId) ids.push(currentUserEmail);
+            try {
+                uid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : '';
+            } catch (e) { uid = ''; }
+            if (uid && ids.indexOf(uid) === -1) ids.push(uid);
+            cloudStatusText = 'Checking the cloud save...';
+            try { showAccountNote(); } catch (e) {}
+            return Promise.all(ids.map(fetchUserDoc)).then(function (results) {
+                var emailResult = results[0];
+                var docs = [];
+                var i, data, saved;
+                if (emailResult && emailResult.__error) {
+                    // A failed read must not be followed by a write. Still
+                    // show any other copy we could read (a different-case
+                    // email or an older uid document) merged with this device.
+                    serverSeen = false;
+                    showCloudError(emailResult.__error);
+                    extraCloudDocs = [];
+                    for (i = 1; i < results.length; i++) {
+                        data = results[i];
+                        if (!data || data.__error) continue;
+                        extraCloudDocs.push(data);
+                    }
+                    saved = readSavedState();
+                    if (saved) Object.assign(gameState, saved);
+                    try { restoreCollectedCharacters(saved); } catch (e) {}
+                    extraCloudDocs = [];
+                    try { updateUI(); } catch (e) {}
+                    return;
                 }
-                // Friends use the same users/{email} save as coins and streak.
-                // Merge first so an empty cloud list cannot erase the tablet's friends.
-                try { restoreCollectedCharacters(cloudData); } catch (e) {}
+                serverSeen = true;
+                for (i = 0; i < results.length; i++) {
+                    data = results[i];
+                    if (!data || data.__error) continue;
+                    docs.push(data);
+                    Object.assign(gameState, data);
+                }
+                extraCloudDocs = docs;
+                lastRemote = docs.length ? docs[docs.length - 1] : null;
+                try { restoreCollectedCharacters(lastRemote); } catch (e) {}
+                extraCloudDocs = [];
+                try { lastRemote = JSON.parse(JSON.stringify(gameState)); } catch (e) {}
                 saveGame(true);
                 try { startCloudListener(); } catch (e) {}
                 if (appStarted) {
@@ -877,11 +955,13 @@
                         try { renderCollection(); } catch (e) {}
                     }
                 }
-            }).catch((error) => {
-                console.error("Error loading cloud data:", error);
-                const saved = readSavedState();
-                if(saved) Object.assign(gameState, saved);
+            }).catch(function (error) {
+                serverSeen = false;
+                showCloudError(error);
+                var saved = readSavedState();
+                if (saved) Object.assign(gameState, saved);
                 try { restoreCollectedCharacters(saved); } catch (e) {}
+                try { updateUI(); } catch (e) {}
             });
         }
 
@@ -892,18 +972,15 @@
                 try { cloudUnsub(); } catch (e) {}
                 cloudUnsub = null;
             }
-            email = currentUserEmail;
+            email = accountDocId();
             try { ref = db.collection('users').doc(email); } catch (e) { return; }
             if (!ref || typeof ref.onSnapshot !== 'function') return;
             cloudUnsub = ref.onSnapshot(function (doc) {
                 var remote, fromCache, openEl;
-                if (currentUserEmail !== email || !doc || !doc.exists) return;
+                if (accountDocId() !== email || !doc || !doc.exists) return;
                 remote = doc.data();
                 if (!remote || typeof remote !== 'object') return;
-                if (writingCloud) {
-                    lastRemote = remote;
-                    return;
-                }
+                if (writingCloud) return;
                 lastRemote = remote;
                 try { restoreCollectedCharacters(remote); } catch (e) {}
                 try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {}
@@ -916,9 +993,10 @@
                 }
                 fromCache = doc.metadata && doc.metadata.fromCache;
                 if (fromCache) return;
-                if (remoteIsBehind(remote)) saveGame(friendsBehind(remote));
+                serverSeen = true;
+                if (remoteIsBehind(remote)) saveGame(true);
             }, function (err) {
-                console.error('Cloud sync listener failed', err);
+                showCloudError(err);
             });
         }
 
@@ -948,31 +1026,83 @@
             return false;
         }
 
-        function writeCloudGame(publishFriends) {
-            var pending, payload;
-            if (!db || !currentUserEmail || currentUserEmail === 'guest') return;
-            payload = cloudPayload();
-            if (publishFriends !== true) {
-                delete payload.characters;
-                delete payload.goldCharacters;
-                delete payload.playAs;
-                delete payload.playAsAt;
+        function rememberCloudWrite() {
+            try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {}
+            try { lastRemote = JSON.parse(JSON.stringify(gameState)); } catch (e) { lastRemote = gameState; }
+            try { updateUI(); } catch (e) {}
+        }
+
+        function writeCloudGame() {
+            var payload, ref, pending, queuedAfter;
+            if (!serverSeen || !db || !currentUserEmail || currentUserEmail === 'guest') return;
+            if (!accountDocId()) return;
+            if (writingCloud) {
+                writeQueued = true;
+                return;
+            }
+            try {
+                ref = db.collection('users').doc(accountDocId());
+            } catch (e) {
+                showCloudError(e);
+                return;
             }
             writingCloud = true;
-            try {
-                pending = db.collection('users').doc(currentUserEmail).set(payload, { merge: true });
-                if (pending && pending.catch) pending.catch(function (err) { console.error('Cloud save failed', err); });
-            } catch (e) {
-                console.error('Cloud save failed', e);
+            writeQueued = false;
+            function settle(err) {
+                writingCloud = false;
+                if (err) showCloudError(err);
+                else showCloudOk();
+                try { rememberCloudWrite(); } catch (e) {}
+                if (err) showCloudError(err);
+                queuedAfter = writeQueued;
+                writeQueued = false;
+                if (queuedAfter) writeCloudGame();
             }
-            writingCloud = false;
-            try { lastRemote = JSON.parse(JSON.stringify(gameState)); } catch (e) {}
+            function sendMerged(remote) {
+                if (remote && typeof remote === 'object') {
+                    try { restoreCollectedCharacters(remote); } catch (e) {}
+                }
+                payload = cloudPayload();
+                return ref.set(payload, { merge: true });
+            }
+            // Read the latest cloud copy inside the write, then send the
+            // merged game. A device that loaded earlier cannot replace a
+            // higher coin total, streak, world, or friend list that landed
+            // in the meantime. An empty friend list is left out of the payload.
+            if (typeof db.runTransaction === 'function') {
+                try {
+                    pending = db.runTransaction(function (transaction) {
+                        return Promise.resolve(transaction.get(ref)).then(function (doc) {
+                            var remote = doc && doc.exists ? doc.data() : null;
+                            if (remote && typeof remote === 'object') {
+                                try { restoreCollectedCharacters(remote); } catch (e) {}
+                            }
+                            payload = cloudPayload();
+                            transaction.set(ref, payload, { merge: true });
+                        });
+                    });
+                } catch (e) {
+                    settle(e);
+                    return;
+                }
+            } else {
+                try {
+                    pending = ref.get({ source: 'server' }).then(function (doc) {
+                        return sendMerged(doc && doc.exists ? doc.data() : null);
+                    });
+                } catch (e) {
+                    settle(e);
+                    return;
+                }
+            }
+            if (pending && pending.then) pending.then(function () { settle(); }).catch(function (err) { settle(err); });
+            else settle();
         }
 
         function saveGame(publishFriends) {
             try { restoreCollectedCharacters(null); } catch (e) {}
             try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {}
-            writeCloudGame(publishFriends === true);
+            writeCloudGame();
             updateUI();
         }
 
@@ -1250,27 +1380,28 @@
             else if (gameState.lastLogin !== today) { gameState.lastLogin = today; saveGame(); }
             if(gameState.streak >= 5) document.getElementById('streakDisplay').classList.add('on-fire');
         }
-        function saveGame(publishFriends) { 
-            try { restoreCollectedCharacters(null); } catch (e) {}
-            try { localStorage.setItem('marioMathState', JSON.stringify(gameState)); } catch (e) {} 
-            writeCloudGame(publishFriends === true);
-            updateUI(); 
-        }
         function accountLabel() {
-            if (!currentUserEmail || currentUserEmail === 'guest') {
-                return 'Playing as guest. Progress stays on this device only.';
+            var guest = !currentUserEmail || currentUserEmail === 'guest';
+            var who = guest ? 'Guest' : currentUserEmail;
+            var line = who + ' · build ' + APP_BUILD;
+            if (guest) {
+                if (cloudStatusText && cloudStatusText.indexOf('Old copy') === 0) return line + '\n' + cloudStatusText;
+                return line + '\nProgress stays on this device only.';
             }
-            return 'Playing as ' + currentUserEmail + '. Friends, coins, and streak save to this account.';
+            if (cloudStatusText) return line + '\n' + cloudStatusText;
+            return line + '\nOne cloud save for this login.';
         }
         function showAccountNote() {
             var note = document.getElementById('playerNote');
             var collectionNote = document.getElementById('collectionAccountNote');
             var text = accountLabel();
             var guest = !currentUserEmail || currentUserEmail === 'guest';
+            var failed = !guest && (cloudStatusText.indexOf('Cloud save failed') === 0 || cloudStatusText.indexOf('Old copy') === 0);
             if (note) {
                 note.hidden = false;
                 note.textContent = text;
                 note.classList.toggle('is-guest', guest);
+                note.classList.toggle('is-error', failed);
             }
             if (collectionNote) collectionNote.textContent = text;
         }
@@ -1501,13 +1632,30 @@
         }
 
         function syncSources(extra) {
-            return [readSavedState(), extra, lastRemote, gameState];
+            var list = [readSavedState()];
+            var i;
+            for (i = 0; i < extraCloudDocs.length; i++) list.push(extraCloudDocs[i]);
+            if (extra) list.push(extra);
+            if (lastRemote && lastRemote !== extra) list.push(lastRemote);
+            list.push(gameState);
+            return list;
+        }
+
+        function dayBefore(iso) {
+            var parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+            var dt;
+            if (!parts) return null;
+            dt = new Date(+parts[1], +parts[2] - 1, +parts[3]);
+            if (dt.getFullYear() !== +parts[1] || dt.getMonth() !== +parts[2] - 1 || dt.getDate() !== +parts[3]) return null;
+            dt.setDate(dt.getDate() - 1);
+            return localDateString(dt);
         }
 
         function mergedStreak(sources) {
-            var bestDate = null;
-            var bestStreak = null;
+            var byDate = {};
             var undated = null;
+            var newest = null;
+            var today, prev, best;
             var i, state, date, streak;
             for (i = 0; i < sources.length; i++) {
                 state = sources[i];
@@ -1519,14 +1667,23 @@
                     if (undated == null || streak > undated) undated = streak;
                     continue;
                 }
-                if (!bestDate || date > bestDate || (date === bestDate && (bestStreak == null || streak > bestStreak))) {
-                    bestDate = date;
-                    bestStreak = streak;
-                }
+                if (byDate[date] == null || streak > byDate[date]) byDate[date] = streak;
+                if (!newest || date > newest) newest = date;
             }
-            if (bestDate) return { lastLogin: bestDate, streak: bestStreak };
-            if (undated != null) return { lastLogin: gameState.lastLogin, streak: undated };
-            return null;
+            if (!newest) {
+                if (undated != null) return { lastLogin: gameState.lastLogin, streak: undated };
+                return null;
+            }
+            best = byDate[newest];
+            today = localDateString(new Date());
+            // A device that opened today before it saw yesterday's streak would
+            // have stored "today / 1". Continue the higher streak instead.
+            // A real missed day has no yesterday entry, so the fresh 1 stays.
+            if (newest === today) {
+                prev = dayBefore(newest);
+                if (prev && byDate[prev] != null && byDate[prev] + 1 > best) best = byDate[prev] + 1;
+            }
+            return { lastLogin: newest, streak: best };
         }
 
         function levelRank(state) {
@@ -1668,16 +1825,24 @@
             gameState.dailyCorrectByDay = mergeDailyCounts(sources);
             bestLevel = null;
             bestRank = -1;
+            rank = null;
             for (s = 0; s < sources.length; s++) {
-                rank = levelRank(sources[s]);
-                if (rank > bestRank) {
-                    bestRank = rank;
+                if (!sources[s]) continue;
+                d = finiteNumber(sources[s].world);
+                if (d == null) continue;
+                if (rank == null || d > rank) rank = d;
+            }
+            for (s = 0; s < sources.length; s++) {
+                if (!sources[s] || finiteNumber(sources[s].world) !== rank) continue;
+                d = (finiteNumber(sources[s].stage) || 0) * 50 + (finiteNumber(sources[s].questionsAnsweredLevel) || 0);
+                if (d > bestRank) {
+                    bestRank = d;
                     bestLevel = sources[s];
                 }
             }
-            if (bestLevel && bestRank >= 0) {
-                gameState.world = bestLevel.world;
-                gameState.stage = bestLevel.stage;
+            if (bestLevel && rank != null) {
+                gameState.world = rank;
+                gameState.stage = finiteNumber(bestLevel.stage) == null ? gameState.stage : bestLevel.stage;
                 if (finiteNumber(bestLevel.questionsAnsweredLevel) != null) gameState.questionsAnsweredLevel = bestLevel.questionsAnsweredLevel;
                 if (finiteNumber(bestLevel.correctInLevel) != null) gameState.correctInLevel = bestLevel.correctInLevel;
             }
@@ -2314,7 +2479,46 @@
                     refreshDailySurprise();
                 }
             } catch (e) {}
+            if (currentUserEmail && currentUserEmail !== 'guest') {
+                try { loadCloudData(); } catch (e) {}
+            }
         });
+
+        window.addEventListener('online', function () {
+            if (!currentUserEmail || currentUserEmail === 'guest') return;
+            try { loadCloudData(); } catch (e) {}
+        });
+
+        function showBuildStamp() {
+            var stamp = document.getElementById('buildStamp');
+            if (stamp && stamp.textContent.indexOf('Old copy') !== 0) stamp.textContent = 'Build ' + APP_BUILD;
+        }
+
+        function checkAppVersion() {
+            var url = 'version.json?t=' + Date.now();
+            showBuildStamp();
+            fetch(url, { cache: 'no-store' }).then(function (res) {
+                if (!res.ok) return null;
+                return res.json();
+            }).then(function (data) {
+                var status, stale, stamp;
+                if (!data || !data.build || data.build === APP_BUILD) return;
+                stale = 'Old copy of the game (build ' + APP_BUILD + '). Latest is ' + data.build + '. Open the site in the browser instead of an old home-screen icon.';
+                if (cloudStatusText.indexOf('Cloud save failed') === 0) cloudStatusText = cloudStatusText + '\n' + stale;
+                else cloudStatusText = stale;
+                var overlay = document.getElementById('login-overlay');
+                if (!overlay || overlay.style.display === 'none') {
+                    try { showAccountNote(); } catch (e) {}
+                }
+                status = document.getElementById('login-status');
+                if (status) {
+                    status.innerText = stale;
+                    status.style.color = '#8a1c12';
+                }
+                stamp = document.getElementById('buildStamp');
+                if (stamp) stamp.textContent = stale;
+            }).catch(function () {});
+        }
 
         document.addEventListener('keydown', function (e) {
             if (!e || e.key !== 'Escape') return;
@@ -2335,6 +2539,7 @@
                 writeCharacterBackup(peekAdopt.characters, peekAdopt.goldCharacters);
             }
             applySurpriseTestNote();
+            checkAppVersion();
         } catch (e) {}
 
         const marioJumpBtn = document.getElementById('marioJumpBtn');

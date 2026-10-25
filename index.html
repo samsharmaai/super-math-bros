@@ -536,11 +536,11 @@
             font-family: Verdana, sans-serif; font-size: 11px; font-weight: 700; line-height: 1.2;
             margin-top: 2px; text-shadow: 1px 1px 0 #000; word-break: break-word;
         }
-        .collection-tabs { display: flex; gap: 8px; margin: 2px 0 8px; }
+        .collection-tabs { display: flex; gap: 6px; margin: 2px 0 8px; }
         .collection-tab {
             flex: 1; appearance: none; -webkit-appearance: none;
-            font-family: 'Press Start 2P', cursive; font-size: 0.58em; line-height: 1.4;
-            padding: 10px 4px; border: 3px solid #000; border-radius: 6px;
+            font-family: 'Press Start 2P', cursive; font-size: 0.48em; line-height: 1.35;
+            padding: 10px 2px; border: 3px solid #000; border-radius: 6px;
             background: rgba(0,0,0,0.28); color: #fff; cursor: pointer;
             touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         }
@@ -620,7 +620,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-25a</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-25b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -784,6 +784,7 @@
             <p id="collectionAccountNote" class="collection-account"></p>
             <div class="collection-tabs" role="tablist">
                 <button type="button" class="collection-tab is-on" id="collectionTabNormal" role="tab" aria-selected="true" onclick="setCollectionPage('normal')">FRIENDS</button>
+                <button type="button" class="collection-tab" id="collectionTabSpeed" role="tab" aria-selected="false" onclick="setCollectionPage('speed')">SPEED</button>
                 <button type="button" class="collection-tab gold-tab" id="collectionTabGold" role="tab" aria-selected="false" onclick="setCollectionPage('gold')">GOLD</button>
             </div>
             <div class="collection-count" id="collectionCountLabel">0 / 8 found</div>
@@ -1036,7 +1037,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-25a';
+        var APP_BUILD = '2026-10-25b';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -2054,6 +2055,30 @@
             ]},
             { id: 'daisy', name: 'Princess Daisy', short: 'Daisy', fact: 'Princess Daisy is sporty and cheerful, and bright flowers make her happy.', colors: { K:'#141414', Y:'#ffd628', M:'#a85624', S:'#f2c7a0', O:'#ff921c', W:'#ffffff', N:'#78401e' }, pixels: [
                 '.......YY.......','......YYYY......','.....KYYYYK.....','....KMMMMMMK....','...KMMMMMMMMK...','...KMMMMMMMMK...','....KMSSSSMK....','.....KSKKSK.....','.....KSSSSK.....','....KOOOOOOOK...','...KOOOOOOOOOK..','...KOOWWWWOOOK..','...KOOOOOOOOOK..','....OOO..OOO....','....NNN..NNN....','................'
+            ]},
+            { id: 'sonic', team: 'speed', name: 'Sonic', short: 'Sonic', fact: 'Sonic is a speedy blue friend who loves to run and help.', colors: { K:'#141414', B:'#1a6cff', S:'#f2c7a0', W:'#f5f5f5', R:'#e02020', E:'#141414' }, pixels: [
+                '.....KKKKK......','....KBBBBBK.....','...KBBBBBBBK....','..KKBBBBBBBBK...','..KBBSSSSSSBK...','..KBBSESSSSBK...','..KBBSSSSSSBK...','...KKBBBBBBKK...','...KWWBBBBWWK...','..KWWBBBBBBWWK..','...KBBBBBBBBK...','....KRRRRRRK....','....KRR..RRK....','...KRRR..RRRK...','....KK....KK....','................'
+            ]},
+            { id: 'tails', team: 'speed', name: 'Tails', short: 'Tails', fact: 'Tails is a little fox with two tails who spins them to fly.', colors: { K:'#141414', Y:'#f0b020', O:'#e07010', W:'#fff6e0', S:'#f2c7a0', E:'#141414', R:'#e02020' }, pixels: [
+                '................','....KKK..KKK....','...KYYYKKYYYK...','..KYYYYYYYYYYK..','..KYWWWWWWWWYK..','.KKYEWWWWWWYEKK.','..KYWWWWWWWWYK..','...KKYYYYYYKK...','...KWWYYYYWWK...','..KWWYYYYYYWWK..','..OYYYYYYYYYYO..','..OYYRRRRRRYYO..','...KYYRRRRYYK...','....KYY..YYK....','....KK....KK....','................'
+            ]},
+            { id: 'knuckles', team: 'speed', name: 'Knuckles', short: 'Knuckles', fact: 'Knuckles is strong and looks after a big shiny emerald.', colors: { K:'#141414', R:'#e02828', W:'#fff4ea', P:'#ff78aa', S:'#f2c7a0', G:'#2ea830', Y:'#f0d060' }, pixels: [
+                '....KKKKKKKK....','...KRRRRRRRRK...','..KKRRRRRRRRKK..','..KRRWWWWWRRRK..','.KKRRWPWWPRRKK..','..KRRWWWWWRRRK..','...KKRRRRRRKK...','....KRRRRRRK....','...KYWRRRRWYK...','..KYYWRRRRWYYK..','...KRRRRRRRRK...','....KGGGGGGK....','....KGG..GGK....','...KGGG..GGGK...','....KK....KK....','................'
+            ]},
+            { id: 'amy', team: 'speed', name: 'Amy', short: 'Amy', fact: 'Amy is cheerful and brings a big red hammer to help her friends.', colors: { K:'#141414', P:'#ff78c0', R:'#e02020', S:'#f2c7a0', E:'#141414', W:'#ffffff' }, pixels: [
+                '......KKKK......','.....KRRRRK.....','....KKPPPPKK....','...KPPPPPPPPK...','..KKPPPPPPPPKK..','..KPPSSSSSSPPK..','..KPPSEESSSPPK..','..KPPSSSSSSPPK..','...KKPPPPPPKK...','....KRRRRRRK....','...KRRRRRRRRK...','...KPPPPPPPPK...','....KRRRRRRK....','....KRR..RRK....','...KRRR..RRRK...','....KK....KK....'
+            ]},
+            { id: 'shadow', team: 'speed', name: 'Shadow', short: 'Shadow', fact: 'Shadow is a quiet fast friend who is very brave.', colors: { K:'#141414', D:'#2a2a2a', R:'#d02020', S:'#f2c7a0', W:'#f5f5f5', E:'#e02020' }, pixels: [
+                '.....KKKKK......','....KDDDDDK.....','...KDDDDDDDK....','..KKDDRRRRDDKK..','..KDDSSSSSSDDK..','..KDDSEESSSDDK..','..KDDSSSSSSDDK..','...KKDDDDDDKK...','...KWWRRRRWWK...','..KWWDDDDDDWWK..','...KDDDDDDDDK...','....KRRRRRRK....','....KWW..WWK....','...KRWW..WWRK...','....KK....KK....','................'
+            ]},
+            { id: 'cream', team: 'speed', name: 'Cream', short: 'Cream', fact: 'Cream is gentle and flies along with her little pal Cheese.', colors: { K:'#141414', C:'#ffe3b0', E:'#ffd0e0', S:'#f2c7a0', O:'#ff9a20', B:'#3a78e0', Y:'#ffde00' }, pixels: [
+                '..KK........KK..','..KEE......EEK..','..KEE......EEK..','..KKKKKKKKKKKK..','...KCCCCCCCK....','...KCSSSSSSCK...','..KKCSEESSSCKK..','...KCSSSSSSCK...','....KKCCCCKK....','...KOOCCOOCCOK..','..KOOCCCCCCOOK..','...KCCCCCCCK....','...KYKOOOOOK....','....KOO..OOK....','...KOOO..OOOK...','....KK....KK....'
+            ]},
+            { id: 'rouge', team: 'speed', name: 'Rouge', short: 'Rouge', fact: 'Rouge is a clever treasure hunter who loves shiny gems.', colors: { K:'#141414', W:'#f7f7f7', S:'#f2c7a0', E:'#3a78e0', P:'#ff78c0', D:'#1a1a1a' }, pixels: [
+                '.KK..........KK.','.KWW........WWK.','.KWWKKKKKKKKWWK.','.KKWWWWWWWWWWKK.','..KWWSSSSSSWWK..','..KWWSEEESSWWK..','..KWWSSSSSSWWK..','...KKWWWWWWKK...','....KPPPPPPK....','...KWPPPPPPWK...','..KWWPPPPPPWWK..','...KPPPPPPPPK...','....KDDDDDDK....','....KDD..DDK....','...KDDD..DDDK...','....KK....KK....'
+            ]},
+            { id: 'metal', team: 'speed', name: 'Metal Sonic', short: 'Metal', fact: 'Metal Sonic is a shiny robot who races just to keep up.', colors: { K:'#141414', B:'#2a78e0', M:'#d0d8e0', Y:'#ffde00', R:'#e02020', S:'#9aa4b0' }, pixels: [
+                '.....KKKKKK.....','....KBBBBBBK....','...KKBBBBBBKK...','..KBBMMMMMMBBK..','..KBBMYYYYMBBK..','..KBBMYYYYMBBK..','..KBBMMMMMMBBK..','...KKBBBBBBKK...','....KKBBBBKK....','...KSSBBBBSSK...','..KSSBBBBBBSSK..','...KBBBBBBBBK...','....KRRRRRRK....','....KRR..RRK....','...KRRR..RRRK...','....KK....KK....'
             ]}
         ];
 
@@ -2178,8 +2203,18 @@
                 if (saveHasClaimDate(list[i])) claimed = true;
             }
             if (gold.length) {
-                for (i = 0; i < CHARACTERS.length; i++) {
-                    if (owned.indexOf(CHARACTERS[i].id) === -1) owned.push(CHARACTERS[i].id);
+                // A gold friend from the first eight means those eight were already found.
+                // Newer friends stay locked until a daily surprise awards them.
+                var classicGold = false;
+                var classicIds = ['luigi', 'yoshi', 'toad', 'peach', 'bowser', 'dk', 'wario', 'daisy'];
+                for (i = 0; i < gold.length; i++) {
+                    if (owned.indexOf(gold[i]) === -1) owned.push(gold[i]);
+                    if (classicIds.indexOf(gold[i]) !== -1) classicGold = true;
+                }
+                if (classicGold) {
+                    for (i = 0; i < classicIds.length; i++) {
+                        if (owned.indexOf(classicIds[i]) === -1) owned.push(classicIds[i]);
+                    }
                 }
             } else if (!owned.length && claimed && !sourcesHaveUnparsedFriends(list)) {
                 owned.push('luigi');
@@ -2753,8 +2788,29 @@
         }
 
         function setCollectionPage(page) {
-            collectionPage = page === 'gold' ? 'gold' : 'normal';
+            if (page === 'gold') collectionPage = 'gold';
+            else if (page === 'speed') collectionPage = 'speed';
+            else collectionPage = 'normal';
             try { renderCollection(); } catch (e) {}
+        }
+
+        function charactersForPage(page) {
+            var list = [];
+            var i, speed;
+            for (i = 0; i < CHARACTERS.length; i++) {
+                speed = CHARACTERS[i].team === 'speed';
+                if (page === 'speed' && speed) list.push(CHARACTERS[i]);
+                else if (page === 'normal' && !speed) list.push(CHARACTERS[i]);
+                else if (page === 'gold') list.push(CHARACTERS[i]);
+            }
+            return list;
+        }
+
+        function countOwnedIn(list, ownedMap) {
+            var n = 0;
+            var i;
+            for (i = 0; i < list.length; i++) if (ownedMap[list[i].id]) n++;
+            return n;
         }
 
         function selectPlayAs(playAs) {
@@ -2792,20 +2848,29 @@
             var i;
             var total = CHARACTERS.length;
             var onGold = collectionPage === 'gold';
+            var onSpeed = collectionPage === 'speed';
+            var pageList = charactersForPage(onGold ? 'gold' : (onSpeed ? 'speed' : 'normal'));
             var countEl = document.getElementById('collectionCountLabel');
             var hintEl = document.getElementById('collectionHint');
             var playingEl = document.getElementById('collectionPlaying');
             var grid = document.getElementById('collectionGrid');
             var tabNormal = document.getElementById('collectionTabNormal');
+            var tabSpeed = document.getElementById('collectionTabSpeed');
             var tabGold = document.getElementById('collectionTabGold');
             var claimed = dateClaimed(source);
             var ready = surpriseIsReady(source);
+            var pageOwned;
             try { showAccountNote(); } catch (e) {}
             for (i = 0; i < owned.length; i++) ownedMap[owned[i]] = true;
             for (i = 0; i < goldOwned.length; i++) goldMap[goldOwned[i]] = true;
+            pageOwned = onGold ? goldOwned.length : countOwnedIn(pageList, ownedMap);
             if (tabNormal) {
-                tabNormal.classList.toggle('is-on', !onGold);
-                tabNormal.setAttribute('aria-selected', onGold ? 'false' : 'true');
+                tabNormal.classList.toggle('is-on', !onGold && !onSpeed);
+                tabNormal.setAttribute('aria-selected', (!onGold && !onSpeed) ? 'true' : 'false');
+            }
+            if (tabSpeed) {
+                tabSpeed.classList.toggle('is-on', onSpeed);
+                tabSpeed.setAttribute('aria-selected', onSpeed ? 'true' : 'false');
             }
             if (tabGold) {
                 tabGold.classList.toggle('is-on', onGold);
@@ -2814,42 +2879,31 @@
             if (countEl) {
                 countEl.textContent = onGold
                     ? (goldOwned.length + ' / ' + total + ' gold found')
-                    : (owned.length + ' / ' + total + ' found');
+                    : (pageOwned + ' / ' + pageList.length + ' found');
             }
             if (playingEl) playingEl.textContent = 'Playing as ' + playAsName(play);
             if (hintEl) {
-                if (onGold && owned.length < total) hintEl.textContent = 'Find all 8 friends first. Then one shiny gold friend appears each day!';
+                if (onGold && owned.length < total) hintEl.textContent = 'Find every friend first. Then one shiny gold friend appears each day!';
+                else if (onSpeed && pageOwned === 0) hintEl.textContent = 'Speedy friends show up in the daily surprise, one each day.';
                 else hintEl.textContent = collectionHintText(owned.length, goldOwned.length, claimed, ready);
             }
             if (!grid) return;
             grid.textContent = '';
-            if (!onGold) {
+            if (!onGold && !onSpeed) {
                 appendCharacterCard(grid, {
                     mario: true, unlocked: true, selected: play === 'mario', gold: false,
                     playAs: 'mario', label: 'Mario', shortName: 'Mario'
                 });
-                for (i = 0; i < CHARACTERS.length; i++) {
-                    appendCharacterCard(grid, {
-                        sprite: CHARACTERS[i],
-                        unlocked: !!ownedMap[CHARACTERS[i].id],
-                        selected: play === CHARACTERS[i].id,
-                        gold: false,
-                        playAs: CHARACTERS[i].id,
-                        label: CHARACTERS[i].name,
-                        shortName: CHARACTERS[i].short
-                    });
-                }
-                return;
             }
-            for (i = 0; i < CHARACTERS.length; i++) {
+            for (i = 0; i < pageList.length; i++) {
                 appendCharacterCard(grid, {
-                    sprite: CHARACTERS[i],
-                    unlocked: !!goldMap[CHARACTERS[i].id],
-                    selected: play === ('gold:' + CHARACTERS[i].id),
-                    gold: true,
-                    playAs: 'gold:' + CHARACTERS[i].id,
-                    label: 'Gold ' + CHARACTERS[i].name,
-                    shortName: '\u2605 ' + CHARACTERS[i].short
+                    sprite: pageList[i],
+                    unlocked: onGold ? !!goldMap[pageList[i].id] : !!ownedMap[pageList[i].id],
+                    selected: onGold ? play === ('gold:' + pageList[i].id) : play === pageList[i].id,
+                    gold: onGold,
+                    playAs: onGold ? ('gold:' + pageList[i].id) : pageList[i].id,
+                    label: onGold ? ('Gold ' + pageList[i].name) : pageList[i].name,
+                    shortName: onGold ? ('\u2605 ' + pageList[i].short) : pageList[i].short
                 });
             }
         }

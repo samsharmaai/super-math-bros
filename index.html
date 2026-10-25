@@ -32,10 +32,10 @@
             --coin-gold: #ffde00;
         }
 
+        html { background-color: #5C94FC; }
         body {
             font-family: 'Press Start 2P', cursive;
-            background-color: var(--sky-blue);
-            transition: background-color 1s ease;
+            background-color: #5C94FC;
             text-align: center;
             padding: 10px;
             margin: 0;
@@ -268,18 +268,11 @@
             position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
         }
         .world-scenery svg { image-rendering: pixelated; image-rendering: crisp-edges; }
-        .world-scenery.is-overworld .cloud,
-        .world-scenery.is-overworld .hill,
-        .world-scenery.is-overworld .bush,
-        .world-scenery.is-overworld .pipe { display: block; }
         .sprite-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-        .cloud-track, .hill, .bush, .pipe, .sky-row { display: none; }
-        .world-scenery.is-overworld .cloud-track { display: flex; }
-        .world-scenery.is-overworld .hill,
-        .world-scenery.is-overworld .bush,
-        .world-scenery.is-overworld .pipe { display: block; }
-        .world-scenery.is-overworld .sky-row { display: flex; }
+        .hill, .bush, .pipe, .cloud { display: block; }
+        .sky-row { display: flex; }
         .cloud-track {
+            display: flex;
             position: absolute; top: 96px; left: 0; width: max-content; height: 140px;
             animation: cloud-drift 72s linear infinite;
         }
@@ -627,7 +620,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-23c</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-25a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -823,6 +816,7 @@
                 if (user) {
                     document.getElementById('login-status').innerText = "Syncing Profile...";
                     currentUserEmail = user.email;
+                    try { updateWorldTheme(); } catch (e) {}
                     document.getElementById('login-overlay').style.display = 'none';
                     loadCloudData().then(() => initApp());
                 }
@@ -1042,7 +1036,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-23c';
+        var APP_BUILD = '2026-10-25a';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -1100,9 +1094,10 @@
 
         function playAsGuest() {
             currentUserEmail = "guest";
-            document.getElementById('login-overlay').style.display = 'none';
             const saved = readSavedState();
             if(saved) Object.assign(gameState, saved);
+            try { updateWorldTheme(); } catch (e) {}
+            document.getElementById('login-overlay').style.display = 'none';
             initApp();
         }
 
@@ -1898,11 +1893,8 @@
 
         function updateWorldTheme() {
             var scenery = document.getElementById('worldScenery');
-            var overworld = gameState.world === 1;
-            if (overworld) document.body.style.backgroundColor = "var(--sky-blue)";
-            else if (gameState.world === 2) document.body.style.backgroundColor = "var(--cave-black)";
-            else if (gameState.world >= 3) document.body.style.backgroundColor = "var(--brick-brown)";
-            if (scenery) scenery.classList.toggle('is-overworld', overworld);
+            document.body.style.backgroundColor = '#5C94FC';
+            if (scenery) scenery.classList.add('is-overworld');
         }
         function localDateString(date) {
             const y = date.getFullYear();
@@ -3170,6 +3162,7 @@
                 writeCharacterBackup(peekAdopt.characters, peekAdopt.goldCharacters);
             }
             applySurpriseTestNote();
+            try { updateWorldTheme(); } catch (e) {}
             checkAppVersion();
         } catch (e) {}
 

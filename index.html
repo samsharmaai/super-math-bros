@@ -255,7 +255,7 @@
             position: relative; z-index: 20;
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
             width: min(96%, 520px); max-width: 520px;
-            margin-top: auto; align-self: center; flex-shrink: 0;
+            margin-top: 4px; align-self: center; flex-shrink: 0;
         }
         .brick-btn {
             background: repeating-linear-gradient(45deg, #b84e00, #b84e00 10px, #983e00 10px, #983e00 20px);
@@ -270,9 +270,9 @@
         /* FIXED FEEDBACK STYLE: Smaller & Padded */
         #feedback { 
             font-family: 'Press Start 2P', cursive; 
-            font-size: 0.7em;
-            min-height: 30px; 
-            margin-bottom: 25px;
+            font-size: 12px;
+            min-height: 0;
+            margin: 0 0 8px;
             text-shadow: 2px 2px 0 #000, 0 0 8px #061433;
             display: flex; justify-content: center; align-items: center;
         }
@@ -669,12 +669,12 @@
             .pipe { width: 62px; height: 104px; }
         }
         @media (max-height: 700px) {
-            .question-container { margin-bottom: 150px; padding-top: 2px; }
+            .question-container { margin-bottom: 160px; padding-top: 2px; }
             .hill { width: min(26vw, 110px); }
             .bush-a { width: min(16vw, 72px); }
             .bush-b { width: min(14vw, 64px); }
             .question-text { font-size: 14px; max-height: 48px; padding: 6px 10px; margin-bottom: 4px; }
-            #feedback { min-height: 0; margin-bottom: 4px; font-size: 0.55em; }
+            #feedback { min-height: 0; margin-bottom: 4px; font-size: 11px; }
             .day-strip { margin-bottom: 4px; padding: 3px 6px; }
             .daily-surprise { margin-bottom: 0; }
             .cloud-track { top: 42px; height: 84px; }
@@ -714,7 +714,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-28e</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-28f</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -1145,7 +1145,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-28e';
+        var APP_BUILD = '2026-10-28f';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;

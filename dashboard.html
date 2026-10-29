@@ -18,7 +18,22 @@
         body { font-family: 'Verdana', sans-serif; background: #f0f2f5; padding: 20px; text-align: center; color: #333; }
         .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         h1 { color: #333; margin-bottom: 5px; }
-        .sub-header { color: #666; font-size: 0.9em; margin-bottom: 20px; }
+        .sub-header { color: #666; font-size: 0.9em; margin-bottom: 8px; }
+        .build-line { margin-bottom: 16px; }
+        .practice-panel { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: left; }
+        .practice-panel h2 { margin: 0 0 8px; font-size: 1.05em; color: #333; }
+        .practice-panel p { margin: 0; line-height: 1.45; }
+        .band-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
+        .band { border-radius: 8px; padding: 10px; text-align: center; border: 1px solid #ddd; background: #fff; }
+        .band span { display: block; font-size: 0.75em; color: #666; text-transform: uppercase; letter-spacing: 0.04em; }
+        .band b { display: block; font-size: 1.25em; margin: 4px 0; }
+        .band-hard { border-color: #e7b2b2; }
+        .band-easy { border-color: #b7dfc3; }
+        .band-medium { border-color: #ead79a; }
+        .sheet-topics { margin-top: 8px; }
+        .calibre-hard { color: #a12622; font-weight: bold; }
+        .calibre-easy { color: #1e7a34; font-weight: bold; }
+        .calibre-medium { color: #8a6d1d; font-weight: bold; }
         
         #login-section { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 50px; }
         input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 250px; }
@@ -75,14 +90,16 @@
             #category-table td:nth-of-type(1):before { content: "Category"; }
             #category-table td:nth-of-type(2):before { content: "Attempts"; }
             #category-table td:nth-of-type(3):before { content: "Accuracy"; }
-            #category-table td:nth-of-type(4):before { content: "Status"; }
+            #category-table td:nth-of-type(4):before { content: "Calibre"; }
+            #category-table td:nth-of-type(5):before { content: "Status"; }
 
             #questions-table td:nth-of-type(1):before { content: "Question"; }
             #questions-table td:nth-of-type(2):before { content: "Category"; }
-            #questions-table td:nth-of-type(3):before { content: "Attempts"; }
-            #questions-table td:nth-of-type(4):before { content: "Correct"; }
-            #questions-table td:nth-of-type(5):before { content: "Wrong"; }
-            #questions-table td:nth-of-type(6):before { content: "Accuracy"; }
+            #questions-table td:nth-of-type(3):before { content: "Calibre"; }
+            #questions-table td:nth-of-type(4):before { content: "Attempts"; }
+            #questions-table td:nth-of-type(5):before { content: "Correct"; }
+            #questions-table td:nth-of-type(6):before { content: "Wrong"; }
+            #questions-table td:nth-of-type(7):before { content: "Accuracy"; }
 
             #sessions-table td:nth-of-type(1):before { content: "Session Date"; }
             #sessions-table td:nth-of-type(2):before { content: "Duration"; }
@@ -103,6 +120,7 @@
     <div class="container">
         <h1>📊 Parent Dashboard</h1>
         <div class="sub-header">Review Mario Math Performance</div>
+        <div class="sub-header build-line">Build 2026-10-29b</div>
         <p id="dash-status" class="sub-header"></p>
         <p id="report-error" style="color:#8a1c12; font-size:0.9em;"></p>
 
@@ -118,6 +136,12 @@
         </div>
 
         <div id="dashboard-section">
+            <div class="practice-panel" id="practice-panel">
+                <h2>Needs practice</h2>
+                <p id="weak-line">Sign in to see the categories that need practice.</p>
+                <div class="band-row" id="band-row"></div>
+                <p class="sheet-topics" id="sheet-topics"></p>
+            </div>
             <div class="summary-cards">
                 <div class="card"><h3>Total Answered</h3><div class="number" id="total-q">0</div></div>
                 <div class="card"><h3>Global Accuracy</h3><div class="number" id="total-acc">0%</div></div>
@@ -133,12 +157,12 @@
             </div>
 
             <div id="view-category" class="view-container active">
-                <table id="category-table"><thead><tr><th>Category</th><th>Attempts</th><th>Accuracy</th><th>Status</th></tr></thead><tbody id="cat-table-body"></tbody></table>
+                <table id="category-table"><thead><tr><th>Category</th><th>Attempts</th><th>Accuracy</th><th>Calibre</th><th>Status</th></tr></thead><tbody id="cat-table-body"></tbody></table>
             </div>
 
             <div id="view-questions" class="view-container">
                 <p style="font-size:0.8em; color:#666; margin-bottom:10px;">Click headers to sort.</p>
-                <table id="questions-table"><thead><tr><th onclick="sortQuestions('text')">Question <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('category')">Category <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('total')">Attempts <span class="sort-icon">▼</span></th><th onclick="sortQuestions('correct')">Correct <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('wrong')">Wrong <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('accuracy')">Accuracy <span class="sort-icon">⇅</span></th></tr></thead><tbody id="q-table-body"></tbody></table>
+                <table id="questions-table"><thead><tr><th onclick="sortQuestions('text')">Question <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('category')">Category <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('calibreRank')">Calibre <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('total')">Attempts <span class="sort-icon">▼</span></th><th onclick="sortQuestions('correct')">Correct <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('wrong')">Wrong <span class="sort-icon">⇅</span></th><th onclick="sortQuestions('accuracy')">Accuracy <span class="sort-icon">⇅</span></th></tr></thead><tbody id="q-table-body"></tbody></table>
             </div>
             
             <div id="view-sessions" class="view-container">
@@ -189,6 +213,49 @@
         }
         
         let globalLogs = [], categoryStats = [], questionStats = [], sessionStats = [];
+        var DASH_BUILD = '2026-10-29b';
+
+        function esc(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function difficultyOf(correct, total) {
+            var acc;
+            if (!total || total < 4) return 'Unknown';
+            acc = correct / total;
+            if (acc >= 0.8) return 'Easy';
+            if (acc <= 0.5) return 'Hard';
+            return 'Medium';
+        }
+
+        function calibreRank(name) {
+            if (name === 'Hard') return 0;
+            if (name === 'Medium') return 1;
+            if (name === 'Easy') return 2;
+            return 3;
+        }
+
+        function logsForPlayer(logs, email) {
+            var mine = String(email || '').trim().toLowerCase();
+            var out = [];
+            var i, row, theirs;
+            if (!mine || !logs) return out;
+            for (i = 0; i < logs.length; i++) {
+                row = logs[i];
+                theirs = String(row && row.user || '').trim().toLowerCase();
+                if (theirs === mine) out.push(row);
+            }
+            return out;
+        }
+
+        function isSheetTopic(name) {
+            var lower = String(name || '').trim().toLowerCase();
+            return lower && lower !== 'fun' && lower !== 'offline' && lower !== 'general';
+        }
 
         function asDate(value) {
             var parsed;
@@ -228,7 +295,7 @@
                 if (errorEl) errorEl.textContent = "Could not read the answer log: " + (err && err.message ? err.message : "unknown error");
                 return;
             }
-            globalLogs = snapshot.docs.map(doc => {
+            globalLogs = logsForPlayer(snapshot.docs.map(doc => {
                 const data = doc.data() || {};
                 return {
                     user: data.user,
@@ -238,18 +305,30 @@
                     world: data.world,
                     timestamp: asDate(data.timestamp)
                 };
-            }).filter(log => log.timestamp);
+            }), auth.currentUser.email).filter(log => log.timestamp);
             globalLogs.sort((a, b) => b.timestamp - a.timestamp);
 
             if(globalLogs.length === 0) {
-                document.getElementById('cat-table-body').innerHTML = "<tr><td colspan='4'>No answers logged for this login yet.</td></tr>";
-                document.getElementById('dash-status').textContent = 'Signed in as ' + (auth.currentUser.email || 'this account') + '. No answers in the log yet.';
+                categoryStats = [];
+                questionStats = [];
+                sessionStats = [];
+                document.getElementById('cat-table-body').innerHTML = "<tr><td colspan='5'>No answers logged for this login yet.</td></tr>";
+                document.getElementById('q-table-body').innerHTML = "";
+                document.getElementById('sessions-table-body').innerHTML = "";
+                document.getElementById('total-q').innerText = '0';
+                document.getElementById('total-acc').innerText = '0%';
+                document.getElementById('top-subject').innerText = '-';
+                document.getElementById('total-sessions').innerText = '0';
+                document.getElementById('avg-duration').innerText = '0m';
+                renderPracticePanel();
+                document.getElementById('dash-status').textContent = 'Signed in as ' + (auth.currentUser.email || 'this account') + '. No answers for this player yet. Build ' + DASH_BUILD + '.';
                 return;
             }
-            document.getElementById('dash-status').textContent = 'Signed in as ' + (auth.currentUser.email || 'this account') + '. Newest answer ' + globalLogs[0].timestamp.toLocaleString() + '.';
+            document.getElementById('dash-status').textContent = 'Signed in as ' + (auth.currentUser.email || 'this account') + '. Showing this player only. Newest answer ' + globalLogs[0].timestamp.toLocaleString() + '. Build ' + DASH_BUILD + '.';
 
             processData();
             renderSummary();
+            renderPracticePanel();
             renderCategoryTable();
             renderQuestionTable();
             renderSessionsTable();
@@ -283,8 +362,12 @@
                 if(log.timestamp > sessionMap[sessionKey].endTime) sessionMap[sessionKey].endTime = log.timestamp;
             });
 
-            categoryStats = Object.values(catMap);
-            questionStats = Object.values(qMap).map(q => ({...q, accuracy: (q.correct / q.total) * 100}));
+            categoryStats = Object.values(catMap).map(row => ({...row, calibre: difficultyOf(row.correct, row.total)}));
+            questionStats = Object.values(qMap).map(q => {
+                const accuracy = q.total > 0 ? (q.correct / q.total) * 100 : 0;
+                const calibre = difficultyOf(q.correct, q.total);
+                return {...q, accuracy: accuracy, calibre: calibre, calibreRank: calibreRank(calibre)};
+            });
             sessionStats = Object.values(sessionMap).sort((a,b) => b.startTime - a.startTime);
             
             document.getElementById('total-q').innerText = globalLogs.length;
@@ -303,13 +386,70 @@
         
         function renderSummary() {}
 
+        function bandAccuracy(list) {
+            var correct = 0;
+            var total = 0;
+            var i;
+            for (i = 0; i < list.length; i++) {
+                correct += list[i].correct;
+                total += list[i].total;
+            }
+            if (!total) return null;
+            return Math.round((correct / total) * 100);
+        }
+
+        function renderPracticePanel() {
+            var weakLine = document.getElementById('weak-line');
+            var bandRow = document.getElementById('band-row');
+            var topics = document.getElementById('sheet-topics');
+            var ranked, needs, names, bands, order, html, i, row, list, bandAcc;
+            ranked = categoryStats.filter(function (row) {
+                return isSheetTopic(row.name) && row.total >= 4;
+            }).sort(function (a, b) {
+                return (a.correct / a.total) - (b.correct / b.total);
+            });
+            needs = ranked.filter(function (row) { return (row.correct / row.total) < 0.7; });
+            if (!categoryStats.length) {
+                weakLine.textContent = 'No answers for this player yet.';
+            } else if (needs.length) {
+                names = needs.slice(0, 3).map(function (row) {
+                    return row.name + ' (' + Math.round((row.correct / row.total) * 100) + '%)';
+                });
+                weakLine.textContent = 'Weakest categories: ' + names.join(', ') + '.';
+            } else if (ranked.length) {
+                weakLine.textContent = 'No category is under 70% yet. Weakest is still ' + ranked[0].name + ' at ' + Math.round((ranked[0].correct / ranked[0].total) * 100) + '%.';
+            } else {
+                weakLine.textContent = 'A few more answers will show which categories need practice.';
+            }
+            bands = { Easy: [], Medium: [], Hard: [], Unknown: [] };
+            for (i = 0; i < questionStats.length; i++) {
+                row = questionStats[i];
+                if (!bands[row.calibre]) bands[row.calibre] = [];
+                bands[row.calibre].push(row);
+            }
+            order = ['Hard', 'Medium', 'Easy', 'Unknown'];
+            html = '';
+            for (i = 0; i < order.length; i++) {
+                list = bands[order[i]] || [];
+                bandAcc = bandAccuracy(list);
+                html += '<div class="band band-' + order[i].toLowerCase() + '"><span>' + order[i] + '</span><b>' + list.length + '</b>' + (bandAcc == null ? '—' : bandAcc + '%') + '</div>';
+            }
+            bandRow.innerHTML = html;
+            if (needs.length) {
+                topics.textContent = 'Suggested sheet topics: ' + needs.map(function (row) { return row.name; }).join(', ') + '.';
+            } else {
+                topics.textContent = 'Suggested sheet topics: none right now.';
+            }
+        }
+
         function renderCategoryTable() {
             const tbody = document.getElementById('cat-table-body');
             tbody.innerHTML = "";
             categoryStats.sort((a,b) => b.total - a.total).forEach(row => {
                 const perc = row.total > 0 ? Math.round((row.correct / row.total) * 100) : 0;
+                const calibre = row.calibre || difficultyOf(row.correct, row.total);
                 let color = perc >= 80 ? "#28a745" : (perc >= 50 ? "#ffc107" : "#dc3545");
-                tbody.innerHTML += `<tr><td style="font-weight:bold;">${row.name}</td><td>${row.total}</td><td>${perc}%</td><td style="width:30%;"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${perc}%; background-color:${color};"></div></div></td></tr>`;
+                tbody.innerHTML += `<tr><td style="font-weight:bold;">${esc(row.name)}</td><td>${row.total}</td><td>${perc}%</td><td class="calibre-${calibre.toLowerCase()}">${esc(calibre)}</td><td style="width:30%;"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${perc}%; background-color:${color};"></div></div></td></tr>`;
             });
         }
 
@@ -318,7 +458,8 @@
             tbody.innerHTML = "";
             questionStats.forEach(q => {
                 const acc = q.total > 0 ? Math.round(q.accuracy) : 0;
-                tbody.innerHTML += `<tr><td>${q.text}</td><td>${q.category}</td><td>${q.total}</td><td>${q.correct}</td><td>${q.wrong > 0 ? `<span style="color:red; font-weight:bold;">${q.wrong}</span>` : "0"}</td><td class="'${acc < 60 ? 'bad-score' : ''}'">${acc}%</td></tr>`;
+                const calibre = q.calibre || 'Unknown';
+                tbody.innerHTML += `<tr><td>${esc(q.text)}</td><td>${esc(q.category)}</td><td class="calibre-${calibre.toLowerCase()}">${esc(calibre)}</td><td>${q.total}</td><td>${q.correct}</td><td>${q.wrong > 0 ? `<span style="color:red; font-weight:bold;">${q.wrong}</span>` : "0"}</td><td class="${acc < 60 ? 'bad-score' : ''}">${acc}%</td></tr>`;
             });
         }
         

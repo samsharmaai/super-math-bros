@@ -1146,7 +1146,7 @@
         }
 
         // --- APP LOGIC ---
-        let gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0, characters: [], dailySurpriseDate: null, goldCharacters: [], playAs: 'mario', dailyCorrectByDay: {} };
+        let gameState = { streak: 0, lastLogin: null, coins: 0, world: 1, stage: 1, score: 0, questionsAnsweredLevel: 0, correctInLevel: 0, characters: [], dailySurpriseDate: null, goldCharacters: [], playAs: 'mario', dailyCorrectByDay: {}, practiceStats: {}, categoryStats: {} };
         var lastRemote = null;
         var writingCloud = false;
         var writeQueued = false;
@@ -1155,7 +1155,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-28j';
+        var APP_BUILD = '2026-10-29b';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -1585,6 +1585,583 @@
             }
         }
 
+        // Gentle hill-climb. About half of maths questions come from the weak
+        // set, about 30% from comfort (medium or the next small step), and
+        // about 20% from facts he already gets right. One correct only eases
+        // a miss; two or three in a row graduate it. Fun trivia stays in the
+        // bank and shows after every 5 or 6 maths questions.
+        var PRACTICE_BUMP = 2;
+        var PRACTICE_DECAY = 1;
+        var PRACTICE_CAP = 8;
+        var RECENT_LIMIT = 5;
+        var MIN_TRIES = 4;
+        var WEAK_CATEGORY = 0.70;
+        var CLIMB_READY = 0.75;
+        var lastFunKey = '';
+        var cachedPractice = null;
+        var cachedCategory = null;
+
+        function questionPracticeKey(question) {
+            var text = plainQuestionText(question && question.Question);
+            if (!text) return '';
+            if (text.length > 180) text = text.slice(0, 180);
+            return text;
+        }
+
+        function isFunQuestion(question) {
+            return plainQuestionText(question && question.Category).toLowerCase() === 'fun';
+        }
+
+        function trimPracticeStats(stats) {
+            var keys, i;
+            keys = Object.keys(stats);
+            if (keys.length <= 400) return stats;
+            keys.sort(function (a, b) {
+                return stats[b].w - stats[a].w || bandRank(stats[b]) - bandRank(stats[a]) || stats[b].t - stats[a].t;
+            });
+            for (i = 400; i < keys.length; i++) delete stats[keys[i]];
+            return stats;
+        }
+
+        function sanitizePracticeStats(raw) {
+            var clean = {};
+            var keys, i, text, row, w, m, c, s, t, prev;
+            if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return clean;
+            keys = Object.keys(raw);
+            for (i = 0; i < keys.length; i++) {
+                text = plainQuestionText(keys[i]);
+                if (!text) continue;
+                if (text.length > 180) text = text.slice(0, 180);
+                row = raw[keys[i]];
+                if (!row || typeof row !== 'object' || Array.isArray(row)) continue;
+                w = finiteNumber(row.w);
+                m = finiteNumber(row.m);
+                c = finiteNumber(row.c);
+                t = finiteNumber(row.t);
+                if (w == null || w < 0) w = 0;
+                if (m == null || m < 0) m = 0;
+                if (c == null || c < 0) c = 0;
+                if (t == null || t < 0) t = 0;
+                s = finiteNumber(row.s);
+                if (s == null || s < 0) s = 0;
+                w = Math.min(PRACTICE_CAP, Math.floor(w));
+                m = Math.min(999, Math.floor(m));
+                c = Math.min(999, Math.floor(c));
+                s = Math.min(99, Math.floor(s));
+                t = Math.floor(t);
+                if (!w && !m && !c) continue;
+                prev = clean[text];
+                if (!prev || t > prev.t || (t === prev.t && (w > prev.w || m > prev.m || c > prev.c))) {
+                    clean[text] = { w: w, m: m, c: c, s: s, t: t };
+                }
+            }
+            return trimPracticeStats(clean);
+        }
+
+        function mergePracticeStats(sources) {
+            var clean = {};
+            var i, bag, keys, k, row, prev;
+            for (i = 0; i < sources.length; i++) {
+                if (!sources[i]) continue;
+                bag = sanitizePracticeStats(sources[i].practiceStats);
+                keys = Object.keys(bag);
+                for (k = 0; k < keys.length; k++) {
+                    row = bag[keys[k]];
+                    prev = clean[keys[k]];
+                    if (!prev || row.t > prev.t || (row.t === prev.t && (row.w > prev.w || row.m > prev.m || row.c > prev.c))) {
+                        clean[keys[k]] = { w: row.w, m: row.m, c: row.c, s: row.s || 0, t: row.t };
+                    }
+                }
+            }
+            return trimPracticeStats(clean);
+        }
+
+        function bandRank(row) {
+            var band = difficultyBand(row);
+            if (band === 'hard') return 3;
+            if (band === 'medium') return 2;
+            if (band === 'easy') return 1;
+            return 0;
+        }
+
+        function difficultyBand(row) {
+            var attempts, acc;
+            if (!row) return 'unknown';
+            attempts = (row.m || 0) + (row.c || 0);
+            if (attempts < MIN_TRIES) return 'unknown';
+            acc = row.c / attempts;
+            if (acc >= 0.8) return 'easy';
+            if (acc <= 0.5) return 'hard';
+            return 'medium';
+        }
+
+        function categoryName(question) {
+            var name = plainQuestionText(question && question.Category);
+            if (!name) name = 'General';
+            if (name.length > 40) name = name.slice(0, 40);
+            return name;
+        }
+
+        function sanitizeCategoryStats(raw) {
+            var clean = {};
+            var keys, i, name, row, m, c, t, prev;
+            if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return clean;
+            keys = Object.keys(raw);
+            for (i = 0; i < keys.length; i++) {
+                name = plainQuestionText(keys[i]);
+                if (!name) continue;
+                if (name.length > 40) name = name.slice(0, 40);
+                row = raw[keys[i]];
+                if (!row || typeof row !== 'object' || Array.isArray(row)) continue;
+                m = finiteNumber(row.m);
+                c = finiteNumber(row.c);
+                t = finiteNumber(row.t);
+                if (m == null || m < 0) m = 0;
+                if (c == null || c < 0) c = 0;
+                if (t == null || t < 0) t = 0;
+                m = Math.min(9999, Math.floor(m));
+                c = Math.min(9999, Math.floor(c));
+                t = Math.floor(t);
+                if (!m && !c) continue;
+                prev = clean[name];
+                if (!prev || t > prev.t || (t === prev.t && (m > prev.m || c > prev.c))) {
+                    clean[name] = { m: m, c: c, t: t };
+                }
+            }
+            return clean;
+        }
+
+        function mergeCategoryStats(sources) {
+            var clean = {};
+            var i, bag, keys, k, row, prev;
+            for (i = 0; i < sources.length; i++) {
+                if (!sources[i]) continue;
+                bag = sanitizeCategoryStats(sources[i].categoryStats);
+                keys = Object.keys(bag);
+                for (k = 0; k < keys.length; k++) {
+                    row = bag[keys[k]];
+                    prev = clean[keys[k]];
+                    if (!prev || row.t > prev.t || (row.t === prev.t && (row.m > prev.m || row.c > prev.c))) {
+                        clean[keys[k]] = { m: row.m, c: row.c, t: row.t };
+                    }
+                }
+            }
+            return clean;
+        }
+
+        function categoryBehind(remoteStats, localStats) {
+            var local = sanitizeCategoryStats(localStats);
+            var remote = sanitizeCategoryStats(remoteStats);
+            var keys = Object.keys(local);
+            var i, k;
+            for (i = 0; i < keys.length; i++) {
+                k = keys[i];
+                if (!remote[k]) return true;
+                if (local[k].t > remote[k].t) return true;
+                if (local[k].t === remote[k].t && (local[k].m > remote[k].m || local[k].c > remote[k].c)) return true;
+            }
+            return false;
+        }
+
+        function beginPick() {
+            cachedPractice = sanitizePracticeStats(gameState.practiceStats);
+            cachedCategory = sanitizeCategoryStats(gameState.categoryStats);
+        }
+
+        function endPick() {
+            cachedPractice = null;
+            cachedCategory = null;
+        }
+
+        function practiceBehind(remoteStats, localStats) {
+            var local = sanitizePracticeStats(localStats);
+            var remote = sanitizePracticeStats(remoteStats);
+            var keys = Object.keys(local);
+            var i, k;
+            for (i = 0; i < keys.length; i++) {
+                k = keys[i];
+                if (!remote[k]) return true;
+                if (local[k].t > remote[k].t) return true;
+                if (local[k].t === remote[k].t && (local[k].w > remote[k].w || local[k].m > remote[k].m || local[k].c > remote[k].c)) return true;
+            }
+            return false;
+        }
+
+        function rollFunEvery() {
+            return Math.random() < 0.5 ? 5 : 6;
+        }
+
+        function mergeFunSchedule(sources) {
+            var gap = finiteNumber(gameState.funGap);
+            var every = finiteNumber(gameState.funEvery);
+            var i, g, e;
+            if (gap == null) {
+                for (i = 0; i < sources.length; i++) {
+                    if (!sources[i] || sources[i] === gameState) continue;
+                    g = finiteNumber(sources[i].funGap);
+                    if (g == null || g < 0) continue;
+                    g = Math.min(6, Math.floor(g));
+                    if (gap == null || g > gap) gap = g;
+                }
+            }
+            if (every !== 5 && every !== 6) {
+                for (i = sources.length - 1; i >= 0; i--) {
+                    if (!sources[i]) continue;
+                    e = finiteNumber(sources[i].funEvery);
+                    if (e === 5 || e === 6) { every = e; break; }
+                }
+            }
+            if (gap == null || gap < 0) gap = 0;
+            gameState.funGap = Math.min(6, Math.floor(gap));
+            if (every !== 5 && every !== 6) every = rollFunEvery();
+            gameState.funEvery = every;
+        }
+
+        function ensureFunSchedule() {
+            var gap = finiteNumber(gameState.funGap);
+            if (gap == null || gap < 0) gameState.funGap = 0;
+            else gameState.funGap = Math.min(6, Math.floor(gap));
+            if (gameState.funEvery !== 5 && gameState.funEvery !== 6) gameState.funEvery = rollFunEvery();
+        }
+
+        function funIsDue() {
+            ensureFunSchedule();
+            return gameState.funGap >= gameState.funEvery;
+        }
+
+        function practiceRow(question) {
+            var stats, key;
+            stats = cachedPractice || sanitizePracticeStats(gameState.practiceStats);
+            key = questionPracticeKey(question);
+            if (!key || !stats[key]) return { w: 0, m: 0, c: 0, s: 0, t: 0 };
+            return stats[key];
+        }
+
+        function categoryRow(name) {
+            var stats = cachedCategory || sanitizeCategoryStats(gameState.categoryStats);
+            if (!name || !stats[name]) return { m: 0, c: 0, t: 0 };
+            return stats[name];
+        }
+
+        function categoryIsWeak(name) {
+            var row, n;
+            if (!name || plainQuestionText(name).toLowerCase() === 'fun') return false;
+            row = categoryRow(name);
+            n = row.m + row.c;
+            if (n < MIN_TRIES) return false;
+            return row.c / n < WEAK_CATEGORY;
+        }
+
+        function poolFor(question) {
+            var row = practiceRow(question);
+            var band = difficultyBand(row);
+            var n = row.m + row.c;
+            var streak = row.s || 0;
+            // A run of three corrects moves a hard fact to comfort even if the
+            // older misses still weigh on its accuracy. One correct does not.
+            if ((row.w >= 1 || band === 'hard') && streak < 3) return 'weak';
+            if (streak >= 3 && band !== 'easy') return 'medium';
+            if (band === 'medium') return 'medium';
+            if (band === 'easy') return 'easy';
+            if (categoryIsWeak(categoryName(question)) && n > 0) return 'weak';
+            if (n >= 1 && row.c >= row.m) return 'medium';
+            return 'open';
+        }
+
+        function logPracticeFocus() {
+            var stats = sanitizePracticeStats(gameState.practiceStats);
+            var cats = sanitizeCategoryStats(gameState.categoryStats);
+            var keys = Object.keys(stats);
+            var names, i, line, weakNames, n, acc;
+            keys = keys.filter(function (k) { return stats[k].w > 0; });
+            keys.sort(function (a, b) { return stats[b].w - stats[a].w || stats[b].m - stats[a].m; });
+            line = [];
+            for (i = 0; i < keys.length && i < 5; i++) {
+                line.push(keys[i] + ' (missed ' + stats[keys[i]].m + ', weight ' + stats[keys[i]].w + ', ' + difficultyBand(stats[keys[i]]) + ')');
+            }
+            names = Object.keys(cats);
+            weakNames = [];
+            for (i = 0; i < names.length; i++) {
+                if (!categoryIsWeak(names[i])) continue;
+                n = cats[names[i]].m + cats[names[i]].c;
+                acc = n ? Math.round((cats[names[i]].c / n) * 100) : 0;
+                weakNames.push(names[i] + ' ' + acc + '%');
+            }
+            console.log((line.length ? ('Practice focus: ' + line.join(' | ')) : 'Practice focus: all clear') + (weakNames.length ? ' | weak categories: ' + weakNames.join(', ') : ''));
+        }
+
+        function noteCategory(question, correct) {
+            var name, stats, row, now;
+            name = categoryName(question);
+            stats = sanitizeCategoryStats(gameState.categoryStats);
+            row = stats[name] || { m: 0, c: 0, t: 0 };
+            if (correct) row.c = Math.min(9999, row.c + 1);
+            else row.m = Math.min(9999, row.m + 1);
+            now = Date.now();
+            if (now <= row.t) now = row.t + 1;
+            row.t = now;
+            stats[name] = row;
+            gameState.categoryStats = stats;
+        }
+
+        function notePractice(question, correct) {
+            var key, stats, row, now;
+            key = questionPracticeKey(question);
+            if (!key) return;
+            cachedPractice = null;
+            cachedCategory = null;
+            stats = sanitizePracticeStats(gameState.practiceStats);
+            row = stats[key] || { w: 0, m: 0, c: 0, s: 0, t: 0 };
+            if (correct) {
+                row.c = Math.min(999, row.c + 1);
+                row.s = Math.min(99, (row.s || 0) + 1);
+                row.w = Math.max(0, row.w - PRACTICE_DECAY);
+                // A short run of corrects graduates a hard fact toward medium,
+                // then easy. One correct never wipes the weight.
+                if (row.s >= 3) row.w = Math.max(0, row.w - PRACTICE_DECAY);
+            } else {
+                row.m = Math.min(999, row.m + 1);
+                row.s = 0;
+                row.w = Math.min(PRACTICE_CAP, row.w + PRACTICE_BUMP);
+            }
+            now = Date.now();
+            if (now <= row.t) now = row.t + 1;
+            row.t = now;
+            // Keep the row after a miss, even at weight 0, so an older save
+            // cannot restore the higher weight. Correct answers are kept too
+            // so confidence builders can be recognised.
+            stats[key] = row;
+            gameState.practiceStats = stats;
+            try { noteCategory(question, correct); } catch (e) {}
+            if (!correct || row.w > 0 || row.s === 3) {
+                try { logPracticeFocus(); } catch (e) {}
+            }
+        }
+
+        function questionsWhere(list, pred) {
+            var out = [];
+            var i;
+            for (i = 0; i < list.length; i++) if (pred(list[i])) out.push(list[i]);
+            return out;
+        }
+
+        function freshQuestions(list) {
+            var out = [];
+            var i, key;
+            for (i = 0; i < list.length; i++) {
+                key = questionPracticeKey(list[i]);
+                if (!key || recentQuestions.indexOf(key) === -1) out.push(list[i]);
+            }
+            return out;
+        }
+
+        function availableQuestions(list) {
+            var fresh, last, filtered, i;
+            fresh = freshQuestions(list);
+            if (fresh.length) return fresh;
+            if (recentQuestions.length && list.length > 1) {
+                last = recentQuestions[recentQuestions.length - 1];
+                filtered = [];
+                for (i = 0; i < list.length; i++) {
+                    if (questionPracticeKey(list[i]) !== last) filtered.push(list[i]);
+                }
+                if (filtered.length) return filtered;
+            }
+            return list;
+        }
+
+        function pickUniform(list) {
+            if (!list || !list.length) return null;
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function weaknessScore(question) {
+            var row = practiceRow(question);
+            var name = categoryName(question);
+            var band = difficultyBand(row);
+            var cat = categoryRow(name);
+            var n = cat.m + cat.c;
+            var score = 1 + row.w * 3 + row.m;
+            if (band === 'hard') score += 5;
+            if (n >= MIN_TRIES && cat.c / n < WEAK_CATEGORY && plainQuestionText(name).toLowerCase() !== 'fun') {
+                score += Math.round((1 - cat.c / n) * 6);
+            }
+            return score;
+        }
+
+        function pickByWeakness(list) {
+            var total = 0;
+            var i, score, roll;
+            if (!list || !list.length) return null;
+            for (i = 0; i < list.length; i++) total += weaknessScore(list[i]);
+            if (total <= 0) return pickUniform(list);
+            roll = Math.random() * total;
+            for (i = 0; i < list.length; i++) {
+                score = weaknessScore(list[i]);
+                roll -= score;
+                if (roll < 0) return list[i];
+            }
+            return list[list.length - 1];
+        }
+
+        function parseTimesFact(question) {
+            var text, m, a, b;
+            if (!question || isFunQuestion(question)) return null;
+            if (plainQuestionText(question.Category).toLowerCase() !== 'multiplication') return null;
+            text = plainQuestionText(question.Question).toLowerCase();
+            m = text.match(/(\d+)\s*[x×]\s*(\d+)/);
+            if (!m) m = text.match(/(\d+)\s+times\s+(\d+)/);
+            if (!m) m = text.match(/(\d+)\s+groups of\s+(\d+)/);
+            if (!m) m = text.match(/(\d+)\s+rows of\s+(\d+)/);
+            if (m) {
+                a = +m[1];
+                b = +m[2];
+            } else {
+                m = text.match(/double\s+(\d+)/);
+                if (!m) return null;
+                a = 2;
+                b = +m[1];
+            }
+            if (!a || !b || a > 12 || b > 12) return null;
+            return { table: Math.min(a, b), step: Math.max(a, b) };
+        }
+
+        function nextNeighbour(fresh) {
+            var source, tables, i, fact, row, n, entry, table, facts, tried, misses, corrects, comfortableMax, bestDelta, bestStep, best, step, delta, candidates, q;
+            source = allQuestions && allQuestions.length ? allQuestions : fresh;
+            if (!source || !source.length || !fresh || !fresh.length) return null;
+            tables = {};
+            for (i = 0; i < source.length; i++) {
+                fact = parseTimesFact(source[i]);
+                if (!fact) continue;
+                row = practiceRow(source[i]);
+                n = row.m + row.c;
+                if (!tables[fact.table]) tables[fact.table] = [];
+                tables[fact.table].push({ step: fact.step, n: n, c: row.c, m: row.m });
+            }
+            best = null;
+            bestDelta = 99;
+            bestStep = 99;
+            for (table in tables) {
+                if (!Object.prototype.hasOwnProperty.call(tables, table)) continue;
+                facts = tables[table];
+                tried = 0;
+                misses = 0;
+                corrects = 0;
+                comfortableMax = 0;
+                for (i = 0; i < facts.length; i++) {
+                    if (facts[i].n < 1) continue;
+                    tried++;
+                    misses += facts[i].m;
+                    corrects += facts[i].c;
+                    if (facts[i].n >= MIN_TRIES && facts[i].c / facts[i].n >= WEAK_CATEGORY && facts[i].step > comfortableMax) {
+                        comfortableMax = facts[i].step;
+                    }
+                }
+                n = misses + corrects;
+                if (tried < 3 || n < MIN_TRIES || comfortableMax < 1 || corrects / n < CLIMB_READY) continue;
+                // The next fact in this table, and only if it is one or two
+                // steps up. A bigger gap stays locked. If that next fact was
+                // just shown, wait rather than jumping further.
+                step = 99;
+                for (i = 0; i < facts.length; i++) {
+                    if (facts[i].step > comfortableMax && facts[i].step < step) step = facts[i].step;
+                }
+                if (step > comfortableMax + 2) continue;
+                candidates = [];
+                for (i = 0; i < fresh.length; i++) {
+                    fact = parseTimesFact(fresh[i]);
+                    if (!fact || String(fact.table) !== String(table) || fact.step !== step) continue;
+                    if (poolFor(fresh[i]) === 'weak' || poolFor(fresh[i]) === 'easy') continue;
+                    candidates.push({ q: fresh[i], step: step });
+                }
+                if (!candidates.length) continue;
+                candidates.sort(function (a, b) { return a.step - b.step; });
+                step = candidates[0].step;
+                delta = step - comfortableMax;
+                q = candidates[0].q;
+                if (delta < bestDelta || (delta === bestDelta && step < bestStep)) {
+                    bestDelta = delta;
+                    bestStep = step;
+                    best = q;
+                }
+            }
+            return best;
+        }
+
+        function pickPracticeMix(pool, allowClimb) {
+            var fresh, weak, medium, easy, i, kind, roll, neighbour;
+            fresh = availableQuestions(pool);
+            weak = [];
+            medium = [];
+            easy = [];
+            for (i = 0; i < fresh.length; i++) {
+                kind = poolFor(fresh[i]);
+                if (kind === 'weak') weak.push(fresh[i]);
+                else if (kind === 'medium') medium.push(fresh[i]);
+                else if (kind === 'easy') easy.push(fresh[i]);
+            }
+            neighbour = allowClimb ? nextNeighbour(fresh) : null;
+            roll = Math.random();
+            if (weak.length && roll < 0.50) return pickByWeakness(weak);
+            if (roll < 0.80) {
+                if (neighbour && (!medium.length || Math.random() < 0.35)) return neighbour;
+                if (medium.length) return pickUniform(medium);
+            }
+            if (easy.length) return pickUniform(easy);
+            if (medium.length) return pickUniform(medium);
+            if (weak.length) return pickByWeakness(weak);
+            if (neighbour) return neighbour;
+            return pickUniform(fresh);
+        }
+
+        function chooseQuestion(pool) {
+            var funPool, mathsPool, picked;
+            if (!pool || !pool.length) return null;
+            beginPick();
+            try {
+                funPool = questionsWhere(pool, isFunQuestion);
+                mathsPool = questionsWhere(pool, function (q) { return !isFunQuestion(q); });
+                if (!mathsPool.length) mathsPool = pool.slice();
+                if (funIsDue() && funPool.length) {
+                    if (lastFunKey && funPool.length > 1) {
+                        funPool = questionsWhere(funPool, function (q) {
+                            return questionPracticeKey(q) !== lastFunKey;
+                        });
+                    }
+                    if (!funPool.length) picked = pickPracticeMix(mathsPool, true);
+                    else picked = pickPracticeMix(funPool, false);
+                } else {
+                    picked = pickPracticeMix(mathsPool, true);
+                }
+            } finally {
+                endPick();
+            }
+            return picked;
+        }
+
+        function rememberRecentQuestion(question) {
+            var key = questionPracticeKey(question);
+            var at;
+            if (!key) return;
+            at = recentQuestions.indexOf(key);
+            if (at !== -1) recentQuestions.splice(at, 1);
+            recentQuestions.push(key);
+            while (recentQuestions.length > RECENT_LIMIT) recentQuestions.shift();
+        }
+
+        function noteQuestionShown(question) {
+            ensureFunSchedule();
+            if (isFunQuestion(question)) {
+                lastFunKey = questionPracticeKey(question);
+                gameState.funGap = 0;
+                gameState.funEvery = rollFunEvery();
+            } else {
+                gameState.funGap = Math.min(6, gameState.funGap + 1);
+            }
+            rememberRecentQuestion(question);
+        }
+
         function loadNextQuestion() {
             isInputLocked = false;
             attemptsOnCurrentQuestion = 0;
@@ -1600,9 +2177,12 @@
             });
 
             document.getElementById('feedback').innerText = "";
-            let pool = allQuestions; 
-            const qIndex = Math.floor(Math.random() * pool.length);
-            currentQ = pool[qIndex];
+            let pool = allQuestions;
+            let picked = null;
+            try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
+            if (!picked) picked = pool[Math.floor(Math.random() * pool.length)];
+            currentQ = picked;
+            try { noteQuestionShown(currentQ); } catch (e) {}
             
             document.getElementById('qText').innerHTML = currentQ.Question;
             try { fitQuestion(); } catch (e) {}
@@ -1655,6 +2235,7 @@
             logAttempt(isCorrect, currentQ);
 
             if(isCorrect) {
+                try { notePractice(currentQ, true); } catch (e) {}
                 // SUCCESS LOGIC
                 if(attemptsOnCurrentQuestion === 0) {
                     const oldCoins = gameState.coins;
@@ -1691,6 +2272,9 @@
                 // WRONG LOGIC
                 playBonkSound();
                 attemptsOnCurrentQuestion++;
+                if (attemptsOnCurrentQuestion === 1) {
+                    try { notePractice(currentQ, false); } catch (e) {}
+                }
                 
                 feedback.innerHTML = "WAIT 3 SECONDS..."; 
                 feedback.className = "wrong";
@@ -2601,6 +3185,8 @@
             if (countsBehind(remote.dailyCorrectByDay, gameState.dailyCorrectByDay)) return true;
             if (levelRank(gameState) > levelRank(remote)) return true;
             if (claimsBehind(remote.openedLevelChests, gameState.openedLevelChests)) return true;
+            if (practiceBehind(remote.practiceStats, gameState.practiceStats)) return true;
+            if (categoryBehind(remote.categoryStats, gameState.categoryStats)) return true;
             if (ignoreFriends) return false;
             myPlay = sanitizePlayAs(gameState.playAs, mineFriends, mineGold);
             remotePlay = sanitizePlayAs(remote.playAs, mineFriends, mineGold);
@@ -2649,6 +3235,9 @@
             mergeQuestRun(sources);
             gameState.dailyChestDay = mergeChestDay(sources);
             gameState.openedLevelChests = mergeChestClaims(sources);
+            gameState.practiceStats = mergePracticeStats(sources);
+            gameState.categoryStats = mergeCategoryStats(sources);
+            mergeFunSchedule(sources);
             keepLevelScoreKey(sources);
             bestLevel = null;
             bestRank = -1;

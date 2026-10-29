@@ -231,7 +231,7 @@
         .question-container {
             position: relative; z-index: 12;
             flex-grow: 1; min-height: 0;
-            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             margin-bottom: var(--hero-clear);
         }
         .question-text {
@@ -672,7 +672,7 @@
             .pipe { width: 62px; height: 104px; }
         }
         @media (max-height: 700px) {
-            .question-container { justify-content: flex-start; margin-bottom: 128px; padding-top: 2px; }
+            .question-container { justify-content: center; margin-bottom: 128px; padding-top: 2px; }
             .hill { width: min(26vw, 110px); }
             .bush-a { width: min(16vw, 72px); }
             .bush-b { width: min(14vw, 64px); }
@@ -724,7 +724,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-28h</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-28i</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -1155,7 +1155,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-28h';
+        var APP_BUILD = '2026-10-28i';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;

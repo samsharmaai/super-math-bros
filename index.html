@@ -1155,7 +1155,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-29b';
+        var APP_BUILD = '2026-10-29c';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -1518,7 +1518,7 @@
                 user: email,
                 timestamp: new Date(),
                 question: questionData.Question,
-                category: questionData.Category || "General",
+                category: categoryName(questionData),
                 result: isCorrect ? "Correct" : "Wrong",
                 world: gameState.world
             }).catch(function (err) {
@@ -1585,9 +1585,10 @@
             }
         }
 
-        // Gentle hill-climb. About half of maths questions come from the weak
-        // set, about 30% from comfort (medium or the next small step), and
-        // about 20% from facts he already gets right. One correct only eases
+        // Gentle hill-climb. About 60% of maths questions come from the weak
+        // set (misses, weak topics, and a few facts not practised yet).
+        // About 25% come from comfort (medium or the next small step), and
+        // about 15% from facts he already gets right. One correct only eases
         // a miss; two or three in a row graduate it. Fun trivia stays in the
         // bank and shows after every 5 or 6 maths questions.
         var PRACTICE_BUMP = 2;
@@ -1597,6 +1598,49 @@
         var MIN_TRIES = 4;
         var WEAK_CATEGORY = 0.70;
         var CLIMB_READY = 0.75;
+        var WEAK_SHARE = 0.60;
+        var COMFORT_UNTIL = 0.85;
+        // Of the weak share, most stays on facts he has already missed.
+        // The rest introduces facts from weak topics that are not in the save yet.
+        var UNSEEN_WITHIN_WEAK = 0.25;
+        // Picker-only head start for topics that are still under about 70%
+        // in the answer log. Addition is included because it is just under
+        // that line and the new sheet rows include it. Nothing here is saved.
+        var FOCUS_PRIOR = { subtraction: 4, division: 3, multiplication: 3, money: 3, addition: 2 };
+        var UNSEEN_FOCUS_BONUS = 2;
+        var FRESH_HARD_BONUS = 6;
+        // New harder rows on Sheet1 (about rows 594–620). Used only as a
+        // picker boost until the fact is in the save. Missing one does not
+        // invent a miss, and a correct answer lets the normal hill-climb take over.
+        var FRESH_HARD = {
+            'What is 62 - 38?': 1,
+            'What is 45 - 27?': 1,
+            'What is 90 - 84?': 1,
+            'What is 70 - 30?': 1,
+            'What is 83 - 46?': 1,
+            'What is 100 - 65?': 1,
+            'What is 54 - 29?': 1,
+            'What is 81 - 77?': 1,
+            'What is 73 - 35?': 1,
+            'You pay with €2 for a 65c lolly. How much change?': 1,
+            'You pay with €5 for a €3.40 book. How much change?': 1,
+            'You pay with €2 for a €1.20 drink. How much change?': 1,
+            'You buy a 35c pencil and a 40c rubber. How much change from €1?': 1,
+            'You buy a 25c sweet and a 45c apple. How much change from €1?': 1,
+            'What is 32 ÷ 4?': 1,
+            'What is 40 ÷ 8?': 1,
+            'What is 64 ÷ 8?': 1,
+            'Share 16 cookies between 8 friends. How many does each friend get?': 1,
+            'Share 35 marbles between 5 children. How many does each child get?': 1,
+            '5 x ? = 35': 1,
+            '4 x ? = 28': 1,
+            'There are 5 bags with 4 apples in each. How many apples?': 1,
+            'There are 3 groups of 8 children. How many children?': 1,
+            'What is 7 + 15 + 6?': 1,
+            'What is 38 + 47?': 1,
+            'What is 9 + 14 + 8?': 1,
+            'What is 56 + 29?': 1
+        };
         var lastFunKey = '';
         var cachedPractice = null;
         var cachedCategory = null;
@@ -1695,11 +1739,55 @@
             return 'medium';
         }
 
-        function categoryName(question) {
+        function filedCategory(question) {
             var name = plainQuestionText(question && question.Category);
             if (!name) name = 'General';
             if (name.length > 40) name = name.slice(0, 40);
             return name;
+        }
+
+        function plainTimesFact(question) {
+            var q = plainQuestionText(question && question.Question).toLowerCase();
+            if (!q) return false;
+            if (q.indexOf('divid') !== -1 || q.indexOf('÷') !== -1 || q.indexOf('/') !== -1) return false;
+            q = q.replace(/[?.!]+$/g, '').trim();
+            if (/^(what is\s+)?\d+\s*[x×*]\s*\d+$/.test(q)) return true;
+            if (/^(what is\s+)?\d+\s*[x×*]\s*\?\s*=\s*\d+$/.test(q)) return true;
+            if (/^\d+\s+times\s+\d+(\s+is)?$/.test(q)) return true;
+            return false;
+        }
+
+        function categoryName(question) {
+            var name = filedCategory(question);
+            // "What is 5 x 6?" is Multiplication on the sheet. Older answer
+            // logs stored that fact as Division. A plain times fact filed as
+            // Division is practised and logged as Multiplication. A division
+            // sentence that mentions a times fact stays Division.
+            if (plainTimesFact(question) && name.toLowerCase() === 'division') return 'Multiplication';
+            return name;
+        }
+
+        function focusPrior(name) {
+            var key = plainQuestionText(name).toLowerCase();
+            return FOCUS_PRIOR[key] || 0;
+        }
+
+        function practiceSeen(row) {
+            if (!row) return false;
+            return (row.m || 0) + (row.c || 0) > 0 || (row.w || 0) > 0;
+        }
+
+        function cellText(value) {
+            if (value == null) return '';
+            return String(value).replace(/\u00a0/g, ' ').trim();
+        }
+
+        function freshHardBonus(question) {
+            var key;
+            if (practiceSeen(practiceRow(question))) return 0;
+            key = questionPracticeKey(question);
+            if (!key || !FRESH_HARD[key]) return 0;
+            return FRESH_HARD_BONUS;
         }
 
         function sanitizeCategoryStats(raw) {
@@ -1848,8 +1936,10 @@
             if (!name || plainQuestionText(name).toLowerCase() === 'fun') return false;
             row = categoryRow(name);
             n = row.m + row.c;
-            if (n < MIN_TRIES) return false;
-            return row.c / n < WEAK_CATEGORY;
+            if (n >= MIN_TRIES) return row.c / n < WEAK_CATEGORY;
+            // The save does not have enough tries yet. Use the known weak
+            // topics so new facts can show up. This prior is not stored.
+            return focusPrior(name) > 0;
         }
 
         function poolFor(question) {
@@ -1864,6 +1954,9 @@
             if (band === 'medium') return 'medium';
             if (band === 'easy') return 'easy';
             if (categoryIsWeak(categoryName(question)) && n > 0) return 'weak';
+            // A fact not in the save yet, from a weak topic, joins the weak
+            // pool with a small score. No miss is written onto the save.
+            if (!practiceSeen(row) && categoryIsWeak(categoryName(question))) return 'weak';
             if (n >= 1 && row.c >= row.m) return 'medium';
             return 'open';
         }
@@ -1986,6 +2079,9 @@
             if (n >= MIN_TRIES && cat.c / n < WEAK_CATEGORY && plainQuestionText(name).toLowerCase() !== 'fun') {
                 score += Math.round((1 - cat.c / n) * 6);
             }
+            if (focusPrior(name)) score += focusPrior(name);
+            if (!practiceSeen(row) && focusPrior(name)) score += UNSEEN_FOCUS_BONUS;
+            score += freshHardBonus(question);
             return score;
         }
 
@@ -2007,7 +2103,7 @@
         function parseTimesFact(question) {
             var text, m, a, b;
             if (!question || isFunQuestion(question)) return null;
-            if (plainQuestionText(question.Category).toLowerCase() !== 'multiplication') return null;
+            if (categoryName(question).toLowerCase() !== 'multiplication') return null;
             text = plainQuestionText(question.Question).toLowerCase();
             m = text.match(/(\d+)\s*[x×]\s*(\d+)/);
             if (!m) m = text.match(/(\d+)\s+times\s+(\d+)/);
@@ -2089,28 +2185,51 @@
             return best;
         }
 
+        function pickWeakSlice(weak) {
+            var practiced, unseen, i;
+            practiced = [];
+            unseen = [];
+            for (i = 0; i < weak.length; i++) {
+                if (practiceSeen(practiceRow(weak[i]))) practiced.push(weak[i]);
+                else unseen.push(weak[i]);
+            }
+            // Misses keep most of the weak share. Unseen weak-topic facts,
+            // including new harder rows, get a smaller turn. Scores are not saved.
+            if (practiced.length && unseen.length && Math.random() < UNSEEN_WITHIN_WEAK) return pickByWeakness(unseen);
+            if (practiced.length) return pickByWeakness(practiced);
+            return pickByWeakness(weak);
+        }
+
         function pickPracticeMix(pool, allowClimb) {
-            var fresh, weak, medium, easy, i, kind, roll, neighbour;
+            var fresh, weak, medium, easy, open, i, kind, roll, neighbour, mixed;
             fresh = availableQuestions(pool);
             weak = [];
             medium = [];
             easy = [];
+            open = [];
             for (i = 0; i < fresh.length; i++) {
                 kind = poolFor(fresh[i]);
                 if (kind === 'weak') weak.push(fresh[i]);
                 else if (kind === 'medium') medium.push(fresh[i]);
                 else if (kind === 'easy') easy.push(fresh[i]);
+                else open.push(fresh[i]);
             }
             neighbour = allowClimb ? nextNeighbour(fresh) : null;
             roll = Math.random();
-            if (weak.length && roll < 0.50) return pickByWeakness(weak);
-            if (roll < 0.80) {
+            if (weak.length && roll < WEAK_SHARE) return pickWeakSlice(weak);
+            if (roll < COMFORT_UNTIL) {
                 if (neighbour && (!medium.length || Math.random() < 0.35)) return neighbour;
                 if (medium.length) return pickUniform(medium);
             }
             if (easy.length) return pickUniform(easy);
             if (medium.length) return pickUniform(medium);
-            if (weak.length) return pickByWeakness(weak);
+            // Comfort and easy rolls stay mixed when those bands are empty.
+            // Drawing from the whole bank keeps other topics in the round
+            // instead of turning every question into the weak pool.
+            if (roll >= WEAK_SHARE && fresh.length) return pickUniform(fresh);
+            mixed = open.concat(easy).concat(medium);
+            if (mixed.length) return pickUniform(mixed);
+            if (weak.length) return pickWeakSlice(weak);
             if (neighbour) return neighbour;
             return pickUniform(fresh);
         }
@@ -2195,11 +2314,12 @@
             answersDiv.innerHTML = ""; 
             const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3].sort(() => Math.random() - 0.5);
             options.forEach(opt => {
-                if(!opt) return; 
+                var label = cellText(opt);
+                if(!label) return;
                 const btn = document.createElement('button');
                 btn.className = 'brick-btn';
-                btn.innerText = opt;
-                btn.onclick = function() { handleAnswer(opt, this); };
+                btn.innerText = label;
+                btn.onclick = function() { handleAnswer(label, this); };
                 answersDiv.appendChild(btn);
             });
             try { fitQuestion(); } catch (e) {}
@@ -2230,7 +2350,7 @@
             isInputLocked = true;
 
             const feedback = document.getElementById('feedback');
-            const isCorrect = (selectedText.trim() === currentQ.Answer.trim());
+            const isCorrect = (cellText(selectedText) === cellText(currentQ.Answer));
 
             logAttempt(isCorrect, currentQ);
 

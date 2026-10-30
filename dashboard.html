@@ -213,7 +213,7 @@
         }
         
         let globalLogs = [], categoryStats = [], questionStats = [], sessionStats = [];
-        var DASH_BUILD = '2026-10-29b';
+        var DASH_BUILD = '2026-10-29c';
 
         function esc(value) {
             return String(value == null ? '' : value)
@@ -255,6 +255,31 @@
         function isSheetTopic(name) {
             var lower = String(name || '').trim().toLowerCase();
             return lower && lower !== 'fun' && lower !== 'offline' && lower !== 'general';
+        }
+
+        function plainTimesFactText(question) {
+            var q = String(question == null ? '' : question);
+            q = q.replace(/<[^>]*>/g, ' ');
+            q = q.replace(/&times;/gi, '\u00d7').replace(/&#215;/g, '\u00d7');
+            q = q.replace(/&divide;/gi, '\u00f7').replace(/&#247;/g, '\u00f7');
+            q = q.replace(/\s+/g, ' ').trim().toLowerCase();
+            if (!q) return false;
+            if (q.indexOf('divid') !== -1 || q.indexOf('\u00f7') !== -1 || q.indexOf('/') !== -1) return false;
+            q = q.replace(/[?.!]+$/g, '').trim();
+            if (/^(what is\s+)?\d+\s*[x×*]\s*\d+$/.test(q)) return true;
+            if (/^(what is\s+)?\d+\s*[x×*]\s*\?\s*=\s*\d+$/.test(q)) return true;
+            if (/^\d+\s+times\s+\d+(\s+is)?$/.test(q)) return true;
+            return false;
+        }
+
+        function labelForLog(question, category) {
+            var name = String(category == null ? '' : category).trim();
+            if (!name) name = 'General';
+            // A plain times fact such as "5 x 6" or "5 × 6" is Multiplication.
+            // Older logs stored some of those rows as Division. Division
+            // sentences that only mention a times fact stay as they were logged.
+            if (plainTimesFactText(question) && name.toLowerCase() === 'division') return 'Multiplication';
+            return name;
         }
 
         function asDate(value) {
@@ -300,7 +325,7 @@
                 return {
                     user: data.user,
                     question: data.question,
-                    category: data.category,
+                    category: labelForLog(data.question, data.category),
                     result: data.result,
                     world: data.world,
                     timestamp: asDate(data.timestamp)

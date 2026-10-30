@@ -724,7 +724,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-28j</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-30a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -1155,7 +1155,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-29c';
+        var APP_BUILD = '2026-10-30a';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -1591,10 +1591,13 @@
         // about 15% from facts he already gets right. One correct only eases
         // a miss; two or three in a row graduate it. Fun trivia stays in the
         // bank and shows after every 5 or 6 maths questions.
+        // A question already shown this sitting stays out until the list being
+        // picked from has all been used. An open daily quest that still needs
+        // one category gets maths questions from that category until it is done.
         var PRACTICE_BUMP = 2;
         var PRACTICE_DECAY = 1;
         var PRACTICE_CAP = 8;
-        var RECENT_LIMIT = 5;
+        var RECENT_LIMIT = 4000;
         var MIN_TRIES = 4;
         var WEAK_CATEGORY = 0.70;
         var CLIMB_READY = 0.75;
@@ -2038,29 +2041,75 @@
             return out;
         }
 
+        function stampSheetRows(list) {
+            var i;
+            if (!list) return;
+            for (i = 0; i < list.length; i++) {
+                if (list[i] && list[i]._row == null) list[i]._row = i + 2;
+            }
+        }
+
+        function sessionKeys(question) {
+            var keys = [];
+            var text = questionPracticeKey(question);
+            var id;
+            if (text) keys.push(text);
+            if (question && question._row != null && String(question._row) !== '') keys.push('#row:' + String(question._row));
+            id = plainQuestionText(question && (question.QuestionId || question.Id || question.ID || question.id));
+            if (id) keys.push('#id:' + id);
+            return keys;
+        }
+
+        function questionWasAsked(question) {
+            var keys = sessionKeys(question);
+            var i;
+            if (!keys.length) return false;
+            for (i = 0; i < keys.length; i++) {
+                if (recentQuestions.indexOf(keys[i]) !== -1) return true;
+            }
+            return false;
+        }
+
         function freshQuestions(list) {
             var out = [];
-            var i, key;
+            var i;
             for (i = 0; i < list.length; i++) {
-                key = questionPracticeKey(list[i]);
-                if (!key || recentQuestions.indexOf(key) === -1) out.push(list[i]);
+                if (!questionWasAsked(list[i])) out.push(list[i]);
             }
             return out;
         }
 
+        function lastAskedIndex(question, seen) {
+            var keys = sessionKeys(question);
+            var i, at, best;
+            best = -1;
+            for (i = 0; i < keys.length; i++) {
+                at = seen[keys[i]];
+                if (at == null) continue;
+                if (at > best) best = at;
+            }
+            return best;
+        }
+
         function availableQuestions(list) {
-            var fresh, last, filtered, i;
+            var fresh, seen, ranked, i, keep, out;
             fresh = freshQuestions(list);
             if (fresh.length) return fresh;
-            if (recentQuestions.length && list.length > 1) {
-                last = recentQuestions[recentQuestions.length - 1];
-                filtered = [];
-                for (i = 0; i < list.length; i++) {
-                    if (questionPracticeKey(list[i]) !== last) filtered.push(list[i]);
-                }
-                if (filtered.length) return filtered;
-            }
-            return list;
+            if (!list || list.length < 2) return list || [];
+            // Every question in this list has already been used this sitting.
+            // Bring back the ones asked longest ago, and leave the recent half
+            // out so the highest-weight fact is not served on the next turn.
+            seen = {};
+            for (i = 0; i < recentQuestions.length; i++) seen[recentQuestions[i]] = i;
+            ranked = [];
+            for (i = 0; i < list.length; i++) ranked.push({ q: list[i], at: lastAskedIndex(list[i], seen) });
+            ranked.sort(function (a, b) { return a.at - b.at; });
+            keep = Math.ceil(ranked.length / 2);
+            if (keep >= ranked.length) keep = ranked.length - 1;
+            if (keep < 1) keep = 1;
+            out = [];
+            for (i = 0; i < keep; i++) out.push(ranked[i].q);
+            return out.length ? out : list;
         }
 
         function pickUniform(list) {
@@ -2234,14 +2283,25 @@
             return pickUniform(fresh);
         }
 
+        function questionServesTopic(question, topic) {
+            var want = topicKey(topic);
+            if (!want || !question || isFunQuestion(question)) return false;
+            return topicKey(categoryName(question)) === want;
+        }
+
         function chooseQuestion(pool) {
-            var funPool, mathsPool, picked;
+            var funPool, mathsPool, picked, topic, topicPool;
             if (!pool || !pool.length) return null;
             beginPick();
             try {
                 funPool = questionsWhere(pool, isFunQuestion);
                 mathsPool = questionsWhere(pool, function (q) { return !isFunQuestion(q); });
                 if (!mathsPool.length) mathsPool = pool.slice();
+                topic = openQuestTopic();
+                if (topic) {
+                    topicPool = questionsWhere(mathsPool, function (q) { return questionServesTopic(q, topic); });
+                    if (topicPool.length) mathsPool = topicPool;
+                }
                 if (funIsDue() && funPool.length) {
                     if (lastFunKey && funPool.length > 1) {
                         funPool = questionsWhere(funPool, function (q) {
@@ -2260,12 +2320,14 @@
         }
 
         function rememberRecentQuestion(question) {
-            var key = questionPracticeKey(question);
-            var at;
-            if (!key) return;
-            at = recentQuestions.indexOf(key);
-            if (at !== -1) recentQuestions.splice(at, 1);
-            recentQuestions.push(key);
+            var keys = sessionKeys(question);
+            var i, at;
+            for (i = 0; i < keys.length; i++) {
+                if (!keys[i]) continue;
+                at = recentQuestions.indexOf(keys[i]);
+                if (at !== -1) recentQuestions.splice(at, 1);
+                recentQuestions.push(keys[i]);
+            }
             while (recentQuestions.length > RECENT_LIMIT) recentQuestions.shift();
         }
 
@@ -2298,8 +2360,13 @@
             document.getElementById('feedback').innerText = "";
             let pool = allQuestions;
             let picked = null;
+            try { stampSheetRows(pool); } catch (e) {}
             try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
-            if (!picked) picked = pool[Math.floor(Math.random() * pool.length)];
+            if (!picked) {
+                var spare = availableQuestions(pool);
+                var fallback = spare && spare.length ? spare : pool;
+                picked = fallback[Math.floor(Math.random() * fallback.length)];
+            }
             currentQ = picked;
             try { noteQuestionShown(currentQ); } catch (e) {}
             
@@ -3211,6 +3278,65 @@
             return world * 1000 + (stage == null ? 0 : stage) * 50 + (questions == null ? 0 : questions);
         }
 
+        function sanitizeTopicCorrect(raw) {
+            var clean = {};
+            var days, i, day, row, topics, t, name, n;
+            if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return clean;
+            days = Object.keys(raw);
+            for (i = 0; i < days.length; i++) {
+                day = normalizeLastLogin(days[i]);
+                row = raw[days[i]];
+                if (!day || !row || typeof row !== 'object' || Array.isArray(row)) continue;
+                topics = Object.keys(row);
+                for (t = 0; t < topics.length; t++) {
+                    name = topicKey(topics[t]);
+                    if (!name || name === 'fun' || name.length > 40) continue;
+                    n = finiteNumber(row[topics[t]]);
+                    if (n == null || n <= 0) continue;
+                    n = Math.min(999, Math.floor(n));
+                    if (!clean[day]) clean[day] = {};
+                    if (clean[day][name] == null || n > clean[day][name]) clean[day][name] = n;
+                }
+            }
+            return clean;
+        }
+
+        function mergeTopicCorrect(sources) {
+            var clean = {};
+            var i, bag, days, d, topics, t;
+            for (i = 0; i < sources.length; i++) {
+                if (!sources[i]) continue;
+                bag = sanitizeTopicCorrect(sources[i].dailyTopicCorrect);
+                days = Object.keys(bag);
+                for (d = 0; d < days.length; d++) {
+                    if (!clean[days[d]]) clean[days[d]] = {};
+                    topics = Object.keys(bag[days[d]]);
+                    for (t = 0; t < topics.length; t++) {
+                        if (clean[days[d]][topics[t]] == null || bag[days[d]][topics[t]] > clean[days[d]][topics[t]]) {
+                            clean[days[d]][topics[t]] = bag[days[d]][topics[t]];
+                        }
+                    }
+                }
+            }
+            return clean;
+        }
+
+        function topicCorrectBehind(remoteRaw, localRaw) {
+            var local = sanitizeTopicCorrect(localRaw);
+            var remote = sanitizeTopicCorrect(remoteRaw);
+            var days = Object.keys(local);
+            var i, k, topics, t;
+            for (i = 0; i < days.length; i++) {
+                k = days[i];
+                if (!remote[k]) return true;
+                topics = Object.keys(local[k]);
+                for (t = 0; t < topics.length; t++) {
+                    if (remote[k][topics[t]] == null || local[k][topics[t]] > remote[k][topics[t]]) return true;
+                }
+            }
+            return false;
+        }
+
         function mergeCountBags(sources, field) {
             var clean = {};
             var i, bag, keys, k;
@@ -3303,6 +3429,7 @@
             myClaim = normalizeLastLogin(gameState.dailySurpriseDate);
             if (myClaim && (!remoteClaim || myClaim > remoteClaim)) return true;
             if (countsBehind(remote.dailyCorrectByDay, gameState.dailyCorrectByDay)) return true;
+            if (topicCorrectBehind(remote.dailyTopicCorrect, gameState.dailyTopicCorrect)) return true;
             if (levelRank(gameState) > levelRank(remote)) return true;
             if (claimsBehind(remote.openedLevelChests, gameState.openedLevelChests)) return true;
             if (practiceBehind(remote.practiceStats, gameState.practiceStats)) return true;
@@ -3349,6 +3476,7 @@
             if (recoveredDate) gameState.dailySurpriseDate = recoveredDate;
             gameState.dailyCorrectByDay = mergeDailyCounts(sources);
             gameState.dailyMultiByDay = mergeCountBags(sources, 'dailyMultiByDay');
+            gameState.dailyTopicCorrect = mergeTopicCorrect(sources);
             gameState.dailyQuestClaims = mergeQuestClaims(sources);
             gameState.dailyQuestBundle = mergeQuestBundle(sources);
             gameState.dailyStretchClaims = mergeStretchClaims(sources);
@@ -3891,7 +4019,7 @@
 
         var QUEST_DEFS = [
             { id: 'correct10', goal: 10, reward: 3, label: 'Get 10 correct today' },
-            { id: 'multi5', goal: 5, reward: 3, label: 'Get 5 multiplication correct' },
+            { id: 'multi5', goal: 5, reward: 3, topic: 'Multiplication', label: 'Get 5 multiplication correct' },
             { id: 'chest', goal: 1, reward: 2, label: 'Open today\'s level chest' },
             { id: 'answer15', goal: 15, reward: 4, label: 'Answer 15 questions' },
             { id: 'streak3', goal: 3, reward: 2, label: 'Get 3 right in a row' }
@@ -4149,21 +4277,75 @@
             gameState[field] = bag;
         }
 
-        function isMultiplication(question) {
-            var cat, q;
-            if (!question) return false;
-            cat = plainQuestionText(question.Category).toLowerCase();
-            q = plainQuestionText(question.Question).toLowerCase();
-            if (cat.indexOf('multi') !== -1 || cat.indexOf('times') !== -1) return true;
-            if (/[0-9]\s*[x×*]\s*[0-9]/.test(q)) return true;
-            if (q.indexOf('times') !== -1 || q.indexOf('multiply') !== -1) return true;
-            return false;
+        function topicKey(topic) {
+            var key = plainQuestionText(topic).toLowerCase();
+            if (!key) return '';
+            if (key.length > 40) key = key.slice(0, 40);
+            return key;
+        }
+
+        function topicCorrectBag() {
+            var clean = sanitizeTopicCorrect(gameState.dailyTopicCorrect);
+            gameState.dailyTopicCorrect = clean;
+            return clean;
+        }
+
+        function topicCorrectCount(topic) {
+            var today = surpriseToday();
+            var key = topicKey(topic);
+            var bag, n, legacy;
+            if (!today || !key) return 0;
+            bag = topicCorrectBag();
+            n = bag[today] && bag[today][key] ? bag[today][key] : 0;
+            // Older saves counted multiplication on dailyMultiByDay only.
+            if (key === 'multiplication') {
+                legacy = dayCount('dailyMultiByDay');
+                if (legacy > n) n = legacy;
+            }
+            return n;
+        }
+
+        function bumpTopicCorrect(topic) {
+            var today = surpriseToday();
+            var key = topicKey(topic);
+            var bag, row, n;
+            if (!today || !key || key === 'fun') return;
+            bag = topicCorrectBag();
+            row = bag[today] ? bag[today] : {};
+            n = row[key] || 0;
+            row[key] = Math.min(999, n + 1);
+            bag[today] = row;
+            gameState.dailyTopicCorrect = bag;
+            if (key === 'multiplication') bumpDayCount('dailyMultiByDay');
+        }
+
+        function noteTopicCorrect(question) {
+            var name;
+            if (!question || isFunQuestion(question)) return;
+            name = categoryName(question);
+            bumpTopicCorrect(name);
+        }
+
+        function openQuestTopic() {
+            var today = surpriseToday();
+            var ids, i, def, topic;
+            if (!today) return '';
+            ids = questsForDay(today);
+            for (i = 0; i < ids.length; i++) {
+                def = questById(ids[i]);
+                if (!def || !def.topic) continue;
+                if (questProgress(def.id) >= def.goal) continue;
+                topic = plainQuestionText(def.topic);
+                if (topic) return topic;
+            }
+            return '';
         }
 
         function questProgress(id) {
-            var best;
+            var def, best;
+            def = questById(id);
+            if (def && def.topic) return topicCorrectCount(def.topic);
             if (id === 'correct10' || id === 'answer15') return dailyCorrectCountFor(gameState);
-            if (id === 'multi5') return dayCount('dailyMultiByDay');
             if (id === 'chest') return normalizeLastLogin(gameState.dailyChestDay) === surpriseToday() ? 1 : 0;
             if (id === 'streak3') {
                 best = finiteNumber(gameState.dailyBestRun);
@@ -4391,7 +4573,7 @@
             if (typeof n !== 'number' || !isFinite(n) || n < 0) n = 0;
             bag[today] = Math.floor(n) + 1;
             gameState.dailyCorrectByDay = bag;
-            if (isMultiplication(currentQ)) bumpDayCount('dailyMultiByDay');
+            try { noteTopicCorrect(currentQ); } catch (e) {}
             try { bumpQuestRun(!!firstTry); } catch (e) {}
             try { refreshSurpriseProgress(); } catch (e) {}
             try { settleQuestRewards(); } catch (e) {}

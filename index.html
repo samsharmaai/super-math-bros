@@ -134,6 +134,38 @@
         }
         @keyframes burn { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 15px red; } }
 
+        .quest-pop {
+            position: fixed;
+            top: 58px;
+            left: 50%;
+            z-index: 2600;
+            margin: 0;
+            padding: 8px 12px;
+            max-width: 92vw;
+            box-sizing: border-box;
+            pointer-events: none;
+            background: #ffde00;
+            color: #1a1a1a;
+            border: 3px solid #000;
+            border-radius: 8px;
+            box-shadow: 4px 4px 0 #000;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            line-height: 1.45;
+            text-align: center;
+            white-space: nowrap;
+            transform: translateX(-50%) scale(0.7);
+            opacity: 0;
+        }
+        .quest-pop[hidden] { display: none !important; }
+        .quest-pop.is-show { animation: quest-burst 1.2s ease forwards; }
+        @keyframes quest-burst {
+            0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.6); }
+            16% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.08); }
+            68% { opacity: 1; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.96); }
+        }
+
         /* --- SCORECARD --- */
         #scorecard-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -709,6 +741,7 @@
             .flag-fill, .flag-marker, .chest-lid { transition: none; }
             .chest-btn.is-open .chest-lid { transform: translateY(-10px) rotate(-16deg); }
             .chest-btn.is-open .chest-coin { opacity: 1; animation: none; }
+            .quest-pop.is-show { animation: none; opacity: 1; transform: translateX(-50%); }
         }
     </style>
 </head>
@@ -724,7 +757,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-30a</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-31b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -813,6 +846,7 @@
              onerror="this.src='https://upload.wikimedia.org/wikipedia/en/9/99/MarioSMBW.png'; this.onerror=null;">
         <canvas id="heroSprite" class="hero-img hero-canvas" width="70" height="70" data-size="70" hidden aria-hidden="true"></canvas>
     </button>
+    <p id="questPop" class="quest-pop" hidden role="status" aria-live="polite"></p>
          
     <div id="worldScenery" class="world-scenery is-overworld" aria-hidden="true">
         <svg class="sprite-defs" width="0" height="0" aria-hidden="true">
@@ -981,6 +1015,14 @@
 
         function playBonkSound() { 
             playTone(150, 'sawtooth', 0.3, 0); 
+        }
+
+        function playQuestPopSound(grand) {
+            try {
+                playTone(784, 'square', 0.07, 0);
+                playTone(1174, 'square', 0.08, 0.07);
+                playTone(1568, grand ? 'square' : 'triangle', grand ? 0.16 : 0.12, 0.15);
+            } catch (e) {}
         }
 
         // Block-break chime. Context is created on the first tap/click so iOS will allow it.
@@ -1155,7 +1197,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-30a';
+        var APP_BUILD = '2026-10-31b';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -2757,7 +2799,7 @@
                 renderChest(bonus, true);
                 try { noteChestOpened(); } catch (e) {}
                 try { saveGame(); } catch (e) {}
-                if (paid) {
+                if (paid && !pendingMoment) {
                     try {
                         if (typeof confetti === 'function') confetti({ particleCount: 40, spread: 55, origin: { y: 0.62 } });
                     } catch (e) {}
@@ -4394,6 +4436,93 @@
             if (card) card.hidden = true;
         }
 
+        var pendingMoment = null;
+        var momentFlush = null;
+        var questPopTimer = null;
+
+        function prefersReducedMotion() {
+            try {
+                return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function coinRain(big) {
+            var colors, base;
+            if (prefersReducedMotion()) return;
+            if (typeof confetti !== 'function') return;
+            colors = ['#ffde00', '#fff6b0', '#ff9d00', '#e52521', '#ffffff'];
+            base = {
+                colors: colors,
+                disableForReducedMotion: true,
+                ticks: big ? 75 : 58,
+                gravity: 1.05,
+                decay: 0.92,
+                scalar: 0.8
+            };
+            try {
+                confetti(Object.assign({}, base, {
+                    particleCount: big ? 46 : 26,
+                    spread: big ? 66 : 48,
+                    startVelocity: 24,
+                    origin: { y: 0.38 }
+                }));
+                confetti(Object.assign({}, base, {
+                    particleCount: big ? 20 : 12,
+                    angle: 270,
+                    spread: 64,
+                    startVelocity: 12,
+                    gravity: 0.62,
+                    shapes: ['circle'],
+                    scalar: 0.7,
+                    origin: { x: 0.5, y: 0 },
+                    colors: ['#ffde00', '#fff6b0', '#e6a800']
+                }));
+            } catch (e) {}
+        }
+
+        function showQuestPop(message) {
+            var el = document.getElementById('questPop');
+            if (!el || !message) return;
+            el.textContent = message;
+            el.hidden = false;
+            el.classList.remove('is-show');
+            void el.offsetWidth;
+            el.classList.add('is-show');
+            if (questPopTimer) clearTimeout(questPopTimer);
+            questPopTimer = setTimeout(function () {
+                el.classList.remove('is-show');
+                el.hidden = true;
+                questPopTimer = null;
+            }, 1250);
+        }
+
+        function noteBigMoment(moment) {
+            if (!moment) return;
+            if (!pendingMoment) pendingMoment = { rain: 0, pop: '', popRank: 0, sound: '' };
+            if ((moment.rain || 0) > pendingMoment.rain) pendingMoment.rain = moment.rain;
+            if ((moment.popRank || 0) > pendingMoment.popRank) {
+                pendingMoment.popRank = moment.popRank;
+                pendingMoment.pop = moment.pop || '';
+                pendingMoment.sound = moment.sound || '';
+            }
+            if (momentFlush) return;
+            momentFlush = setTimeout(flushBigMoment, 40);
+        }
+
+        function flushBigMoment() {
+            var moment = pendingMoment;
+            pendingMoment = null;
+            momentFlush = null;
+            if (!moment || (!moment.rain && !moment.pop)) return;
+            if (moment.rain) coinRain(moment.rain >= 2);
+            if (moment.pop) {
+                showQuestPop(moment.pop);
+                playQuestPopSound(moment.sound === 'bundle');
+            }
+        }
+
         function paintQuestButton() {
             var btn = document.getElementById('questBtn');
             var countEl = document.getElementById('questBtnCount');
@@ -4492,11 +4621,13 @@
                 markQuestClaimed(def.id);
                 paid += def.reward;
                 lines.push(def.label + ' — +' + def.reward + ' coins!');
+                try { noteBigMoment({ rain: 1, pop: 'Quest done!', popRank: 1, sound: 'quest' }); } catch (e) {}
             }
             if (todayQuestClaims().length >= ids.length && !bundleClaimedToday()) {
                 markBundleClaimed();
                 paid += QUEST_BUNDLE_COINS;
                 lines.push('All 3 quests done! +' + QUEST_BUNDLE_COINS + ' bonus coins!');
+                try { noteBigMoment({ rain: 2, pop: 'All quests done!', popRank: 3, sound: 'bundle' }); } catch (e) {}
             }
             if (stretchOffered()) {
                 count = dailyCorrectCountFor(gameState);
@@ -4504,11 +4635,13 @@
                     markStretchClaim(15);
                     paid += 5;
                     lines.push('15 correct today! +5 coins!');
+                    try { noteBigMoment({ rain: 1 }); } catch (e) {}
                 }
                 if (count >= 20 && !stretchClaim(20)) {
                     markStretchClaim(20);
                     paid += 8;
                     lines.push('20 correct today! +8 coins!');
+                    try { noteBigMoment({ rain: 2 }); } catch (e) {}
                 }
             }
             if (paid > 0) {
@@ -4544,6 +4677,9 @@
             gameState.dailyBestRun = best;
             gameState.dailyRunDay = today;
             gameState.dailyBestRunDay = today;
+            if (run === 5 || run === 10) {
+                try { noteBigMoment({ rain: run === 10 ? 2 : 1 }); } catch (e) {}
+            }
         }
 
         function resetQuestRun() {

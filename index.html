@@ -134,71 +134,6 @@
         }
         @keyframes burn { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 15px red; } }
 
-        /* Answer-streak flame. Beside the hero, above the bushes, under the answers. */
-        .streak-flame {
-            --heat: 0;
-            position: fixed;
-            left: 96px;
-            bottom: calc(var(--ground-h) + 78px);
-            z-index: 9;
-            width: 56px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            pointer-events: none;
-            opacity: 1;
-            transition: opacity 0.35s ease, filter 0.4s ease;
-        }
-        .streak-flame.is-out {
-            opacity: 0;
-            filter: grayscale(0.85) brightness(0.75);
-        }
-        .flame-count {
-            font-family: Verdana, sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            line-height: 1;
-            color: #fff;
-            text-shadow: 1px 1px 0 #000;
-            background: rgba(0,0,0,0.55);
-            border: 2px solid #fff;
-            border-radius: 8px;
-            padding: 2px 5px;
-            margin-bottom: 2px;
-        }
-        .flame-count:empty { display: none; }
-        .flame-slot {
-            width: 52px;
-            height: 62px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-        }
-        .flame-px {
-            display: block;
-            width: 40px;
-            height: 50px;
-            transform-origin: 50% 100%;
-            transform: scale(calc(0.72 + var(--heat) * 0.05));
-            transition: transform 0.35s ease, filter 0.35s ease;
-            filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 3px #ff6a00);
-        }
-        .streak-flame.is-out .flame-px { transform: scale(0.32); animation: none; filter: none; }
-        .streak-flame:not(.is-out) .flame-px { animation: flame-flicker 0.5s ease-in-out infinite alternate; }
-        .streak-flame.is-hot .flame-px { filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 6px #ff3b00) drop-shadow(0 0 12px #ffde00); }
-        .streak-flame.is-blaze .flame-px { filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 8px #fff6b0) drop-shadow(0 0 16px #ff9d00); }
-        .flame-outer { fill: #ff4d12; stroke: #1a1a1a; stroke-width: 1.4; stroke-linejoin: round; }
-        .flame-mid { fill: #ffb000; }
-        .flame-core { fill: #fff6b0; }
-        .streak-flame.is-hot .flame-outer { fill: #ff2a00; }
-        .streak-flame.is-blaze .flame-core { fill: #ffffff; }
-        .streak-flame.is-blaze .flame-mid { fill: #ffde00; }
-        @keyframes flame-flicker {
-            from { transform: scale(calc(0.72 + var(--heat) * 0.05)) scaleY(0.95); }
-            to { transform: scale(calc(0.72 + var(--heat) * 0.05)) scaleY(1.06); }
-        }
-
         .quest-pop {
             position: fixed;
             top: 58px;
@@ -778,7 +713,6 @@
             .brick-btn { font-size: 20px; min-height: 50px; padding: 8px 4px; }
             #feedback { min-height: 0; margin-bottom: 4px; font-size: 11px; }
             .day-strip { margin-bottom: 4px; padding: 3px 6px; }
-            .streak-flame { bottom: calc(var(--ground-h) + 18px); }
             .daily-surprise { margin-bottom: 0; }
             .cloud-track { top: 42px; height: 84px; }
             .cloud.c1 { width: 78px; height: 31px; }
@@ -807,7 +741,6 @@
             .flag-fill, .flag-marker, .chest-lid { transition: none; }
             .chest-btn.is-open .chest-lid { transform: translateY(-10px) rotate(-16deg); }
             .chest-btn.is-open .chest-coin { opacity: 1; animation: none; }
-            .streak-flame, .streak-flame .flame-px { animation: none; transition: none; }
             .quest-pop.is-show { animation: none; opacity: 1; transform: translateX(-50%); }
         }
     </style>
@@ -824,7 +757,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-31a</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-31b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -913,16 +846,6 @@
              onerror="this.src='https://upload.wikimedia.org/wikipedia/en/9/99/MarioSMBW.png'; this.onerror=null;">
         <canvas id="heroSprite" class="hero-img hero-canvas" width="70" height="70" data-size="70" hidden aria-hidden="true"></canvas>
     </button>
-    <div id="streakFlame" class="streak-flame is-out" data-heat="0" role="img" aria-label="Answer streak cooled">
-        <span class="flame-count" id="flameCount"></span>
-        <span class="flame-slot">
-            <svg class="flame-px" viewBox="0 0 32 40" aria-hidden="true">
-                <path class="flame-outer" d="M16 1c2.2 6.2 9 8.4 9 16.2 0 6.4-3.6 10.6-9 14.6-5.4-4-9-8.2-9-14.6C7 9.4 13.8 7.2 16 1z"/>
-                <path class="flame-mid" d="M16 12c1.4 4.2 5.4 5.4 5.4 10.2 0 4-2.2 6.4-5.4 8.4-3.2-2-5.4-4.4-5.4-8.4 0-4.8 4-6 5.4-10.2z"/>
-                <path class="flame-core" d="M16 21.5c.8 2.2 2.2 3 2.2 5.1 0 2-1 3.2-2.2 4.1-1.2-.9-2.2-2.1-2.2-4.1 0-2.1 1.4-2.9 2.2-5.1z"/>
-            </svg>
-        </span>
-    </div>
     <p id="questPop" class="quest-pop" hidden role="status" aria-live="polite"></p>
          
     <div id="worldScenery" class="world-scenery is-overworld" aria-hidden="true">
@@ -1274,7 +1197,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-31a';
+        var APP_BUILD = '2026-10-31b';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -3079,7 +3002,6 @@
             try { refreshSurpriseProgress(); } catch (e) {}
             try { paintQuestButton(); } catch (e) {}
             try { paintStretch(); } catch (e) {}
-            try { paintStreakFlame(); } catch (e) {}
         }
 
         // --- DAILY SURPRISE & CHARACTER COLLECTION ---
@@ -4518,30 +4440,6 @@
         var momentFlush = null;
         var questPopTimer = null;
 
-        function currentAnswerRun() {
-            var today, run;
-            today = surpriseToday();
-            if (!today || normalizeLastLogin(gameState.dailyRunDay) !== today) return 0;
-            run = finiteNumber(gameState.dailyRun);
-            if (run == null || run < 0) return 0;
-            return Math.floor(run);
-        }
-
-        function paintStreakFlame() {
-            var el = document.getElementById('streakFlame');
-            var countEl = document.getElementById('flameCount');
-            var run = currentAnswerRun();
-            var heat = run > 10 ? 10 : run;
-            if (!el) return;
-            el.dataset.heat = String(run);
-            el.style.setProperty('--heat', String(heat));
-            el.classList.toggle('is-out', run <= 0);
-            el.classList.toggle('is-hot', run >= 5);
-            el.classList.toggle('is-blaze', run >= 10);
-            if (countEl) countEl.textContent = run > 0 ? String(run) : '';
-            el.setAttribute('aria-label', run > 0 ? (run + ' correct in a row') : 'Answer streak cooled');
-        }
-
         function prefersReducedMotion() {
             try {
                 return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -4768,10 +4666,7 @@
                 gameState.dailyBestRun = 0;
                 gameState.dailyBestRunDay = today;
             }
-            if (!firstTry) {
-                try { paintStreakFlame(); } catch (e) {}
-                return;
-            }
+            if (!firstTry) return;
             run = finiteNumber(gameState.dailyRun);
             if (run == null || run < 0) run = 0;
             run = Math.floor(run) + 1;
@@ -4782,7 +4677,6 @@
             gameState.dailyBestRun = best;
             gameState.dailyRunDay = today;
             gameState.dailyBestRunDay = today;
-            try { paintStreakFlame(); } catch (e) {}
             if (run === 5 || run === 10) {
                 try { noteBigMoment({ rain: run === 10 ? 2 : 1 }); } catch (e) {}
             }
@@ -4797,7 +4691,6 @@
                 gameState.dailyBestRun = 0;
                 gameState.dailyBestRunDay = today;
             }
-            try { paintStreakFlame(); } catch (e) {}
         }
 
         function noteChestOpened() {

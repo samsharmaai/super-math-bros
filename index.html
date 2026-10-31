@@ -134,6 +134,103 @@
         }
         @keyframes burn { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 15px red; } }
 
+        /* Answer-streak flame. Beside the hero, above the bushes, under the answers. */
+        .streak-flame {
+            --heat: 0;
+            position: fixed;
+            left: 96px;
+            bottom: calc(var(--ground-h) + 78px);
+            z-index: 9;
+            width: 56px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.35s ease, filter 0.4s ease;
+        }
+        .streak-flame.is-out {
+            opacity: 0;
+            filter: grayscale(0.85) brightness(0.75);
+        }
+        .flame-count {
+            font-family: Verdana, sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            background: rgba(0,0,0,0.55);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            padding: 2px 5px;
+            margin-bottom: 2px;
+        }
+        .flame-count:empty { display: none; }
+        .flame-slot {
+            width: 52px;
+            height: 62px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .flame-px {
+            display: block;
+            width: 40px;
+            height: 50px;
+            transform-origin: 50% 100%;
+            transform: scale(calc(0.72 + var(--heat) * 0.05));
+            transition: transform 0.35s ease, filter 0.35s ease;
+            filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 3px #ff6a00);
+        }
+        .streak-flame.is-out .flame-px { transform: scale(0.32); animation: none; filter: none; }
+        .streak-flame:not(.is-out) .flame-px { animation: flame-flicker 0.5s ease-in-out infinite alternate; }
+        .streak-flame.is-hot .flame-px { filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 6px #ff3b00) drop-shadow(0 0 12px #ffde00); }
+        .streak-flame.is-blaze .flame-px { filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 8px #fff6b0) drop-shadow(0 0 16px #ff9d00); }
+        .flame-outer { fill: #ff4d12; stroke: #1a1a1a; stroke-width: 1.4; stroke-linejoin: round; }
+        .flame-mid { fill: #ffb000; }
+        .flame-core { fill: #fff6b0; }
+        .streak-flame.is-hot .flame-outer { fill: #ff2a00; }
+        .streak-flame.is-blaze .flame-core { fill: #ffffff; }
+        .streak-flame.is-blaze .flame-mid { fill: #ffde00; }
+        @keyframes flame-flicker {
+            from { transform: scale(calc(0.72 + var(--heat) * 0.05)) scaleY(0.95); }
+            to { transform: scale(calc(0.72 + var(--heat) * 0.05)) scaleY(1.06); }
+        }
+
+        .quest-pop {
+            position: fixed;
+            top: 58px;
+            left: 50%;
+            z-index: 2600;
+            margin: 0;
+            padding: 8px 12px;
+            max-width: 92vw;
+            box-sizing: border-box;
+            pointer-events: none;
+            background: #ffde00;
+            color: #1a1a1a;
+            border: 3px solid #000;
+            border-radius: 8px;
+            box-shadow: 4px 4px 0 #000;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            line-height: 1.45;
+            text-align: center;
+            white-space: nowrap;
+            transform: translateX(-50%) scale(0.7);
+            opacity: 0;
+        }
+        .quest-pop[hidden] { display: none !important; }
+        .quest-pop.is-show { animation: quest-burst 1.2s ease forwards; }
+        @keyframes quest-burst {
+            0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.6); }
+            16% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.08); }
+            68% { opacity: 1; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.96); }
+        }
+
         /* --- SCORECARD --- */
         #scorecard-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -681,6 +778,7 @@
             .brick-btn { font-size: 20px; min-height: 50px; padding: 8px 4px; }
             #feedback { min-height: 0; margin-bottom: 4px; font-size: 11px; }
             .day-strip { margin-bottom: 4px; padding: 3px 6px; }
+            .streak-flame { bottom: calc(var(--ground-h) + 18px); }
             .daily-surprise { margin-bottom: 0; }
             .cloud-track { top: 42px; height: 84px; }
             .cloud.c1 { width: 78px; height: 31px; }
@@ -709,6 +807,8 @@
             .flag-fill, .flag-marker, .chest-lid { transition: none; }
             .chest-btn.is-open .chest-lid { transform: translateY(-10px) rotate(-16deg); }
             .chest-btn.is-open .chest-coin { opacity: 1; animation: none; }
+            .streak-flame, .streak-flame .flame-px { animation: none; transition: none; }
+            .quest-pop.is-show { animation: none; opacity: 1; transform: translateX(-50%); }
         }
     </style>
 </head>
@@ -724,7 +824,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-10-30a</p>
+            <p id="buildStamp" class="account-note">Build 2026-10-31a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" style="color:blue; font-size:0.7em; margin-top:10px;"></div>
@@ -813,6 +913,17 @@
              onerror="this.src='https://upload.wikimedia.org/wikipedia/en/9/99/MarioSMBW.png'; this.onerror=null;">
         <canvas id="heroSprite" class="hero-img hero-canvas" width="70" height="70" data-size="70" hidden aria-hidden="true"></canvas>
     </button>
+    <div id="streakFlame" class="streak-flame is-out" data-heat="0" role="img" aria-label="Answer streak cooled">
+        <span class="flame-count" id="flameCount"></span>
+        <span class="flame-slot">
+            <svg class="flame-px" viewBox="0 0 32 40" aria-hidden="true">
+                <path class="flame-outer" d="M16 1c2.2 6.2 9 8.4 9 16.2 0 6.4-3.6 10.6-9 14.6-5.4-4-9-8.2-9-14.6C7 9.4 13.8 7.2 16 1z"/>
+                <path class="flame-mid" d="M16 12c1.4 4.2 5.4 5.4 5.4 10.2 0 4-2.2 6.4-5.4 8.4-3.2-2-5.4-4.4-5.4-8.4 0-4.8 4-6 5.4-10.2z"/>
+                <path class="flame-core" d="M16 21.5c.8 2.2 2.2 3 2.2 5.1 0 2-1 3.2-2.2 4.1-1.2-.9-2.2-2.1-2.2-4.1 0-2.1 1.4-2.9 2.2-5.1z"/>
+            </svg>
+        </span>
+    </div>
+    <p id="questPop" class="quest-pop" hidden role="status" aria-live="polite"></p>
          
     <div id="worldScenery" class="world-scenery is-overworld" aria-hidden="true">
         <svg class="sprite-defs" width="0" height="0" aria-hidden="true">
@@ -981,6 +1092,14 @@
 
         function playBonkSound() { 
             playTone(150, 'sawtooth', 0.3, 0); 
+        }
+
+        function playQuestPopSound(grand) {
+            try {
+                playTone(784, 'square', 0.07, 0);
+                playTone(1174, 'square', 0.08, 0.07);
+                playTone(1568, grand ? 'square' : 'triangle', grand ? 0.16 : 0.12, 0.15);
+            } catch (e) {}
         }
 
         // Block-break chime. Context is created on the first tap/click so iOS will allow it.
@@ -1155,7 +1274,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-10-30a';
+        var APP_BUILD = '2026-10-31a';
         var statusFadeTimer = null;
         var statusHideTimer = null;
         var statusFadeStarted = false;
@@ -2757,7 +2876,7 @@
                 renderChest(bonus, true);
                 try { noteChestOpened(); } catch (e) {}
                 try { saveGame(); } catch (e) {}
-                if (paid) {
+                if (paid && !pendingMoment) {
                     try {
                         if (typeof confetti === 'function') confetti({ particleCount: 40, spread: 55, origin: { y: 0.62 } });
                     } catch (e) {}
@@ -2960,6 +3079,7 @@
             try { refreshSurpriseProgress(); } catch (e) {}
             try { paintQuestButton(); } catch (e) {}
             try { paintStretch(); } catch (e) {}
+            try { paintStreakFlame(); } catch (e) {}
         }
 
         // --- DAILY SURPRISE & CHARACTER COLLECTION ---
@@ -4394,6 +4514,117 @@
             if (card) card.hidden = true;
         }
 
+        var pendingMoment = null;
+        var momentFlush = null;
+        var questPopTimer = null;
+
+        function currentAnswerRun() {
+            var today, run;
+            today = surpriseToday();
+            if (!today || normalizeLastLogin(gameState.dailyRunDay) !== today) return 0;
+            run = finiteNumber(gameState.dailyRun);
+            if (run == null || run < 0) return 0;
+            return Math.floor(run);
+        }
+
+        function paintStreakFlame() {
+            var el = document.getElementById('streakFlame');
+            var countEl = document.getElementById('flameCount');
+            var run = currentAnswerRun();
+            var heat = run > 10 ? 10 : run;
+            if (!el) return;
+            el.dataset.heat = String(run);
+            el.style.setProperty('--heat', String(heat));
+            el.classList.toggle('is-out', run <= 0);
+            el.classList.toggle('is-hot', run >= 5);
+            el.classList.toggle('is-blaze', run >= 10);
+            if (countEl) countEl.textContent = run > 0 ? String(run) : '';
+            el.setAttribute('aria-label', run > 0 ? (run + ' correct in a row') : 'Answer streak cooled');
+        }
+
+        function prefersReducedMotion() {
+            try {
+                return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function coinRain(big) {
+            var colors, base;
+            if (prefersReducedMotion()) return;
+            if (typeof confetti !== 'function') return;
+            colors = ['#ffde00', '#fff6b0', '#ff9d00', '#e52521', '#ffffff'];
+            base = {
+                colors: colors,
+                disableForReducedMotion: true,
+                ticks: big ? 75 : 58,
+                gravity: 1.05,
+                decay: 0.92,
+                scalar: 0.8
+            };
+            try {
+                confetti(Object.assign({}, base, {
+                    particleCount: big ? 46 : 26,
+                    spread: big ? 66 : 48,
+                    startVelocity: 24,
+                    origin: { y: 0.38 }
+                }));
+                confetti(Object.assign({}, base, {
+                    particleCount: big ? 20 : 12,
+                    angle: 270,
+                    spread: 64,
+                    startVelocity: 12,
+                    gravity: 0.62,
+                    shapes: ['circle'],
+                    scalar: 0.7,
+                    origin: { x: 0.5, y: 0 },
+                    colors: ['#ffde00', '#fff6b0', '#e6a800']
+                }));
+            } catch (e) {}
+        }
+
+        function showQuestPop(message) {
+            var el = document.getElementById('questPop');
+            if (!el || !message) return;
+            el.textContent = message;
+            el.hidden = false;
+            el.classList.remove('is-show');
+            void el.offsetWidth;
+            el.classList.add('is-show');
+            if (questPopTimer) clearTimeout(questPopTimer);
+            questPopTimer = setTimeout(function () {
+                el.classList.remove('is-show');
+                el.hidden = true;
+                questPopTimer = null;
+            }, 1250);
+        }
+
+        function noteBigMoment(moment) {
+            if (!moment) return;
+            if (!pendingMoment) pendingMoment = { rain: 0, pop: '', popRank: 0, sound: '' };
+            if ((moment.rain || 0) > pendingMoment.rain) pendingMoment.rain = moment.rain;
+            if ((moment.popRank || 0) > pendingMoment.popRank) {
+                pendingMoment.popRank = moment.popRank;
+                pendingMoment.pop = moment.pop || '';
+                pendingMoment.sound = moment.sound || '';
+            }
+            if (momentFlush) return;
+            momentFlush = setTimeout(flushBigMoment, 40);
+        }
+
+        function flushBigMoment() {
+            var moment = pendingMoment;
+            pendingMoment = null;
+            momentFlush = null;
+            if (!moment || (!moment.rain && !moment.pop)) return;
+            if (moment.rain) coinRain(moment.rain >= 2);
+            if (moment.pop) {
+                showQuestPop(moment.pop);
+                playQuestPopSound(moment.sound === 'bundle');
+            }
+        }
+
         function paintQuestButton() {
             var btn = document.getElementById('questBtn');
             var countEl = document.getElementById('questBtnCount');
@@ -4492,11 +4723,13 @@
                 markQuestClaimed(def.id);
                 paid += def.reward;
                 lines.push(def.label + ' — +' + def.reward + ' coins!');
+                try { noteBigMoment({ rain: 1, pop: 'Quest done!', popRank: 1, sound: 'quest' }); } catch (e) {}
             }
             if (todayQuestClaims().length >= ids.length && !bundleClaimedToday()) {
                 markBundleClaimed();
                 paid += QUEST_BUNDLE_COINS;
                 lines.push('All 3 quests done! +' + QUEST_BUNDLE_COINS + ' bonus coins!');
+                try { noteBigMoment({ rain: 2, pop: 'All quests done!', popRank: 3, sound: 'bundle' }); } catch (e) {}
             }
             if (stretchOffered()) {
                 count = dailyCorrectCountFor(gameState);
@@ -4504,11 +4737,13 @@
                     markStretchClaim(15);
                     paid += 5;
                     lines.push('15 correct today! +5 coins!');
+                    try { noteBigMoment({ rain: 1 }); } catch (e) {}
                 }
                 if (count >= 20 && !stretchClaim(20)) {
                     markStretchClaim(20);
                     paid += 8;
                     lines.push('20 correct today! +8 coins!');
+                    try { noteBigMoment({ rain: 2 }); } catch (e) {}
                 }
             }
             if (paid > 0) {
@@ -4533,7 +4768,10 @@
                 gameState.dailyBestRun = 0;
                 gameState.dailyBestRunDay = today;
             }
-            if (!firstTry) return;
+            if (!firstTry) {
+                try { paintStreakFlame(); } catch (e) {}
+                return;
+            }
             run = finiteNumber(gameState.dailyRun);
             if (run == null || run < 0) run = 0;
             run = Math.floor(run) + 1;
@@ -4544,6 +4782,10 @@
             gameState.dailyBestRun = best;
             gameState.dailyRunDay = today;
             gameState.dailyBestRunDay = today;
+            try { paintStreakFlame(); } catch (e) {}
+            if (run === 5 || run === 10) {
+                try { noteBigMoment({ rain: run === 10 ? 2 : 1 }); } catch (e) {}
+            }
         }
 
         function resetQuestRun() {
@@ -4555,6 +4797,7 @@
                 gameState.dailyBestRun = 0;
                 gameState.dailyBestRunDay = today;
             }
+            try { paintStreakFlame(); } catch (e) {}
         }
 
         function noteChestOpened() {

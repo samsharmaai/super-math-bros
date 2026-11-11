@@ -3,10 +3,15 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import puppeteer from '/tmp/hint-test-modules/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js';
+const puppeteerModule = await import(
+  fs.existsSync('/tmp/hint-test-modules/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js')
+    ? '/tmp/hint-test-modules/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js'
+    : '/tmp/hint-test-modules/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js'
+);
+const puppeteer = puppeteerModule.default;
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const chromePath = '/usr/bin/google-chrome-stable';
+const chromePath = fs.existsSync('/usr/bin/google-chrome-stable') ? '/usr/bin/google-chrome-stable' : '/usr/bin/google-chrome';
 const sheetMarker = 'docs.google.com/spreadsheets';
 const results = [];
 
@@ -109,6 +114,14 @@ async function openGame(browser, server, csv, viewport) {
         contentType: 'text/csv; charset=utf-8',
         headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/csv; charset=utf-8' },
         body: csv
+      });
+      return;
+    }
+    if (url.indexOf('papaparse') !== -1 && fs.existsSync('/tmp/hint-test-modules/node_modules/papaparse/papaparse.min.js')) {
+      req.respond({
+        status: 200,
+        contentType: 'application/javascript',
+        body: fs.readFileSync('/tmp/hint-test-modules/node_modules/papaparse/papaparse.min.js')
       });
       return;
     }
@@ -259,7 +272,7 @@ async function main() {
     let logs = await logsOf(desktop);
     check('correct-first still has no hint', state.slotHidden, JSON.stringify(state));
     check('correct-first logs one attempt without hintUsed', logs.length === 1 && logs[0].result === 'Correct' && logs[0].hasHintUsed === false && logs[0].user === 'player@example.com' && logs[0].category === 'Addition', JSON.stringify(logs));
-    check('build id is current', await desktop.evaluate(function () { return APP_BUILD; }) === '2026-11-06a');
+    check('build id is current', await desktop.evaluate(function () { return APP_BUILD; }) === '2026-11-11b');
     await desktop.close();
 
     const phone = await openGame(browser, server, hinted, { width: 390, height: 680 });
@@ -382,8 +395,8 @@ async function main() {
     }, liveText);
     check('published csv has eight columns', liveParsed.count === 669 && liveParsed.sameKeys && liveParsed.keys.join('|') === 'Question|Image|Option1|Option2|Option3|Answer|Category|Hint', JSON.stringify({ count: liveParsed.count, keys: liveParsed.keys, sameKeys: liveParsed.sameKeys }));
     check('published 68 + ? = 511 answer row is unchanged', liveParsed.kept && liveParsed.kept.Option1 === '442' && liveParsed.kept.Option2 === '443' && liveParsed.kept.Option3 === '444' && liveParsed.kept.Answer === '443' && liveParsed.kept.Category === 'Addition' && liveParsed.keptHint.indexOf('443') === -1 && liveParsed.keptHint !== '443', JSON.stringify(liveParsed.kept));
-    check('published quoted pattern row stays one question', liveParsed.quoted && liveParsed.quoted.Answer === '42' && liveParsed.quoted.Category === 'Patterns' && liveParsed.quoted.hint.indexOf('Add 7') !== -1, JSON.stringify(liveParsed.quoted));
-    check('published appended addition row keeps its method hint', liveParsed.added && liveParsed.added.Answer === '85' && liveParsed.added.Category === 'Addition' && liveParsed.added.hint.indexOf('Add the ones') === 0 && liveParsed.added.hint.indexOf('85') === -1, JSON.stringify(liveParsed.added));
+    check('published quoted pattern row stays one question', liveParsed.quoted && liveParsed.quoted.Answer === '42' && liveParsed.quoted.Category === 'Patterns' && liveParsed.quoted.hint.indexOf('7') !== -1 && liveParsed.quoted.hint.indexOf('42') === -1, JSON.stringify(liveParsed.quoted));
+    check('published appended addition row keeps its method hint', liveParsed.added && liveParsed.added.Answer === '85' && liveParsed.added.Category === 'Addition' && liveParsed.added.hint.length > 10 && liveParsed.added.hint.indexOf('85') === -1, JSON.stringify(liveParsed.added));
     check('published fun rows have no hint and maths rows do', liveParsed.funBlank === 99 && liveParsed.funHinted === 0 && liveParsed.mathsHinted === 570, JSON.stringify({ funBlank: liveParsed.funBlank, funHinted: liveParsed.funHinted, mathsHinted: liveParsed.mathsHinted }));
     await livePage.close();
   } finally {

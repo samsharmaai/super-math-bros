@@ -272,7 +272,13 @@ async function main() {
     let logs = await logsOf(desktop);
     check('correct-first still has no hint', state.slotHidden, JSON.stringify(state));
     check('correct-first logs one attempt without hintUsed', logs.length === 1 && logs[0].result === 'Correct' && logs[0].hasHintUsed === false && logs[0].user === 'player@example.com' && logs[0].category === 'Addition', JSON.stringify(logs));
-    check('build id is current', await desktop.evaluate(function () { return APP_BUILD; }) === '2026-11-11b');
+    check('build id is current', await desktop.evaluate(function () { return APP_BUILD; }) === '2026-11-14a');
+    check('visual helper renders on maths and hides on fun', await desktop.evaluate(function () {
+      var vis = document.getElementById('qVisual');
+      var hero = document.getElementById('heroSprite');
+      var funRow = { Question: 'Who is Mario\'s brother?', Option1: 'Luigi', Option2: 'Bowser', Option3: 'Toad', Answer: 'Luigi', Category: 'Fun', Hint: '' };
+      return Boolean(vis && !vis.hidden && vis.textContent.indexOf('12') === -1 && buildVisualSpec(funRow) === null && hero && !hero.hidden && hero.width > 0);
+    }));
     await desktop.close();
 
     const phone = await openGame(browser, server, hinted, { width: 390, height: 680 });

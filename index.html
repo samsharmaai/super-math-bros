@@ -37,9 +37,18 @@
             --hud-navy: rgba(7, 32, 98, 0.88);
             --board-navy: rgba(8, 38, 114, 0.92);
         }
+        html.pack-christmas,
+        body.pack-christmas {
+            --sky-top: #102a63;
+            --sky-mid: #1f4ca0;
+            --sky-horizon: #6db8f7;
+            --sky-blue: #1f4ca0;
+            --hud-navy: rgba(8, 28, 78, 0.9);
+            --board-navy: rgba(9, 33, 92, 0.93);
+        }
 
         html {
-            background-color: #5C94FC;
+            background-color: var(--sky-blue);
             background-image: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 56%, var(--sky-horizon) 100%);
             font-size: 16px;
             -webkit-text-size-adjust: none;
@@ -48,7 +57,7 @@
         body {
             box-sizing: border-box;
             font-family: 'Press Start 2P', cursive;
-            background-color: #5C94FC;
+            background-color: var(--sky-blue);
             background-image: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 56%, var(--sky-horizon) 100%);
             text-align: center;
             padding: 8px 10px;
@@ -552,6 +561,34 @@
         .q-bolt.tr { top: 7px; right: 8px; }
         .q-bolt.bl { bottom: 7px; left: 8px; }
         .q-bolt.br { bottom: 7px; right: 8px; }
+        .q-lights {
+            display: none;
+            position: absolute;
+            top: -8px;
+            left: 20px;
+            right: 20px;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 2;
+        }
+        body.pack-christmas .q-lights { display: flex; }
+        .q-lights-grp { display: flex; gap: 12px; align-items: center; }
+        .q-bulb {
+            width: 8px;
+            height: 10px;
+            border-radius: 50% 50% 55% 55%;
+            border: 1.5px solid #0b1329;
+            animation: bulb-twinkle 1.4s ease-in-out infinite alternate;
+        }
+        .q-bulb.b-red { background: #ff3b3b; box-shadow: 0 0 7px #ff5252; }
+        .q-bulb.b-gold { background: #ffe047; box-shadow: 0 0 7px #ffe047; animation-delay: 0.35s; }
+        .q-bulb.b-green { background: #34d399; box-shadow: 0 0 7px #34d399; animation-delay: 0.7s; }
+        .q-bulb.b-cyan { background: #38bdf8; box-shadow: 0 0 7px #38bdf8; animation-delay: 1.05s; }
+        @keyframes bulb-twinkle {
+            from { opacity: 0.68; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1.08); }
+        }
         .q-category-badge {
             position: absolute;
             top: -11px;
@@ -570,6 +607,11 @@
             white-space: nowrap;
             box-shadow: 0 2px 0 rgba(0,0,0,0.45);
             pointer-events: none;
+        }
+        body.pack-christmas .q-category-badge {
+            background: #991b1b;
+            border-color: #fef08a;
+            color: #fef9c3;
         }
         .q-category-badge[hidden] { display: none !important; }
         .question-text {
@@ -915,6 +957,12 @@
             -webkit-tap-highlight-color: transparent;
             transition: transform 0.13s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.13s ease, filter 0.13s ease;
         }
+        body.pack-christmas .brick-btn:not(.is-correct):not(.is-wrong) {
+            background-image:
+                linear-gradient(180deg, rgba(248, 252, 255, 0.94) 0px, rgba(224, 242, 254, 0.92) 6px, transparent 6px),
+                linear-gradient(90deg, transparent 47%, rgba(62, 22, 4, 0.42) 47%, rgba(62, 22, 4, 0.42) 53%, transparent 53%),
+                linear-gradient(180deg, transparent 48%, rgba(62, 22, 4, 0.46) 48%, rgba(62, 22, 4, 0.46) 55%, transparent 55%);
+        }
         .brick-btn:hover:not(:disabled):not(.is-wrong) {
             transform: translateY(-2px);
             filter: brightness(1.06);
@@ -1096,9 +1144,56 @@
             background: linear-gradient(#f4a060, #f4a060) 0 0 / 100% 8px no-repeat, #e07028;
             box-shadow: inset 0 -7px 0 #b84e00, inset 4px 0 0 #c85a17;
         }
+        body.pack-christmas .deco-brick {
+            background: linear-gradient(#f8fcff, #dbeafe) 0 0 / 100% 9px no-repeat, #e07028;
+        }
         .deco-q {
             background: #f8d020;
             box-shadow: inset 3px 3px 0 #fff3a0, inset -3px -3px 0 #d48900;
+        }
+        .xmas-prop, .snow-layer { display: none; }
+        .world-scenery { --xmas-snow-op: 0; }
+        .xmas-snow { opacity: var(--xmas-snow-op, 0); }
+        body.pack-christmas .world-scenery { --xmas-snow-op: 1; }
+        body.pack-christmas .xmas-prop { display: block; }
+        body.pack-christmas .snow-layer { display: block; }
+        .snow-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 3;
+        }
+        .snowflake {
+            position: absolute;
+            top: -14px;
+            left: var(--sx, 50%);
+            width: var(--ssize, 6px);
+            height: var(--ssize, 6px);
+            border-radius: 50%;
+            background: #ffffff;
+            opacity: var(--sop, 0.85);
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.75);
+            animation: snow-fall var(--sdur, 9s) linear var(--sdelay, 0s) infinite;
+        }
+        @keyframes snow-fall {
+            0% { transform: translate3d(0, -2vh, 0); }
+            50% { transform: translate3d(var(--sdrift, 14px), 52vh, 0); }
+            100% { transform: translate3d(calc(var(--sdrift, 14px) * -0.4), 105vh, 0); }
+        }
+        .xmas-tree {
+            position: absolute;
+            left: clamp(86px, 21vw, 195px);
+            bottom: calc(var(--ground-h) - 2px);
+            width: clamp(54px, 11vw, 76px);
+            height: auto;
+        }
+        .xmas-snowman {
+            position: absolute;
+            right: clamp(70px, 13vw, 148px);
+            bottom: calc(var(--ground-h) - 2px);
+            width: clamp(42px, 8.5vw, 56px);
+            height: auto;
         }
         .ground {
             position: fixed; left: 0; bottom: 0; width: 100%; height: var(--ground-h); z-index: 4;
@@ -1106,6 +1201,16 @@
             background-color: #c4520e;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' shape-rendering='crispEdges'%3E%3Crect width='48' height='48' fill='%234a2208'/%3E%3Crect x='2' y='2' width='20' height='20' fill='%23e07028'/%3E%3Crect x='2' y='2' width='20' height='6' fill='%23f4a060'/%3E%3Crect x='26' y='2' width='20' height='20' fill='%23e07028'/%3E%3Crect x='26' y='2' width='20' height='6' fill='%23f4a060'/%3E%3Crect x='2' y='26' width='8' height='20' fill='%23e07028'/%3E%3Crect x='14' y='26' width='20' height='20' fill='%23e07028'/%3E%3Crect x='14' y='26' width='20' height='6' fill='%23f4a060'/%3E%3Crect x='38' y='26' width='8' height='20' fill='%23e07028'/%3E%3C/svg%3E");
             background-size: 32px 32px; image-rendering: pixelated; image-rendering: crisp-edges;
+        }
+        body.pack-christmas .ground::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 9px;
+            background: linear-gradient(180deg, #ffffff 0%, #dbeafe 72%, #93c5fd 100%);
+            border-bottom: 2px solid #1e3a8a;
         }
         
         .hero-hit {
@@ -1227,19 +1332,39 @@
             100% { transform: translateY(-68px) scale(0.85); opacity: 0; }
         }
         
-        .music-btn, .collection-btn {
-            position: absolute;
+        .top-controls {
+            position: fixed;
             top: 7px;
+            left: 10px;
+            right: 10px;
             z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .top-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: auto;
+        }
+        .ctrl-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+        .pack-btn, .music-btn, .collection-btn {
+            position: relative;
             margin: 0;
             min-height: 36px;
             box-sizing: border-box;
-            background: rgba(8, 23, 64, 0.84);
+            background: rgba(8, 23, 64, 0.86);
             color: white;
             border: 2px solid rgba(255, 255, 255, 0.92);
             border-radius: 999px;
-            padding: 7px 12px;
-            font-size: 9px;
+            padding: 7px 11px;
+            font-size: 8.5px;
             line-height: 1.2;
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
@@ -1247,19 +1372,78 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
+            white-space: nowrap;
             box-shadow: 0 3px 0 rgba(0, 0, 0, 0.38);
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            transition: transform 0.12s ease, background-color 0.14s ease;
+            transition: transform 0.12s ease, background-color 0.14s ease, border-color 0.14s ease;
+            pointer-events: auto;
         }
-        .music-btn { right: 10px; }
-        .collection-btn { left: 10px; width: auto; max-width: 54vw; text-align: center; }
-        .collection-btn::before { content: '\1F9E2'; font-size: 11px; }
+        body.pack-christmas .pack-btn {
+            background: rgba(127, 29, 29, 0.9);
+            border-color: #fde047;
+            color: #fef9c3;
+        }
+        .collection-btn { width: auto; max-width: 52vw; text-align: center; }
+        .collection-btn::before { content: '\1F9E2'; font-size: 10.5px; }
         .collection-btn span { display: inline; color: #ffde00; margin-left: 0; }
-        .music-btn:hover, .collection-btn:hover { background: rgba(12, 34, 92, 0.95); }
-        .music-btn:active, .collection-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.38); }
-        @media (max-width: 420px) {
-            .music-btn, .collection-btn { font-size: 8px; padding: 6px 10px; min-height: 34px; }
+        .pack-btn:hover, .music-btn:hover, .collection-btn:hover { background: rgba(12, 34, 92, 0.96); }
+        body.pack-christmas .pack-btn:hover { background: rgba(153, 27, 27, 0.96); }
+        .pack-btn:active, .music-btn:active, .collection-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.38); }
+        .ctrl-caret { font-family: Verdana, sans-serif; font-size: 10px; line-height: 1; opacity: 0.9; }
+        .ctrl-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            min-width: 186px;
+            background: rgba(7, 22, 62, 0.97);
+            border: 3px solid #ffffff;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.45), 0 14px 24px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 260;
+        }
+        .ctrl-menu[hidden] { display: none !important; }
+        .ctrl-opt {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid transparent;
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.07);
+            color: #ffffff;
+            font-family: Verdana, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 10px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ctrl-opt:hover { background: rgba(255, 255, 255, 0.16); }
+        .ctrl-opt.is-active {
+            background: linear-gradient(180deg, #ffe84d 0%, #f5b700 100%);
+            color: #141a29;
+            border-color: #000000;
+        }
+        .ctrl-opt-check { font-size: 12px; font-weight: 900; opacity: 0; }
+        .ctrl-opt.is-active .ctrl-opt-check { opacity: 1; }
+        @media (max-width: 460px) {
+            .top-controls { left: 8px; right: 8px; gap: 4px; }
+            .top-right-controls { gap: 4px; }
+            .pack-btn, .music-btn, .collection-btn { font-size: 7.2px; padding: 6px 8px; min-height: 34px; gap: 4px; }
+            .collection-btn::before { font-size: 9.5px; }
+            .ctrl-caret { font-size: 9px; }
         }
         .collection-menu-btn {
             background: linear-gradient(180deg, #ffe84d 0%, #ffc800 100%);
@@ -1501,15 +1685,16 @@
             font-family: Verdana, sans-serif; font-size: 11px; font-weight: 700; line-height: 1.2;
             margin-top: 3px; text-shadow: 1px 1px 0 #000; word-break: break-word;
         }
-        .collection-tabs { display: flex; gap: 6px; margin: 2px 0 8px; }
+        .collection-tabs { display: flex; gap: 5px; margin: 2px 0 8px; }
         .collection-tab {
             flex: 1; appearance: none; -webkit-appearance: none;
-            font-family: 'Press Start 2P', cursive; font-size: 0.48em; line-height: 1.35;
-            padding: 10px 4px; border: 3px solid #000; border-radius: 9px;
+            font-family: 'Press Start 2P', cursive; font-size: 0.45em; line-height: 1.35;
+            padding: 10px 3px; border: 3px solid #000; border-radius: 9px;
             background: rgba(0,0,0,0.3); color: #fff; cursor: pointer;
             touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         }
         .collection-tab.is-on { background: #ffde00; color: #1a1a1a; box-shadow: inset 0 2px 0 #fff8c4; }
+        .collection-tab.xmas-tab.is-on { background: #dc2626; color: #fffbeb; box-shadow: inset 0 2px 0 #fca5a5; }
         .collection-tab.gold-tab.is-on { background: #ffe14a; color: #3a2800; }
         .collection-playing {
             font-family: Verdana, sans-serif; font-size: 14px; font-weight: 700;
@@ -1621,6 +1806,7 @@
             .hill { width: min(26vw, 110px); }
             .bush-a { width: min(16vw, 72px); }
             .bush-b { width: min(14vw, 64px); display: none; }
+            .xmas-tree { width: 46px; left: 96px; }
             .cloud-track { top: 42px; height: 84px; }
             .cloud-track-back { display: none; }
             .cloud.c1 { width: 78px; height: 31px; }
@@ -1628,7 +1814,7 @@
             .cloud.c3 { width: 90px; height: 36px; margin-top: 8px; }
         }
         @media (max-width: 819px) and (max-height: 700px) {
-            .pipe, .sky-row { display: none !important; }
+            .pipe, .sky-row, .xmas-snowman { display: none !important; }
         }
         @media (min-width: 820px) and (max-height: 700px) {
             .question-container { margin-bottom: 58px; }
@@ -1652,10 +1838,13 @@
             .pipe { width: 44px; height: 72px; right: 2%; }
             .sky-row { top: 168px; right: 10px; transform: scale(0.86); transform-origin: top right; }
             .bush-b { right: 12%; }
+            .xmas-snowman { right: 15%; width: 42px; }
         }
         @media (prefers-reduced-motion: reduce) {
             .cloud-track, .cloud-track-back,
+            .snowflake, .q-bulb,
             .hero-img:not(.hero-jump) { animation: none !important; }
+            .snowflake { display: none !important; }
             .mystery-block, .mystery-wrap,
             .daily-surprise.is-ready .mystery-wrap,
             .daily-surprise.is-locked.is-nudged .mystery-block,
@@ -1685,7 +1874,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-11-14a</p>
+            <p id="buildStamp" class="account-note">Build 2026-11-17a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -1719,8 +1908,27 @@
         </div>
     </div>
 
-    <button class="music-btn" onclick="toggleMusic()">🎵 MUSIC: OFF</button>
-    <button type="button" id="collectionBtn" class="collection-btn" onclick="openCollection()" aria-label="Character collection">COLLECTION <span id="collectionBtnCount">0/8</span></button>
+    <div class="top-controls">
+        <button type="button" id="collectionBtn" class="collection-btn" onclick="openCollection()" aria-label="Character collection">COLLECTION <span id="collectionBtnCount">0/20</span></button>
+        <div class="top-right-controls">
+            <div class="ctrl-wrap" id="packWrap">
+                <button type="button" id="packBtn" class="pack-btn" onclick="togglePackMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Theme pack"><span id="packBtnLabel">🎄 XMAS</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
+                <div id="packMenu" class="ctrl-menu" role="menu" hidden>
+                    <button type="button" class="ctrl-opt" data-pack="christmas" role="menuitemradio" onclick="setThemePack('christmas')"><span>🎄 Christmas Pack</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-pack="classic" role="menuitemradio" onclick="setThemePack('classic')"><span>🍄 Classic World</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                </div>
+            </div>
+            <div class="ctrl-wrap" id="musicWrap">
+                <button type="button" id="musicBtn" class="music-btn" onclick="toggleMusicMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Music selector"><span id="musicBtnLabel">🎵 OFF</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
+                <div id="musicMenu" class="ctrl-menu" role="menu" hidden>
+                    <button type="button" class="ctrl-opt is-active" data-track="off" role="menuitemradio" onclick="selectMusicTrack('off')"><span>🔇 Music: Off</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-track="mario" role="menuitemradio" onclick="selectMusicTrack('mario')"><span>🍄 Super Mario</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-track="sonic" role="menuitemradio" onclick="selectMusicTrack('sonic')"><span>💨 Sonic Zone</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-track="xmas" role="menuitemradio" onclick="selectMusicTrack('xmas')"><span>🎄 Festive Jingle</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="surpriseTestNote" class="surprise-test-note" hidden>TEST DAY</div>
 
     <div class="hud">
@@ -1776,6 +1984,10 @@
             <span class="q-bolt tr" aria-hidden="true"></span>
             <span class="q-bolt bl" aria-hidden="true"></span>
             <span class="q-bolt br" aria-hidden="true"></span>
+            <div class="q-lights" aria-hidden="true">
+                <span class="q-lights-grp"><i class="q-bulb b-red"></i><i class="q-bulb b-gold"></i><i class="q-bulb b-green"></i></span>
+                <span class="q-lights-grp"><i class="q-bulb b-cyan"></i><i class="q-bulb b-red"></i><i class="q-bulb b-gold"></i></span>
+            </div>
             <span id="qCategoryBadge" class="q-category-badge" aria-hidden="true" hidden>MATH</span>
             <div id="qText" class="question-text">Waiting for Login...</div>
             <div id="qVisual" class="q-visual" hidden></div>
@@ -1831,12 +2043,19 @@
                     <rect x="28" y="12" width="12" height="4" fill="#8ee86a"/>
                     <rect x="20" y="16" width="12" height="4" fill="#8ee86a"/>
                     <rect x="12" y="24" width="8" height="10" fill="#67d456"/>
+                    <g class="xmas-snow">
+                        <polygon fill="#f8fcff" points="34,6 54,6 60,12 66,16 60,20 50,17 44,21 36,17 28,21 20,17 24,12"/>
+                        <rect x="34" y="6" width="20" height="4" fill="#ffffff"/>
+                    </g>
                 </symbol>
                 <symbol id="px-bush" viewBox="0 0 72 40">
                     <polygon fill="#0b4e12" points="28,0 44,0 44,4 52,4 52,8 60,8 60,12 68,12 68,16 72,16 72,40 0,40 0,16 4,16 4,12 12,12 12,8 20,8 20,4 28,4"/>
                     <polygon fill="#3dcc40" points="32,4 40,4 40,8 48,8 48,12 56,12 56,16 64,16 64,20 68,20 68,40 4,40 4,20 8,20 8,16 16,16 16,12 24,12 24,8 32,8"/>
                     <rect x="32" y="4" width="6" height="4" fill="#d8ffb0"/>
                     <rect x="24" y="8" width="8" height="4" fill="#8ef070"/>
+                    <g class="xmas-snow">
+                        <polygon fill="#f8fcff" points="28,2 44,2 54,9 48,14 40,11 35,14 26,11 18,13 18,8"/>
+                    </g>
                 </symbol>
                 <symbol id="px-pipe" viewBox="0 0 32 64">
                     <rect x="1" y="1" width="30" height="14" fill="#000"/>
@@ -1847,6 +2066,41 @@
                     <rect x="8" y="15" width="16" height="49" fill="#14a818"/>
                     <rect x="8" y="15" width="4" height="49" fill="#8ef068"/>
                     <rect x="20" y="15" width="4" height="49" fill="#0c6e10"/>
+                    <g class="xmas-snow">
+                        <rect x="2" y="0" width="28" height="5" rx="2" fill="#ffffff"/>
+                        <rect x="4" y="4" width="24" height="3" fill="#dbeafe"/>
+                        <rect x="8" y="21" width="16" height="5" fill="#dc2626"/>
+                        <rect x="8" y="34" width="16" height="5" fill="#dc2626"/>
+                        <rect x="8" y="47" width="16" height="5" fill="#dc2626"/>
+                    </g>
+                </symbol>
+                <symbol id="px-xmas-tree" viewBox="0 0 64 84">
+                    <rect x="25" y="68" width="14" height="16" fill="#5c2d0c" stroke="#141414" stroke-width="3"/>
+                    <polygon points="32,14 6,42 18,42 4,58 16,58 6,70 58,70 48,58 60,58 46,42 58,42" fill="#15803d" stroke="#0c2e14" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="32,16 14,39 50,39" fill="#22c55e"/>
+                    <polygon points="32,33 12,55 52,55" fill="#16a34a"/>
+                    <path d="M16,39 Q24,43 32,39 Q40,43 48,39" fill="none" stroke="#f8fcff" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M12,55 Q22,60 32,55 Q42,60 52,55" fill="none" stroke="#f8fcff" stroke-width="3.5" stroke-linecap="round"/>
+                    <polygon points="32,2 35,9 43,9 37,14 39,21 32,17 25,21 27,14 21,9 29,9" fill="#fde047" stroke="#92400e" stroke-width="2"/>
+                    <circle cx="25" cy="33" r="3.2" fill="#ef4444" stroke="#141414" stroke-width="1.2"/>
+                    <circle cx="39" cy="46" r="3.4" fill="#fde047" stroke="#141414" stroke-width="1.2"/>
+                    <circle cx="22" cy="50" r="3.2" fill="#38bdf8" stroke="#141414" stroke-width="1.2"/>
+                    <circle cx="42" cy="63" r="3.4" fill="#ef4444" stroke="#141414" stroke-width="1.2"/>
+                    <circle cx="26" cy="64" r="3.2" fill="#fde047" stroke="#141414" stroke-width="1.2"/>
+                </symbol>
+                <symbol id="px-xmas-snowman" viewBox="0 0 56 72">
+                    <ellipse cx="28" cy="54" rx="18" ry="15" fill="#ffffff" stroke="#141414" stroke-width="3"/>
+                    <ellipse cx="28" cy="31" rx="13" ry="12" fill="#ffffff" stroke="#141414" stroke-width="3"/>
+                    <rect x="17" y="39" width="22" height="6" rx="3" fill="#dc2626" stroke="#141414" stroke-width="2"/>
+                    <rect x="31" y="42" width="6" height="12" rx="2" fill="#dc2626" stroke="#141414" stroke-width="2"/>
+                    <circle cx="24" cy="28" r="2" fill="#141414"/>
+                    <circle cx="32" cy="28" r="2" fill="#141414"/>
+                    <polygon points="28,30 39,33 28,35" fill="#f97316" stroke="#9a3412" stroke-width="1.2"/>
+                    <circle cx="28" cy="50" r="2.2" fill="#141414"/>
+                    <circle cx="28" cy="58" r="2.2" fill="#141414"/>
+                    <rect x="14" y="17" width="28" height="4" rx="2" fill="#1e293b" stroke="#141414" stroke-width="2"/>
+                    <rect x="19" y="5" width="18" height="13" rx="2" fill="#1e293b" stroke="#141414" stroke-width="2"/>
+                    <rect x="19" y="13" width="18" height="3.5" fill="#dc2626"/>
                 </symbol>
             </defs>
         </svg>
@@ -1875,8 +2129,10 @@
             </div>
         </div>
         <svg class="hill" viewBox="0 0 88 52"><use href="#px-hill"/></svg>
+        <svg class="xmas-prop xmas-tree" viewBox="0 0 64 84"><use href="#px-xmas-tree"/></svg>
         <svg class="bush bush-a" viewBox="0 0 72 40"><use href="#px-bush"/></svg>
         <svg class="bush bush-b" viewBox="0 0 72 40"><use href="#px-bush"/></svg>
+        <svg class="xmas-prop xmas-snowman" viewBox="0 0 56 72"><use href="#px-xmas-snowman"/></svg>
         <div class="sky-row">
             <span class="deco-brick"></span>
             <span class="deco-brick"></span>
@@ -1884,6 +2140,7 @@
             <span class="deco-brick"></span>
         </div>
         <svg class="pipe" viewBox="0 0 32 64"><use href="#px-pipe"/></svg>
+        <div id="snowLayer" class="snow-layer"></div>
     </div>
     <div class="ground"></div>
 
@@ -1906,6 +2163,7 @@
             <div class="collection-tabs" role="tablist">
                 <button type="button" class="collection-tab is-on" id="collectionTabNormal" role="tab" aria-selected="true" onclick="setCollectionPage('normal')">FRIENDS</button>
                 <button type="button" class="collection-tab" id="collectionTabSpeed" role="tab" aria-selected="false" onclick="setCollectionPage('speed')">SPEED</button>
+                <button type="button" class="collection-tab xmas-tab" id="collectionTabXmas" role="tab" aria-selected="false" onclick="setCollectionPage('xmas')">FESTIVE</button>
                 <button type="button" class="collection-tab gold-tab" id="collectionTabGold" role="tab" aria-selected="false" onclick="setCollectionPage('gold')">GOLD</button>
             </div>
             <div class="collection-count" id="collectionCountLabel">0 / 8 found</div>
@@ -2170,7 +2428,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-14a';
+        var APP_BUILD = '2026-11-17a';
         var logActiveDays = {};
         var logRecoveryEmail = '';
         var statusFadeTimer = null;
@@ -2527,7 +2785,7 @@
             // An empty friends list must not replace the list already stored
             // on users/{email}. Coins and streak are still written every time.
             if (Array.isArray(payload.characters) && !sanitizeCharacters(payload.characters).length) delete payload.characters;
-            if (Array.isArray(payload.goldCharacters) && !sanitizeCharacters(payload.goldCharacters).length) delete payload.goldCharacters;
+            if (Array.isArray(payload.goldCharacters) && !sanitizeGoldCharacters(payload.goldCharacters).length) delete payload.goldCharacters;
             return payload;
         }
 
@@ -2556,9 +2814,9 @@
             var remoteFriends, remoteGold, mineFriends, mineGold, i, myPlay, remotePlay;
             if (!remote) return true;
             remoteFriends = sanitizeCharacters(remote.characters);
-            remoteGold = sanitizeCharacters(remote.goldCharacters);
+            remoteGold = sanitizeGoldCharacters(remote.goldCharacters);
             mineFriends = sanitizeCharacters(gameState.characters);
-            mineGold = sanitizeCharacters(gameState.goldCharacters);
+            mineGold = sanitizeGoldCharacters(gameState.goldCharacters);
             for (i = 0; i < mineFriends.length; i++) if (remoteFriends.indexOf(mineFriends[i]) === -1) return true;
             for (i = 0; i < mineGold.length; i++) if (remoteGold.indexOf(mineGold[i]) === -1) return true;
             myPlay = sanitizePlayAs(gameState.playAs, mineFriends, mineGold);
@@ -4960,12 +5218,11 @@
         }
 
         function showScorecard() {
-            var bgm = document.getElementById('bgm');
             var overlay = document.getElementById('scorecard-overlay');
             var correct = finiteNumber(gameState.correctInLevel);
             var stars = 1;
             if (correct == null || correct < 0) correct = 0;
-            if (bgm && !bgm.paused) bgm.pause();
+            pauseMusicForOverlay();
 
             if (correct >= 8) stars = 2;
             if (correct >= 10) stars = 3;
@@ -5000,21 +5257,400 @@
             gameState.stage++;
             if(gameState.stage > 3) { gameState.world++; gameState.stage = 1; updateWorldTheme(); }
             saveGame(); loadNextQuestion();
-            const btnText = document.querySelector('.music-btn').innerText;
-            if (btnText.includes("ON")) { document.getElementById('bgm').play(); }
+            resumeMusicAfterOverlay();
+        }
+
+        var THEME_PACKS = {
+            christmas: { id: 'christmas', bodyClass: 'pack-christmas', shortLabel: '\uD83C\uDF84 XMAS', sky: '#183f78' },
+            classic: { id: 'classic', bodyClass: '', shortLabel: '\uD83C\uDF44 CLASSIC', sky: '#5C94FC' }
+        };
+
+        function activeThemePackId() {
+            try {
+                if (window.localStorage) {
+                    var saved = String(localStorage.getItem('marioMathThemePack') || '').trim().toLowerCase();
+                    if (saved && THEME_PACKS[saved]) return saved;
+                }
+            } catch (e) {}
+            return 'christmas';
+        }
+
+        function ensureSnowflakes() {
+            var layer = document.getElementById('snowLayer');
+            if (!layer || layer.children.length > 0) return;
+            var frag = document.createDocumentFragment();
+            var count = 30;
+            var i, flake, sx, drift, dur, delay, size, op;
+            for (i = 0; i < count; i++) {
+                flake = document.createElement('i');
+                flake.className = 'snowflake';
+                sx = ((i * 37 + 11) % 100);
+                drift = (((i * 23) % 50) - 25);
+                dur = (6.8 + ((i * 17) % 55) * 0.1);
+                delay = -(((i * 19) % 80) * 0.12);
+                size = (4 + ((i * 13) % 5));
+                op = (0.58 + ((i * 7) % 5) * 0.09).toFixed(2);
+                flake.style.setProperty('--sx', sx + 'vw');
+                flake.style.setProperty('--sdrift', drift + 'px');
+                flake.style.setProperty('--sdur', dur.toFixed(2) + 's');
+                flake.style.setProperty('--sdelay', delay.toFixed(2) + 's');
+                flake.style.setProperty('--ssize', size + 'px');
+                flake.style.setProperty('--sop', op);
+                frag.appendChild(flake);
+            }
+            layer.appendChild(frag);
+        }
+
+        function applyThemePack() {
+            var packId = activeThemePackId();
+            var pack = THEME_PACKS[packId] || THEME_PACKS.christmas;
+            var keys = Object.keys(THEME_PACKS);
+            var i, cls, labelEl, btnEl, opts;
+            for (i = 0; i < keys.length; i++) {
+                cls = THEME_PACKS[keys[i]].bodyClass;
+                if (cls) {
+                    document.documentElement.classList.remove(cls);
+                    document.body.classList.remove(cls);
+                }
+            }
+            if (pack.bodyClass) {
+                document.documentElement.classList.add(pack.bodyClass);
+                document.body.classList.add(pack.bodyClass);
+            }
+            document.body.style.backgroundColor = pack.sky;
+            if (packId === 'christmas') ensureSnowflakes();
+            labelEl = document.getElementById('packBtnLabel');
+            if (labelEl) labelEl.textContent = pack.shortLabel;
+            btnEl = document.getElementById('packBtn');
+            if (btnEl) btnEl.classList.toggle('is-xmas', packId === 'christmas');
+            opts = document.querySelectorAll('#packMenu .ctrl-opt');
+            for (i = 0; i < opts.length; i++) {
+                var active = opts[i].getAttribute('data-pack') === packId;
+                opts[i].classList.toggle('is-active', active);
+                opts[i].setAttribute('aria-checked', active ? 'true' : 'false');
+            }
+        }
+
+        function setThemePack(packId) {
+            if (!THEME_PACKS[packId]) packId = 'christmas';
+            try {
+                if (window.localStorage) localStorage.setItem('marioMathThemePack', packId);
+            } catch (e) {}
+            applyThemePack();
+            closeTopMenus();
+        }
+
+        function closeTopMenus(exceptId) {
+            var ids = [['packMenu', 'packBtn'], ['musicMenu', 'musicBtn']];
+            var i, menu, btn;
+            for (i = 0; i < ids.length; i++) {
+                if (ids[i][0] === exceptId) continue;
+                menu = document.getElementById(ids[i][0]);
+                btn = document.getElementById(ids[i][1]);
+                if (menu) menu.hidden = true;
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function togglePackMenu(ev) {
+            if (ev && ev.stopPropagation) ev.stopPropagation();
+            var menu = document.getElementById('packMenu');
+            var btn = document.getElementById('packBtn');
+            if (!menu) return;
+            var willOpen = !!menu.hidden;
+            closeTopMenus('packMenu');
+            menu.hidden = !willOpen;
+            if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+
+        var musicMode = 'off';
+        var musicPausedForCard = false;
+        var chipTimer = null;
+        var chipMaster = null;
+        var chipNoiseBuffer = null;
+        var chipStep = 0;
+        var chipNextTime = 0;
+
+        var SONIC_NOTES = {
+            0:[79,2], 2:[76,2], 4:[72,2], 6:[74,2], 8:[76,3], 11:[79,3], 14:[81,2],
+            16:[79,3], 19:[76,3], 22:[72,2], 24:[74,2], 26:[76,2], 28:[79,2], 30:[76,2],
+            32:[81,3], 35:[84,3], 38:[83,2], 40:[81,2], 42:[79,2], 44:[76,2], 46:[77,2],
+            48:[79,2], 50:[81,2], 52:[83,2], 54:[84,2], 56:[86,3], 59:[83,3], 62:[79,2]
+        };
+        var SONIC_CHORDS = [
+            [72, 76, 79, 83],
+            [69, 72, 76, 79],
+            [65, 69, 72, 76],
+            [67, 71, 74, 79]
+        ];
+        var SONIC_BASS = [48, 45, 41, 43];
+
+        var XMAS_NOTES = {
+            0:[76,2], 2:[76,2], 4:[76,4],
+            8:[76,2], 10:[76,2], 12:[76,4],
+            16:[76,2], 18:[79,2], 20:[72,3], 23:[74,1],
+            24:[76,7],
+            32:[77,2], 34:[77,2], 36:[77,3], 39:[77,1],
+            40:[77,2], 42:[76,2], 44:[76,2], 46:[76,1], 47:[76,1],
+            48:[76,2], 50:[74,2], 52:[74,2], 54:[76,2],
+            56:[74,4], 60:[79,4],
+            64:[76,2], 66:[76,2], 68:[76,4],
+            72:[76,2], 74:[76,2], 76:[76,4],
+            80:[76,2], 82:[79,2], 84:[72,3], 87:[74,1],
+            88:[76,7],
+            96:[77,2], 98:[77,2], 100:[77,3], 103:[77,1],
+            104:[77,2], 106:[76,2], 108:[76,2], 110:[76,1], 111:[76,1],
+            112:[79,2], 114:[79,2], 116:[77,2], 118:[74,2],
+            120:[72,7]
+        };
+        var XMAS_BASS = [48, 48, 48, 48, 41, 48, 50, 43, 48, 48, 48, 48, 41, 48, 43, 48];
+
+        function midiFreq(m) {
+            return 440 * Math.pow(2, (m - 69) / 12);
+        }
+
+        function ensureChipNoise(ctx) {
+            if (chipNoiseBuffer) return chipNoiseBuffer;
+            var len = Math.floor(ctx.sampleRate * 0.14);
+            var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+            var data = buf.getChannelData(0);
+            var i;
+            for (i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+            chipNoiseBuffer = buf;
+            return buf;
+        }
+
+        function chipVoice(ctx, dest, freq, type, t, dur, peak, cutoff) {
+            var osc = ctx.createOscillator();
+            var g = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.linearRampToValueAtTime(peak, t + 0.008);
+            g.gain.exponentialRampToValueAtTime(0.0008, t + Math.max(0.03, dur));
+            if (cutoff) {
+                var flt = ctx.createBiquadFilter();
+                flt.type = 'lowpass';
+                flt.frequency.setValueAtTime(cutoff, t);
+                osc.connect(flt);
+                flt.connect(g);
+            } else {
+                osc.connect(g);
+            }
+            g.connect(dest);
+            osc.start(t);
+            osc.stop(t + Math.max(0.035, dur + 0.01));
+        }
+
+        function chipPerc(ctx, dest, t, dur, peak, hpFreq) {
+            var src = ctx.createBufferSource();
+            var flt = ctx.createBiquadFilter();
+            var g = ctx.createGain();
+            src.buffer = ensureChipNoise(ctx);
+            flt.type = 'highpass';
+            flt.frequency.setValueAtTime(hpFreq || 4200, t);
+            g.gain.setValueAtTime(peak, t);
+            g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+            src.connect(flt);
+            flt.connect(g);
+            g.connect(dest);
+            src.start(t);
+            src.stop(t + dur + 0.01);
+        }
+
+        function chipKick(ctx, dest, t) {
+            var osc = ctx.createOscillator();
+            var g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(145, t);
+            osc.frequency.exponentialRampToValueAtTime(44, t + 0.085);
+            g.gain.setValueAtTime(0.14, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+            osc.connect(g);
+            g.connect(dest);
+            osc.start(t);
+            osc.stop(t + 0.1);
+        }
+
+        function scheduleSonicStep(ctx, dest, step, t, stepSec) {
+            var s = step % 64;
+            var bar = Math.floor(s / 16);
+            var note = SONIC_NOTES[s];
+            var chord = SONIC_CHORDS[bar];
+            var root = SONIC_BASS[bar];
+            if (note) {
+                chipVoice(ctx, dest, midiFreq(note[0]), 'sawtooth', t, note[1] * stepSec * 0.9, 0.075, 2500);
+                chipVoice(ctx, dest, midiFreq(note[0] - 12), 'square', t, note[1] * stepSec * 0.72, 0.024, 1800);
+            }
+            chipVoice(ctx, dest, midiFreq(chord[s % 4]), 'triangle', t, stepSec * 0.82, 0.04);
+            if (s % 2 === 0) {
+                var oct = ((s / 2) % 2 === 1) ? 12 : 0;
+                if (s % 16 === 14) oct = 7;
+                chipVoice(ctx, dest, midiFreq(root - 12 + oct), 'sawtooth', t, stepSec * 1.65, 0.085, 620);
+            }
+            if (s % 8 === 0 || s % 16 === 10) chipKick(ctx, dest, t);
+            if (s % 8 === 4) chipPerc(ctx, dest, t, 0.085, 0.06, 1800);
+            else if (s % 2 === 0) chipPerc(ctx, dest, t, 0.035, 0.024, 6500);
+        }
+
+        function scheduleXmasStep(ctx, dest, step, t, stepSec) {
+            var s = step % 128;
+            var bar8 = Math.floor(s / 8);
+            var note = XMAS_NOTES[s];
+            var root = XMAS_BASS[bar8];
+            if (note) {
+                chipVoice(ctx, dest, midiFreq(note[0]), 'square', t, note[1] * stepSec * 0.88, 0.062, 2700);
+                chipVoice(ctx, dest, midiFreq(note[0] - (note[0] === 76 ? 4 : 5)), 'triangle', t, note[1] * stepSec * 0.85, 0.045);
+            }
+            if (s % 4 === 0) {
+                var fifth = (s % 8 === 4) ? -5 : 0;
+                chipVoice(ctx, dest, midiFreq(root + fifth), 'triangle', t, stepSec * 3.2, 0.085);
+            }
+            if (s % 4 === 0) {
+                chipPerc(ctx, dest, t, 0.06, 0.038, 7200);
+                chipVoice(ctx, dest, midiFreq(96), 'sine', t, 0.045, 0.018);
+            } else if (s % 4 === 2) {
+                chipPerc(ctx, dest, t, 0.035, 0.02, 7800);
+            }
+        }
+
+        function stopChipMusic() {
+            if (chipTimer) {
+                clearInterval(chipTimer);
+                chipTimer = null;
+            }
+            if (chipMaster && audioCtx) {
+                try {
+                    chipMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+                    chipMaster.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+                    var old = chipMaster;
+                    setTimeout(function () { try { old.disconnect(); } catch (e) {} }, 120);
+                } catch (e) {}
+                chipMaster = null;
+            }
+        }
+
+        function startChipMusic(mode) {
+            stopChipMusic();
+            if (!audioCtx) return;
+            try { if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {}
+            chipMaster = audioCtx.createGain();
+            chipMaster.gain.setValueAtTime(0.88, audioCtx.currentTime);
+            chipMaster.connect(audioCtx.destination);
+            chipStep = 0;
+            chipNextTime = audioCtx.currentTime + 0.04;
+            var stepSec = mode === 'xmas' ? 0.098 : 0.095;
+            var dest = chipMaster;
+            function pump() {
+                if (!chipMaster || chipMaster !== dest) return;
+                while (chipNextTime < audioCtx.currentTime + 0.24) {
+                    if (mode === 'xmas') scheduleXmasStep(audioCtx, dest, chipStep, chipNextTime, stepSec);
+                    else scheduleSonicStep(audioCtx, dest, chipStep, chipNextTime, stepSec);
+                    chipStep++;
+                    chipNextTime += stepSec;
+                }
+            }
+            pump();
+            chipTimer = setInterval(pump, 75);
+        }
+
+        function readSavedMusicTrack() {
+            try {
+                if (window.localStorage) {
+                    var t = String(localStorage.getItem('marioMathMusicTrack') || '').trim().toLowerCase();
+                    if (t === 'mario' || t === 'sonic' || t === 'xmas') return t;
+                }
+            } catch (e) {}
+            return 'mario';
+        }
+
+        function updateMusicUI() {
+            var labelEl = document.getElementById('musicBtnLabel');
+            var btnEl = document.getElementById('musicBtn');
+            var opts = document.querySelectorAll('#musicMenu .ctrl-opt');
+            var labels = {
+                off: '\uD83C\uDFB5 OFF',
+                mario: '\uD83D\uDD0A MARIO',
+                sonic: '\uD83D\uDD0A SONIC',
+                xmas: '\uD83D\uDD0A XMAS'
+            };
+            var i, active;
+            if (labelEl) labelEl.textContent = labels[musicMode] || labels.off;
+            if (btnEl) btnEl.classList.toggle('is-on', musicMode !== 'off');
+            for (i = 0; i < opts.length; i++) {
+                active = opts[i].getAttribute('data-track') === musicMode;
+                opts[i].classList.toggle('is-active', active);
+                opts[i].setAttribute('aria-checked', active ? 'true' : 'false');
+            }
+        }
+
+        function selectMusicTrack(trackId) {
+            var bgm = document.getElementById('bgm');
+            if (trackId !== 'off' && trackId !== 'mario' && trackId !== 'sonic' && trackId !== 'xmas') trackId = 'off';
+            musicMode = trackId;
+            musicPausedForCard = false;
+            stopChipMusic();
+            if (bgm && !bgm.paused) {
+                try { bgm.pause(); } catch (e) {}
+            }
+            if (trackId !== 'off') {
+                try {
+                    if (window.localStorage) localStorage.setItem('marioMathMusicTrack', trackId);
+                } catch (e) {}
+            }
+            if (trackId === 'mario') {
+                if (bgm) {
+                    try { bgm.currentTime = 0; } catch (e) {}
+                    bgm.play().catch(function () {});
+                }
+            } else if (trackId === 'sonic' || trackId === 'xmas') {
+                startChipMusic(trackId);
+            }
+            updateMusicUI();
+            closeTopMenus();
+        }
+
+        function toggleMusicMenu(ev) {
+            if (ev && ev.stopPropagation) ev.stopPropagation();
+            var menu = document.getElementById('musicMenu');
+            var btn = document.getElementById('musicBtn');
+            if (!menu) return;
+            var willOpen = !!menu.hidden;
+            closeTopMenus('musicMenu');
+            menu.hidden = !willOpen;
+            if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
 
         function toggleMusic() {
-            const bgm = document.getElementById('bgm');
-            const btn = document.querySelector('.music-btn');
-            if(bgm.paused) { bgm.play().catch(()=>{}); btn.innerText="🔊 MUSIC: ON"; }
-            else { bgm.pause(); btn.innerText="🎵 MUSIC: OFF"; }
+            if (musicMode === 'off') selectMusicTrack(readSavedMusicTrack());
+            else selectMusicTrack('off');
+        }
+
+        function pauseMusicForOverlay() {
+            var bgm = document.getElementById('bgm');
+            if (musicMode === 'off') return;
+            musicPausedForCard = true;
+            if (bgm && !bgm.paused) {
+                try { bgm.pause(); } catch (e) {}
+            }
+            stopChipMusic();
+        }
+
+        function resumeMusicAfterOverlay() {
+            var bgm = document.getElementById('bgm');
+            if (!musicPausedForCard || musicMode === 'off') return;
+            musicPausedForCard = false;
+            if (musicMode === 'mario') {
+                if (bgm) bgm.play().catch(function () {});
+            } else if (musicMode === 'sonic' || musicMode === 'xmas') {
+                startChipMusic(musicMode);
+            }
         }
 
         function updateWorldTheme() {
             var scenery = document.getElementById('worldScenery');
-            document.body.style.backgroundColor = '#5C94FC';
             if (scenery) scenery.classList.add('is-overworld');
+            applyThemePack();
         }
         function localDateString(date) {
             const y = date.getFullYear();
@@ -5237,14 +5873,30 @@
             ]},
             { id: 'metal', team: 'speed', name: 'Metal Sonic', short: 'Metal', fact: 'Metal Sonic is a shiny robot who races just to keep up.', colors: { K:'#141414', B:'#2a78e0', M:'#d0d8e0', Y:'#ffde00', R:'#e02020', S:'#9aa4b0' }, pixels: [
                 '.....KKKKKK.....','....KBBBBBBK....','...KKBBBBBBKK...','..KBBMMMMMMBBK..','..KBBMYYYYMBBK..','..KBBMYYYYMBBK..','..KBBMMMMMMBBK..','...KKBBBBBBKK...','....KKBBBBKK....','...KSSBBBBSSK...','..KSSBBBBBBSSK..','...KBBBBBBBBK...','....KRRRRRRK....','....KRR..RRK....','...KRRR..RRRK...','....KK....KK....'
+            ]},
+            { id: 'santa_mario', team: 'xmas', pack: 'christmas', name: 'Santa Mario', short: 'Santa', fact: 'Santa Mario slides down snowy warp pipes bringing shiny star coins!', colors: { K:'#141414', R:'#dc2626', W:'#ffffff', S:'#f2c7a0', Y:'#facc15' }, pixels: [
+                '......KKKK......','....KKRRRRKK....','...KRRRRRRRRWK..','..KWWWWWWWWWWK..','...KKSSSSSSKK...','...KSSKSSKSSK...','...KKWWWWWWKK...','..KWWWWWWWWWWK..','..KRRRRRRRRRRK..','..KRWRRRRRRWRK..','..KKKKKKKKKKKK..','..KRRRRYYRRRRK..','...KRRRRRRRRK...','...KWW....WWK...','...KKK....KKK...','................'
+            ]},
+            { id: 'reindeer_yoshi', team: 'xmas', pack: 'christmas', name: 'Reindeer Yoshi', short: 'Reindeer', fact: 'Reindeer Yoshi lights up winter skies with a bright red nose and flutter-jumps!', colors: { K:'#141414', G:'#22c55e', N:'#b45309', R:'#ef4444', W:'#ffffff', Y:'#facc15' }, pixels: [
+                '..KK........KK..','..KNN......NNK..','...KNNKKKKNNK...','....KGGGGGGK....','...KWKGGGGKWK...','...KGGGGGGGGKR..','....KWWWWWWKRR..','...KKRRRRRRKK...','..KRRRRYYRRRRK..','...KGGWWWWGGK...','....KGGGGGGK....','....KGG..GGK....','....KRR..RRK....','...KRRR..RRRK...','....KK....KK....','................'
+            ]},
+            { id: 'elf_toad', team: 'xmas', pack: 'christmas', name: 'Elf Toad', short: 'Elf Toad', fact: 'Elf Toad wraps tricky maths puzzles in festive ribbons at the North Pole!', colors: { K:'#141414', G:'#16a34a', R:'#dc2626', W:'#ffffff', S:'#f2c7a0', Y:'#fde047' }, pixels: [
+                '......KYYK......','....KKGGGGKK....','...KGGGRRGGGK...','..KGGGGRRGGGGK..','..KWWWWWWWWWWK..','...KKKKKKKKKK...','....KSSSSSSK....','....KSKSSKSK....','....KSSSSSSK....','...KKGGGGGGKK...','..KRRGGYYGGRRK..','...KGGGGGGGGK...','....KWW..WWK....','...KGGG..GGGK...','..KYGG....GGYK..','................'
+            ]},
+            { id: 'snowman_bowser', team: 'xmas', pack: 'christmas', name: 'Snowman Bowser', short: 'Frosty B', fact: 'Snowman Bowser traded fireballs for giant snowballs and wears a cozy scarf!', colors: { K:'#141414', W:'#f8fafc', B:'#38bdf8', R:'#dc2626', O:'#f97316', D:'#1e293b' }, pixels: [
+                '....KKKKKKKK....','....KDDDDDDK....','....KRRRRRRK....','..KKKKKKKKKKKK..','...KWWWWWWWWK...','...KWKWWWWKWK...','...KWWWOOOWWK...','..KKRRRRRRRRKK..','..KWWWWWWWWWWK..','.KBWWWWWWWWWWBK.','.KBWWWWKKWWWWBK.','..KWWWWWWWWWWK..','...KWWWWWWWWK...','...KWW....WWK...','...KKK....KKK...','................'
             ]}
         ];
 
-        var MARIO_ART = { id: 'mario', name: 'Mario', short: 'Mario' };
+        var MARIO_ART = { id: 'mario', name: 'Mario', short: 'Mario', fact: 'Gold Mario shines from head to toe after solving stacks of tricky maths!' };
 
         var COIN_ART = { id: 'coin', colors: { K:'#141414', Y:'#ffde00', W:'#fff6b0', D:'#e09800' }, pixels: [
             '................','................','.....KKKKKK.....','....KYYYYYYK....','...KYWWYYYYYK...','...KYWYYYYYYK...','...KYYYYYYYYK...','...KYYYYYYYYK...','...KYYYYYYYYK...','...KYYYYYYDDK...','...KYYYYYDDDK...','...KYYYYYYYYK...','....KYYYYYYK....','.....KKKKKK.....','................','................'
         ]};
+
+        function goldRoster() {
+            return [MARIO_ART].concat(CHARACTERS);
+        }
 
         function canonicalCharacterId(value) {
             var id, i, character;
@@ -5254,6 +5906,20 @@
             else if (id.indexOf('gold ') === 0) id = id.slice(5).trim();
             for (i = 0; i < CHARACTERS.length; i++) {
                 character = CHARACTERS[i];
+                if (id === character.id || id === character.name.toLowerCase() || id === character.short.toLowerCase()) return character.id;
+            }
+            return null;
+        }
+
+        function canonicalGoldId(value) {
+            var id, i, roster, character;
+            if (typeof value !== 'string') return null;
+            id = value.trim().toLowerCase();
+            if (id.indexOf('gold:') === 0) id = id.slice(5).trim();
+            else if (id.indexOf('gold ') === 0) id = id.slice(5).trim();
+            roster = goldRoster();
+            for (i = 0; i < roster.length; i++) {
+                character = roster[i];
                 if (id === character.id || id === character.name.toLowerCase() || id === character.short.toLowerCase()) return character.id;
             }
             return null;
@@ -5290,6 +5956,37 @@
             return into;
         }
 
+        function extractGoldIds(value, into, depth) {
+            var i, key, id;
+            if (!into) into = [];
+            if (value == null || depth > 6) return into;
+            if (typeof value === 'string') {
+                id = canonicalGoldId(value);
+                if (id && into.indexOf(id) === -1) into.push(id);
+                else if (!id && /[,|]/.test(value)) {
+                    var parts = value.split(/[,|]/);
+                    for (i = 0; i < parts.length; i++) extractGoldIds(parts[i], into, depth + 1);
+                }
+                return into;
+            }
+            if (typeof value === 'number' || typeof value === 'boolean') return into;
+            if (Array.isArray(value)) {
+                for (i = 0; i < value.length; i++) extractGoldIds(value[i], into, depth + 1);
+                return into;
+            }
+            if (typeof value === 'object') {
+                if (typeof value.id === 'string') extractGoldIds(value.id, into, depth + 1);
+                var keys = Object.keys(value);
+                for (i = 0; i < keys.length; i++) {
+                    key = keys[i];
+                    id = canonicalGoldId(key);
+                    if (id && into.indexOf(id) === -1) into.push(id);
+                    extractGoldIds(value[key], into, depth + 1);
+                }
+            }
+            return into;
+        }
+
         function orderCharacterIds(ids) {
             var ordered = [];
             var i;
@@ -5299,8 +5996,22 @@
             return ordered;
         }
 
+        function orderGoldIds(ids) {
+            var ordered = [];
+            var roster = goldRoster();
+            var i;
+            for (i = 0; i < roster.length; i++) {
+                if (ids.indexOf(roster[i].id) !== -1) ordered.push(roster[i].id);
+            }
+            return ordered;
+        }
+
         function sanitizeCharacters(list) {
             return orderCharacterIds(extractCharacterIds(list, [], 0));
+        }
+
+        function sanitizeGoldCharacters(list) {
+            return orderGoldIds(extractGoldIds(list, [], 0));
         }
 
         function readCharacterBackup() {
@@ -5329,14 +6040,15 @@
 
         function collectIdsFromSave(state, gold) {
             var ids = [];
+            var extractor = gold ? extractGoldIds : extractCharacterIds;
             var fields = gold
                 ? ['goldCharacters', 'goldFound', 'collectedGold']
                 : ['characters', 'foundCharacters', 'collectedCharacters', 'collection', 'dailyCharacters', 'surprises'];
             var i;
             if (!state || typeof state !== 'object') return ids;
-            for (i = 0; i < fields.length; i++) extractCharacterIds(state[fields[i]], ids, 0);
+            for (i = 0; i < fields.length; i++) extractor(state[fields[i]], ids, 0);
             if (typeof state.playAs === 'string') {
-                if (gold && state.playAs.indexOf('gold:') === 0) extractCharacterIds(state.playAs.slice(5), ids, 0);
+                if (gold && state.playAs.indexOf('gold:') === 0) extractGoldIds(state.playAs.slice(5), ids, 0);
                 else if (!gold && state.playAs.indexOf('gold:') !== 0) extractCharacterIds(state.playAs, ids, 0);
             }
             return ids;
@@ -5368,7 +6080,7 @@
                 var classicGold = false;
                 var classicIds = ['luigi', 'yoshi', 'toad', 'peach', 'bowser', 'dk', 'wario', 'daisy'];
                 for (i = 0; i < gold.length; i++) {
-                    if (owned.indexOf(gold[i]) === -1) owned.push(gold[i]);
+                    if (gold[i] !== 'mario' && owned.indexOf(gold[i]) === -1) owned.push(gold[i]);
                     if (classicIds.indexOf(gold[i]) !== -1) classicGold = true;
                 }
                 if (classicGold) {
@@ -5379,7 +6091,7 @@
             } else if (!owned.length && claimed && !sourcesHaveUnparsedFriends(list)) {
                 owned.push('luigi');
             }
-            return { characters: orderCharacterIds(owned), goldCharacters: orderCharacterIds(gold) };
+            return { characters: orderCharacterIds(owned), goldCharacters: orderGoldIds(gold) };
         }
 
         function fieldHasContent(value) {
@@ -5392,12 +6104,14 @@
 
         function sourcesHaveUnparsedFriends(sources) {
             var keys = ['characters', 'foundCharacters', 'collectedCharacters', 'collection', 'dailyCharacters', 'surprises', 'goldCharacters', 'goldFound', 'collectedGold'];
-            var i, j, value;
+            var i, j, value, isGoldKey, parsed;
             for (i = 0; i < sources.length; i++) {
                 if (!sources[i]) continue;
                 for (j = 0; j < keys.length; j++) {
                     value = sources[i][keys[j]];
-                    if (fieldHasContent(value) && !extractCharacterIds(value, [], 0).length) return true;
+                    isGoldKey = j >= 6;
+                    parsed = isGoldKey ? extractGoldIds(value, [], 0) : extractCharacterIds(value, [], 0);
+                    if (fieldHasContent(value) && !parsed.length) return true;
                 }
             }
             return false;
@@ -5405,12 +6119,13 @@
 
         function firstUnparsedFriends(sources, gold) {
             var keys = gold ? ['goldCharacters', 'goldFound', 'collectedGold'] : ['characters', 'foundCharacters', 'collectedCharacters', 'collection', 'dailyCharacters', 'surprises'];
+            var extractor = gold ? extractGoldIds : extractCharacterIds;
             var i, j, value;
             for (i = 0; i < sources.length; i++) {
                 if (!sources[i]) continue;
                 for (j = 0; j < keys.length; j++) {
                     value = sources[i][keys[j]];
-                    if (fieldHasContent(value) && !extractCharacterIds(value, [], 0).length) return value;
+                    if (fieldHasContent(value) && !extractor(value, [], 0).length) return value;
                 }
             }
             return null;
@@ -5713,9 +6428,9 @@
             var remoteScore, myScore, remoteClaim, myClaim, myPlay, remotePlay;
             if (!remote) return true;
             remoteFriends = sanitizeCharacters(remote.characters);
-            remoteGold = sanitizeCharacters(remote.goldCharacters);
+            remoteGold = sanitizeGoldCharacters(remote.goldCharacters);
             mineFriends = sanitizeCharacters(gameState.characters);
-            mineGold = sanitizeCharacters(gameState.goldCharacters);
+            mineGold = sanitizeGoldCharacters(gameState.goldCharacters);
             if (!ignoreFriends) {
                 for (i = 0; i < mineFriends.length; i++) if (remoteFriends.indexOf(mineFriends[i]) === -1) return true;
                 for (i = 0; i < mineGold.length; i++) if (remoteGold.indexOf(mineGold[i]) === -1) return true;
@@ -5765,7 +6480,7 @@
                 else gameState.goldCharacters = [];
             }
             owned = sanitizeCharacters(gameState.characters);
-            goldOwned = sanitizeCharacters(gameState.goldCharacters);
+            goldOwned = sanitizeGoldCharacters(gameState.goldCharacters);
             gameState.playAs = resolvePlayAs(sources, owned, goldOwned);
             gameState.coins = maxNumber(sources.map(function (state) { return state && state.coins; }), gameState.coins);
             gameState.score = maxNumber(sources.map(function (state) { return state && state.score; }), gameState.score);
@@ -5832,13 +6547,18 @@
             return null;
         }
 
+        function goldCharacterById(id) {
+            if (id === 'mario') return MARIO_ART;
+            return characterById(id);
+        }
+
         function sanitizePlayAs(value, owned, goldOwned) {
             var id;
             if (value === 'mario' || value == null || value === '') return 'mario';
             if (typeof value !== 'string') return 'mario';
             if (value.indexOf('gold:') === 0) {
                 id = value.slice(5);
-                if (characterById(id) && goldOwned.indexOf(id) !== -1) return 'gold:' + id;
+                if (goldCharacterById(id) && goldOwned.indexOf(id) !== -1) return 'gold:' + id;
                 return 'mario';
             }
             if (characterById(value) && owned.indexOf(value) !== -1) return value;
@@ -5849,7 +6569,7 @@
             var character;
             if (!playAs || playAs === 'mario') return 'Mario';
             if (playAs.indexOf('gold:') === 0) {
-                character = characterById(playAs.slice(5));
+                character = goldCharacterById(playAs.slice(5));
                 return character ? ('Gold ' + character.name) : 'Mario';
             }
             character = characterById(playAs);
@@ -5870,7 +6590,7 @@
         }
 
         function currentGold(state) {
-            return sanitizeCharacters(state && state.goldCharacters);
+            return sanitizeGoldCharacters(state && state.goldCharacters);
         }
 
         function currentPlayAs(state) {
@@ -5917,7 +6637,7 @@
                 gold = true;
                 id = play.slice(5);
             }
-            if (play === 'mario') character = MARIO_ART;
+            if (play === 'mario' || id === 'mario') character = MARIO_ART;
             else character = characterById(id);
             if (!character) character = MARIO_ART;
             if (!canvas) {
@@ -6344,6 +7064,101 @@
                 ell(32, 26.2, 1.7, 1.2, K, null, 0);
                 return;
             }
+            if (id === 'santa_mario') {
+                rr(18, 50, 11, 7, 3.5, '#1f2937', K, 2.3);
+                rr(35, 50, 11, 7, 3.5, '#1f2937', K, 2.3);
+                rr(18.5, 47, 10, 4, 2, '#ffffff', K, 1.9);
+                rr(35.5, 47, 10, 4, 2, '#ffffff', K, 1.9);
+                rr(16, 33, 32, 16, 7, '#dc2626', K, 2.4);
+                rr(29, 34, 6, 15, 2, '#ffffff', K, 1.8);
+                rr(16, 41, 32, 4.5, 2, '#1f2937', K, 2);
+                rr(28.5, 40, 7, 6.5, 1.6, '#facc15', K, 1.8);
+                rr(30.5, 41.8, 3, 3, 0.8, '#1f2937', null, 0);
+                ell(14.5, 40.5, 4.8, 4.8, '#ffffff', K, 2.2);
+                ell(49.5, 40.5, 4.8, 4.8, '#ffffff', K, 2.2);
+                ell(32, 24, 12.2, 10.5, '#fbd3ad', K, 2.4);
+                eye(28, 22, 2, 2.8, '#2563eb');
+                eye(36, 22, 2, 2.8, '#2563eb');
+                pth('M19 26 Q18 37 32 39 Q46 37 45 26 Q39 29 32 29 Q25 29 19 26 Z', '#ffffff', K, 2.2);
+                pth('M22 27.2 Q27 24 32 26.8 Q37 24 42 27.2 Q39 30.8 32 29.8 Q25 30.8 22 27.2 Z', '#f8fafc', K, 1.9);
+                ell(32, 24.8, 4.2, 3.1, '#f4a97b', K, 1.9);
+                pth('M18 17 Q22 4 38 6 Q51 8 53 19 Q46 18 42 14 Q33 17 18 17 Z', '#dc2626', K, 2.4);
+                rr(16.5, 14.5, 30, 6, 3, '#ffffff', K, 2.2);
+                ell(53, 20, 4.5, 4.5, '#ffffff', K, 2.1);
+                return;
+            }
+            if (id === 'reindeer_yoshi') {
+                pth('M24 13 L18 5 M21 9 L15 9 M22 10 L22 5', null, '#92400e', 3.4);
+                pth('M40 13 L46 5 M43 9 L49 9 M42 10 L42 5', null, '#92400e', 3.4);
+                pth('M24 13 L18 5 M21 9 L15 9 M22 10 L22 5', null, '#d97706', 1.8);
+                pth('M40 13 L46 5 M43 9 L49 9 M42 10 L42 5', null, '#d97706', 1.8);
+                ell(21, 37, 5, 4.5, '#dc2626', K, 2.1);
+                rr(19, 50, 11, 7, 3.5, '#dc2626', K, 2.2);
+                rr(34, 50, 11, 7, 3.5, '#dc2626', K, 2.2);
+                ell(32, 41.5, 10.5, 10, '#22c55e', K, 2.4);
+                ell(32, 43, 6.8, 7.5, '#ffffff', K, 1.8);
+                rr(21, 32.5, 22, 5, 2.5, '#dc2626', K, 2);
+                ell(32, 36.2, 3.3, 3.3, '#facc15', K, 1.7);
+                ell(28, 17.5, 5, 6.5, '#22c55e', K, 2.2);
+                ell(36, 17.5, 5, 6.5, '#22c55e', K, 2.2);
+                ell(28, 17.8, 3.3, 4.8, '#ffffff', K, 1.5);
+                ell(36, 17.8, 3.3, 4.8, '#ffffff', K, 1.5);
+                eye(28.4, 18.2, 1.7, 2.4, '#1d4ed8');
+                eye(35.6, 18.2, 1.7, 2.4, '#1d4ed8');
+                ell(32, 25.5, 11.5, 7.2, '#22c55e', K, 2.3);
+                ell(32, 28.5, 8.5, 4.2, '#ffffff', K, 1.7);
+                ell(40.5, 23.5, 4.6, 4.2, '#ef4444', K, 2.1);
+                ell(39.2, 22.2, 1.5, 1.2, '#fecaca', null, 0);
+                return;
+            }
+            if (id === 'elf_toad') {
+                pth('M16 54 Q13 51 15 49 L28 50 L28 56 L18 56 Z', '#15803d', K, 2.2);
+                pth('M48 54 Q51 51 49 49 L36 50 L36 56 L46 56 Z', '#15803d', K, 2.2);
+                ell(14.5, 49.5, 2.3, 2.3, '#fde047', K, 1.4);
+                ell(49.5, 49.5, 2.3, 2.3, '#fde047', K, 1.4);
+                rr(19, 36, 26, 14, 5, '#dc2626', K, 2.2);
+                pth('M22 35 L42 35 L44 49 L38 46 L32 50 L26 46 L20 49 Z', '#16a34a', K, 2.2);
+                ell(32, 40, 2, 2, '#fde047', K, 1.3);
+                ell(32, 45, 2, 2, '#fde047', K, 1.3);
+                ell(16.5, 42, 4, 4, '#ffffff', K, 2);
+                ell(47.5, 42, 4, 4, '#ffffff', K, 2);
+                ell(32, 28.5, 10, 8, '#fbd3ad', K, 2.3);
+                eye(28.5, 28, 1.7, 2.5, '#141414');
+                eye(35.5, 28, 1.7, 2.5, '#141414');
+                pth('M29 32.2 Q32 34.8 35 32.2', null, K, 1.9);
+                ell(32, 16.5, 17, 10.5, '#16a34a', K, 2.5);
+                ell(32, 14.5, 6.2, 5.5, '#dc2626', K, 1.8);
+                ell(19.5, 17, 4.2, 4.5, '#dc2626', K, 1.7);
+                ell(44.5, 17, 4.2, 4.5, '#dc2626', K, 1.7);
+                rr(16, 20.5, 32, 4.8, 2.4, '#ffffff', K, 2.1);
+                ell(32, 5.5, 3.6, 3.6, '#fde047', K, 1.9);
+                return;
+            }
+            if (id === 'snowman_bowser') {
+                ell(32, 41, 16, 13, '#0284c7', K, 2.4);
+                ell(18, 51, 5.5, 4, '#e2e8f0', K, 2.2);
+                ell(46, 51, 5.5, 4, '#e2e8f0', K, 2.2);
+                ell(32, 43, 12.5, 11, '#ffffff', K, 2.4);
+                ell(32, 42, 2, 2, '#1e293b', null, 0);
+                ell(32, 47.5, 2, 2, '#1e293b', null, 0);
+                ell(16, 40, 4.8, 4.5, '#ffffff', K, 2.2);
+                ell(48, 40, 4.8, 4.5, '#ffffff', K, 2.2);
+                pth('M18 19 L12 12 L21 15 Z M46 19 L52 12 L43 15 Z', '#bae6fd', K, 2.1);
+                ell(32, 25, 12.5, 10.2, '#ffffff', K, 2.4);
+                rr(19, 32, 26, 5.5, 2.8, '#dc2626', K, 2.1);
+                rr(35, 34, 6.5, 11, 2.5, '#dc2626', K, 2);
+                rr(35, 41, 6.5, 2.5, 1, '#facc15', null, 0);
+                pth('M23 19 L30 21.5 M41 19 L34 21.5', null, '#dc2626', 2.8);
+                eye(27.5, 23.2, 2, 2.2, '#ef4444');
+                eye(36.5, 23.2, 2, 2.2, '#ef4444');
+                pth('M31 24.5 L42 26.8 L31 28.8 Z', '#f97316', K, 1.8);
+                pth('M25 29.8 Q32 32.8 39 29.8', null, K, 2);
+                rr(20, 13.5, 24, 3.8, 1.9, '#1e293b', K, 2.1);
+                rr(24, 4.5, 16, 10, 2, '#1e293b', K, 2.1);
+                rr(24, 11, 16, 2.8, 0.8, '#dc2626', null, 0);
+                ell(37, 12, 2, 2, '#22c55e', K, 1.1);
+                return;
+            }
             pth('M18 14 L8 19 L17 25 Z M46 14 L56 19 L47 25 Z', '#1d4ed8', K, 2.2);
             rr(19, 50, 11, 7, 3, '#dc2626', K, 2.2);
             rr(34, 50, 11, 7, 3, '#dc2626', K, 2.2);
@@ -6442,14 +7257,16 @@
 
         function collectionButtonText(ownedCount, goldCount) {
             var total = CHARACTERS.length;
+            var goldTotal = goldRoster().length;
             if (ownedCount < total) return ownedCount + '/' + total;
-            return 'G' + goldCount + '/' + total;
+            return 'G' + goldCount + '/' + goldTotal;
         }
 
         function updateCollectionButton() {
             var ownedCount = currentOwned(gameState).length;
             var goldCount = currentGold(gameState).length;
             var total = CHARACTERS.length;
+            var goldTotal = goldRoster().length;
             var countEl = document.getElementById('collectionBtnCount');
             var btn = document.getElementById('collectionBtn');
             var label;
@@ -6458,14 +7275,15 @@
             if (ownedCount >= total) btn.classList.add('is-gold');
             else btn.classList.remove('is-gold');
             if (ownedCount < total) label = 'Character collection, ' + ownedCount + ' of ' + total + ' found';
-            else label = 'Character collection, ' + goldCount + ' of ' + total + ' gold found';
+            else label = 'Character collection, ' + goldCount + ' of ' + goldTotal + ' gold found';
             btn.setAttribute('aria-label', label);
         }
 
         function collectionHintText(ownedCount, goldCount, claimed, ready) {
             var total = CHARACTERS.length;
+            var goldTotal = goldRoster().length;
             var allNormal = ownedCount >= total;
-            var allGold = goldCount >= total;
+            var allGold = goldCount >= goldTotal;
             if (allNormal && allGold && claimed) return 'All collected! Come back tomorrow for bonus coins.';
             if (allNormal && allGold) return 'All collected! Get 10 correct to unlock bonus coins.';
             if (allNormal && claimed) return 'Come back tomorrow for a shiny gold friend!';
@@ -6529,6 +7347,7 @@
 
         function setCollectionPage(page) {
             if (page === 'gold') collectionPage = 'gold';
+            else if (page === 'xmas') collectionPage = 'xmas';
             else if (page === 'speed') collectionPage = 'speed';
             else collectionPage = 'normal';
             try { renderCollection(); } catch (e) {}
@@ -6536,12 +7355,13 @@
 
         function charactersForPage(page) {
             var list = [];
-            var i, speed;
+            var i, team;
+            if (page === 'gold') return goldRoster();
             for (i = 0; i < CHARACTERS.length; i++) {
-                speed = CHARACTERS[i].team === 'speed';
-                if (page === 'speed' && speed) list.push(CHARACTERS[i]);
-                else if (page === 'normal' && !speed) list.push(CHARACTERS[i]);
-                else if (page === 'gold') list.push(CHARACTERS[i]);
+                team = CHARACTERS[i].team || 'normal';
+                if (page === 'speed' && team === 'speed') list.push(CHARACTERS[i]);
+                else if (page === 'xmas' && team === 'xmas') list.push(CHARACTERS[i]);
+                else if (page === 'normal' && team === 'normal') list.push(CHARACTERS[i]);
             }
             return list;
         }
@@ -6588,15 +7408,19 @@
             var goldMap = {};
             var i;
             var total = CHARACTERS.length;
+            var goldTotal = goldRoster().length;
             var onGold = collectionPage === 'gold';
             var onSpeed = collectionPage === 'speed';
-            var pageList = charactersForPage(onGold ? 'gold' : (onSpeed ? 'speed' : 'normal'));
+            var onXmas = collectionPage === 'xmas';
+            var onNormal = !onGold && !onSpeed && !onXmas;
+            var pageList = charactersForPage(onGold ? 'gold' : (onXmas ? 'xmas' : (onSpeed ? 'speed' : 'normal')));
             var countEl = document.getElementById('collectionCountLabel');
             var hintEl = document.getElementById('collectionHint');
             var playingEl = document.getElementById('collectionPlaying');
             var grid = document.getElementById('collectionGrid');
             var tabNormal = document.getElementById('collectionTabNormal');
             var tabSpeed = document.getElementById('collectionTabSpeed');
+            var tabXmas = document.getElementById('collectionTabXmas');
             var tabGold = document.getElementById('collectionTabGold');
             var claimed = dateClaimed(source);
             var ready = surpriseIsReady(source);
@@ -6606,12 +7430,16 @@
             for (i = 0; i < goldOwned.length; i++) goldMap[goldOwned[i]] = true;
             pageOwned = onGold ? goldOwned.length : countOwnedIn(pageList, ownedMap);
             if (tabNormal) {
-                tabNormal.classList.toggle('is-on', !onGold && !onSpeed);
-                tabNormal.setAttribute('aria-selected', (!onGold && !onSpeed) ? 'true' : 'false');
+                tabNormal.classList.toggle('is-on', onNormal);
+                tabNormal.setAttribute('aria-selected', onNormal ? 'true' : 'false');
             }
             if (tabSpeed) {
                 tabSpeed.classList.toggle('is-on', onSpeed);
                 tabSpeed.setAttribute('aria-selected', onSpeed ? 'true' : 'false');
+            }
+            if (tabXmas) {
+                tabXmas.classList.toggle('is-on', onXmas);
+                tabXmas.setAttribute('aria-selected', onXmas ? 'true' : 'false');
             }
             if (tabGold) {
                 tabGold.classList.toggle('is-on', onGold);
@@ -6619,18 +7447,19 @@
             }
             if (countEl) {
                 countEl.textContent = onGold
-                    ? (goldOwned.length + ' / ' + total + ' gold found')
+                    ? (goldOwned.length + ' / ' + goldTotal + ' gold found')
                     : (pageOwned + ' / ' + pageList.length + ' found');
             }
             if (playingEl) playingEl.textContent = 'Playing as ' + playAsName(play);
             if (hintEl) {
                 if (onGold && owned.length < total) hintEl.textContent = 'Find every friend first. Then one shiny gold friend appears each day!';
+                else if (onXmas && pageOwned === 0) hintEl.textContent = 'Festive friends unlock in the daily surprise, one each day!';
                 else if (onSpeed && pageOwned === 0) hintEl.textContent = 'Speedy friends show up in the daily surprise, one each day.';
                 else hintEl.textContent = collectionHintText(owned.length, goldOwned.length, claimed, ready);
             }
             if (!grid) return;
             grid.textContent = '';
-            if (!onGold && !onSpeed) {
+            if (onNormal) {
                 appendCharacterCard(grid, {
                     mario: true, unlocked: true, selected: play === 'mario', gold: false,
                     playAs: 'mario', label: 'Mario', shortName: 'Mario'
@@ -6697,7 +7526,7 @@
         }
 
         function inGoldHunt() {
-            return currentOwned(gameState).length >= CHARACTERS.length && currentGold(gameState).length < CHARACTERS.length;
+            return currentOwned(gameState).length >= CHARACTERS.length && currentGold(gameState).length < goldRoster().length;
         }
 
         function surpriseProgressText(count) {
@@ -7502,6 +8331,15 @@
             return null;
         }
 
+        function nextMissingGoldCharacter(list) {
+            var roster = goldRoster();
+            var i;
+            for (i = 0; i < roster.length; i++) {
+                if (list.indexOf(roster[i].id) === -1) return roster[i];
+            }
+            return null;
+        }
+
         function grantDailySurprise() {
             var today, next, gold, bonus, beforeBonus;
             if (dailyClaimLock || dateClaimed(gameState)) return;
@@ -7512,11 +8350,11 @@
             try { unlockRewardAudio(); } catch (e) {}
             try { playSurpriseSound(); } catch (e) {}
             gameState.characters = sanitizeCharacters(gameState.characters);
-            gameState.goldCharacters = sanitizeCharacters(gameState.goldCharacters);
+            gameState.goldCharacters = sanitizeGoldCharacters(gameState.goldCharacters);
             next = nextMissingCharacter(gameState.characters);
             gold = false;
             if (!next) {
-                next = nextMissingCharacter(gameState.goldCharacters);
+                next = nextMissingGoldCharacter(gameState.goldCharacters);
                 gold = !!next;
             }
             bonus = next ? 5 : (4 + Math.floor(Math.random() * 7));
@@ -7587,8 +8425,14 @@
             try { fitQuestion(); } catch (e) {}
         });
 
+        document.addEventListener('click', function (e) {
+            if (!e || !e.target || (typeof e.target.closest === 'function' && e.target.closest('.ctrl-wrap'))) return;
+            closeTopMenus();
+        });
+
         document.addEventListener('keydown', function (e) {
             if (!e || e.key !== 'Escape') return;
+            closeTopMenus();
             closeSurprise();
             closeCollection();
             closeQuests();
@@ -7603,11 +8447,12 @@
                 var peekGold = peekAdopt.goldCharacters.length;
                 var peekBtn = document.getElementById('collectionBtn');
                 if (peekCount) peekCount.textContent = collectionButtonText(peekOwned, peekGold);
-                if (peekBtn && peekOwned >= CHARACTERS.length) peekBtn.classList.add('is-gold');
+                if (peekBtn) peekBtn.classList.toggle('is-gold', peekOwned >= CHARACTERS.length);
                 writeCharacterBackup(peekAdopt.characters, peekAdopt.goldCharacters);
             }
             applySurpriseTestNote();
             try { updateWorldTheme(); } catch (e) {}
+            try { updateMusicUI(); } catch (e) {}
             try { applyHero(); } catch (e) {}
             checkAppVersion();
         } catch (e) {}

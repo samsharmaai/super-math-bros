@@ -46,6 +46,15 @@
             --hud-navy: rgba(8, 28, 78, 0.9);
             --board-navy: rgba(9, 33, 92, 0.93);
         }
+        html.pack-diwali,
+        body.pack-diwali {
+            --sky-top: #1a0d38;
+            --sky-mid: #3a1668;
+            --sky-horizon: #c2550c;
+            --sky-blue: #3a1668;
+            --hud-navy: rgba(34, 12, 68, 0.9);
+            --board-navy: rgba(42, 16, 82, 0.93);
+        }
 
         html {
             background-color: var(--sky-blue);
@@ -561,7 +570,11 @@
         .q-bolt.tr { top: 7px; right: 8px; }
         .q-bolt.bl { bottom: 7px; left: 8px; }
         .q-bolt.br { bottom: 7px; right: 8px; }
-        .q-lights {
+        body.pack-diwali .question-board {
+            border-color: #fde047;
+            box-shadow: inset 0 2px 0 rgba(254, 240, 138, 0.28), 0 6px 0 rgba(30, 8, 56, 0.72), 0 0 18px rgba(251, 191, 36, 0.22);
+        }
+        .q-lights, .q-toran {
             display: none;
             position: absolute;
             top: -8px;
@@ -573,7 +586,41 @@
             z-index: 2;
         }
         body.pack-christmas .q-lights { display: flex; }
-        .q-lights-grp { display: flex; gap: 12px; align-items: center; }
+        body.pack-diwali .q-toran { display: flex; }
+        .q-lights-grp, .q-toran-grp { display: flex; gap: 10px; align-items: center; }
+        .q-marigold {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fef08a 0%, #f59e0b 65%, #c2410c 100%);
+            border: 1.5px solid #451a03;
+            box-shadow: 0 0 6px rgba(251, 191, 36, 0.75);
+        }
+        .q-marigold.m-rose {
+            background: radial-gradient(circle at 35% 35%, #fbcfe8 0%, #ec4899 65%, #9d174d 100%);
+            box-shadow: 0 0 6px rgba(244, 114, 182, 0.7);
+        }
+        .q-diya-mini {
+            width: 10px;
+            height: 7px;
+            border-radius: 2px 2px 8px 8px;
+            background: #b45309;
+            border: 1.5px solid #451a03;
+            position: relative;
+        }
+        .q-diya-mini::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -6px;
+            width: 5px;
+            height: 6px;
+            transform: translateX(-50%);
+            border-radius: 50% 50% 45% 45%;
+            background: #fef08a;
+            box-shadow: 0 0 7px #fbbf24;
+            animation: bulb-twinkle 1.1s ease-in-out infinite alternate;
+        }
         .q-bulb {
             width: 8px;
             height: 10px;
@@ -612,6 +659,11 @@
             background: #991b1b;
             border-color: #fef08a;
             color: #fef9c3;
+        }
+        body.pack-diwali .q-category-badge {
+            background: #831843;
+            border-color: #fde047;
+            color: #fef08a;
         }
         .q-category-badge[hidden] { display: none !important; }
         .question-text {
@@ -963,6 +1015,12 @@
                 linear-gradient(90deg, transparent 47%, rgba(62, 22, 4, 0.42) 47%, rgba(62, 22, 4, 0.42) 53%, transparent 53%),
                 linear-gradient(180deg, transparent 48%, rgba(62, 22, 4, 0.46) 48%, rgba(62, 22, 4, 0.46) 55%, transparent 55%);
         }
+        body.pack-diwali .brick-btn:not(.is-correct):not(.is-wrong) {
+            background-image:
+                linear-gradient(180deg, rgba(254, 240, 138, 0.92) 0px, rgba(245, 158, 11, 0.88) 5px, transparent 5px),
+                linear-gradient(90deg, transparent 47%, rgba(62, 22, 4, 0.42) 47%, rgba(62, 22, 4, 0.42) 53%, transparent 53%),
+                linear-gradient(180deg, transparent 48%, rgba(62, 22, 4, 0.46) 48%, rgba(62, 22, 4, 0.46) 55%, transparent 55%);
+        }
         .brick-btn:hover:not(:disabled):not(.is-wrong) {
             transform: translateY(-2px);
             filter: brightness(1.06);
@@ -1147,17 +1205,28 @@
         body.pack-christmas .deco-brick {
             background: linear-gradient(#f8fcff, #dbeafe) 0 0 / 100% 9px no-repeat, #e07028;
         }
+        body.pack-diwali .deco-brick {
+            background: linear-gradient(#fef08a, #f59e0b) 0 0 / 100% 9px no-repeat, #d95d18;
+        }
+        body.pack-diwali .cloud {
+            opacity: 0.42;
+            filter: sepia(0.3) hue-rotate(255deg) brightness(0.95);
+        }
         .deco-q {
             background: #f8d020;
             box-shadow: inset 3px 3px 0 #fff3a0, inset -3px -3px 0 #d48900;
         }
-        .xmas-prop, .snow-layer { display: none; }
-        .world-scenery { --xmas-snow-op: 0; }
+        .xmas-prop, .snow-layer, .diwali-prop, .diwali-layer { display: none; }
+        .world-scenery { --xmas-snow-op: 0; --diwali-op: 0; }
         .xmas-snow { opacity: var(--xmas-snow-op, 0); }
+        .diwali-trim { opacity: var(--diwali-op, 0); }
         body.pack-christmas .world-scenery { --xmas-snow-op: 1; }
         body.pack-christmas .xmas-prop { display: block; }
         body.pack-christmas .snow-layer { display: block; }
-        .snow-layer {
+        body.pack-diwali .world-scenery { --diwali-op: 1; }
+        body.pack-diwali .diwali-prop { display: block; }
+        body.pack-diwali .diwali-layer { display: block; }
+        .snow-layer, .diwali-layer {
             position: absolute;
             inset: 0;
             pointer-events: none;
@@ -1181,18 +1250,63 @@
             50% { transform: translate3d(var(--sdrift, 14px), 52vh, 0); }
             100% { transform: translate3d(calc(var(--sdrift, 14px) * -0.4), 105vh, 0); }
         }
-        .xmas-tree {
+        .diwali-spark {
+            position: absolute;
+            bottom: var(--ground-h);
+            left: var(--dx, 50%);
+            width: var(--dsize, 7px);
+            height: calc(var(--dsize, 7px) * 1.28);
+            border-radius: 45% 45% 35% 35%;
+            background: radial-gradient(circle at 50% 62%, #fffbeb 0%, #fde047 48%, #f97316 100%);
+            opacity: var(--dop, 0.78);
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.85), 0 0 14px rgba(249, 115, 22, 0.45);
+            animation: diwali-rise var(--ddur, 11s) ease-in-out var(--ddelay, 0s) infinite;
+        }
+        @keyframes diwali-rise {
+            0% { transform: translate3d(0, 8vh, 0) scale(0.85); opacity: 0; }
+            14% { opacity: var(--dop, 0.78); }
+            55% { transform: translate3d(var(--ddrift, 18px), -48vh, 0) scale(1); }
+            88% { opacity: var(--dop, 0.72); }
+            100% { transform: translate3d(calc(var(--ddrift, 18px) * -0.5), -98vh, 0) scale(0.68); opacity: 0; }
+        }
+        .diwali-bloom {
+            position: absolute;
+            left: var(--bx, 20%);
+            top: var(--by, 14%);
+            width: var(--bsize, 46px);
+            height: var(--bsize, 46px);
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, #fffbeb 0 10%, transparent 13%),
+                radial-gradient(circle at 50% 8%, var(--bc1, #fde047) 0 8%, transparent 11%),
+                radial-gradient(circle at 92% 50%, var(--bc2, #f472b6) 0 8%, transparent 11%),
+                radial-gradient(circle at 50% 92%, var(--bc1, #fde047) 0 8%, transparent 11%),
+                radial-gradient(circle at 8% 50%, var(--bc2, #f472b6) 0 8%, transparent 11%),
+                radial-gradient(circle at 80% 20%, var(--bc2, #38bdf8) 0 7%, transparent 10%),
+                radial-gradient(circle at 20% 20%, var(--bc1, #fb923c) 0 7%, transparent 10%),
+                radial-gradient(circle at 80% 80%, var(--bc1, #fb923c) 0 7%, transparent 10%),
+                radial-gradient(circle at 20% 80%, var(--bc2, #38bdf8) 0 7%, transparent 10%);
+            filter: drop-shadow(0 0 6px var(--bc1, #fde047));
+            animation: firework-bloom var(--bdur, 4.6s) ease-out var(--bdelay, 0s) infinite;
+        }
+        @keyframes firework-bloom {
+            0%, 16% { transform: scale(0.18); opacity: 0; }
+            34% { transform: scale(0.95); opacity: 0.9; }
+            68% { transform: scale(1.16); opacity: 0.55; }
+            100% { transform: scale(1.28); opacity: 0; }
+        }
+        .xmas-tree, .diwali-stand {
             position: absolute;
             left: clamp(86px, 21vw, 195px);
             bottom: calc(var(--ground-h) - 2px);
             width: clamp(54px, 11vw, 76px);
             height: auto;
         }
-        .xmas-snowman {
+        .xmas-snowman, .diwali-rangoli {
             position: absolute;
             right: clamp(70px, 13vw, 148px);
             bottom: calc(var(--ground-h) - 2px);
-            width: clamp(42px, 8.5vw, 56px);
+            width: clamp(46px, 9.5vw, 64px);
             height: auto;
         }
         .ground {
@@ -1211,6 +1325,16 @@
             height: 9px;
             background: linear-gradient(180deg, #ffffff 0%, #dbeafe 72%, #93c5fd 100%);
             border-bottom: 2px solid #1e3a8a;
+        }
+        body.pack-diwali .ground::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 9px;
+            background: repeating-linear-gradient(90deg, #f59e0b 0 12px, #fde047 12px 20px, #ec4899 20px 28px, #10b981 28px 36px);
+            border-bottom: 2px solid #451a03;
         }
         
         .hero-hit {
@@ -1558,11 +1682,17 @@
             border-color: #fde047;
             color: #fef9c3;
         }
+        body.pack-diwali .pack-btn {
+            background: rgba(124, 45, 18, 0.92);
+            border-color: #fde047;
+            color: #fef9c3;
+        }
         .collection-btn { width: auto; max-width: 52vw; text-align: center; }
         .collection-btn::before { content: '\1F9E2'; font-size: 10.5px; }
         .collection-btn span { display: inline; color: #ffde00; margin-left: 0; }
         .pack-btn:hover, .music-btn:hover, .collection-btn:hover { background: rgba(12, 34, 92, 0.96); }
         body.pack-christmas .pack-btn:hover { background: rgba(153, 27, 27, 0.96); }
+        body.pack-diwali .pack-btn:hover { background: rgba(154, 52, 18, 0.96); }
         .pack-btn:active, .music-btn:active, .collection-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.38); }
         .ctrl-caret { font-family: Verdana, sans-serif; font-size: 10px; line-height: 1; opacity: 0.9; }
         .ctrl-menu {
@@ -1999,7 +2129,7 @@
             .hill { width: min(26vw, 110px); }
             .bush-a { width: min(16vw, 72px); }
             .bush-b { width: min(14vw, 64px); display: none; }
-            .xmas-tree { width: 46px; left: 96px; }
+            .xmas-tree, .diwali-stand { width: 46px; left: 96px; }
             .cloud-track { top: 42px; height: 84px; }
             .cloud-track-back { display: none; }
             .cloud.c1 { width: 78px; height: 31px; }
@@ -2007,7 +2137,7 @@
             .cloud.c3 { width: 90px; height: 36px; margin-top: 8px; }
         }
         @media (max-width: 819px) and (max-height: 700px) {
-            .pipe, .sky-row, .xmas-snowman { display: none !important; }
+            .pipe, .sky-row, .xmas-snowman, .diwali-rangoli { display: none !important; }
         }
         @media (min-width: 820px) and (max-height: 700px) {
             .question-container { margin-bottom: 58px; }
@@ -2031,13 +2161,13 @@
             .pipe { width: 44px; height: 72px; right: 2%; }
             .sky-row { top: 168px; right: 10px; transform: scale(0.86); transform-origin: top right; }
             .bush-b { right: 12%; }
-            .xmas-snowman { right: 15%; width: 42px; }
+            .xmas-snowman, .diwali-rangoli { right: 15%; width: 44px; }
         }
         @media (prefers-reduced-motion: reduce) {
             .cloud-track, .cloud-track-back,
-            .snowflake, .q-bulb,
+            .snowflake, .diwali-spark, .diwali-bloom, .q-bulb, .q-diya-mini::before,
             .hero-img:not(.hero-jump) { animation: none !important; }
-            .snowflake { display: none !important; }
+            .snowflake, .diwali-spark, .diwali-bloom { display: none !important; }
             .mystery-block, .mystery-wrap,
             .daily-surprise.is-ready .mystery-wrap,
             .daily-surprise.is-locked.is-nudged .mystery-block,
@@ -2068,7 +2198,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note">Build 2026-11-19a</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-20a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -2106,8 +2236,9 @@
         <button type="button" id="collectionBtn" class="collection-btn" onclick="openCollection()" aria-label="Character collection">COLLECTION <span id="collectionBtnCount">0/28</span></button>
         <div class="top-right-controls">
             <div class="ctrl-wrap" id="packWrap">
-                <button type="button" id="packBtn" class="pack-btn" onclick="togglePackMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Theme pack"><span id="packBtnLabel">🎄 XMAS</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
+                <button type="button" id="packBtn" class="pack-btn" onclick="togglePackMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Theme pack"><span id="packBtnLabel">🪔 DIWALI</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
                 <div id="packMenu" class="ctrl-menu" role="menu" hidden>
+                    <button type="button" class="ctrl-opt" data-pack="diwali" role="menuitemradio" onclick="setThemePack('diwali')"><span>🪔 Diwali Pack</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-pack="christmas" role="menuitemradio" onclick="setThemePack('christmas')"><span>🎄 Christmas Pack</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-pack="classic" role="menuitemradio" onclick="setThemePack('classic')"><span>🍄 Classic World</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                 </div>
@@ -2116,6 +2247,7 @@
                 <button type="button" id="musicBtn" class="music-btn" onclick="toggleMusicMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Music selector"><span id="musicBtnLabel">🎵 OFF</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
                 <div id="musicMenu" class="ctrl-menu" role="menu" hidden>
                     <button type="button" class="ctrl-opt is-active" data-track="off" role="menuitemradio" onclick="selectMusicTrack('off')"><span>🔇 Music: Off</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-track="diwali" role="menuitemradio" onclick="selectMusicTrack('diwali')"><span>🪔 Diwali Melodies</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="mario" role="menuitemradio" onclick="selectMusicTrack('mario')"><span>🍄 Super Mario</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="sonic" role="menuitemradio" onclick="selectMusicTrack('sonic')"><span>💨 Sonic Zone</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="xmas" role="menuitemradio" onclick="selectMusicTrack('xmas')"><span>🎄 Festive Jingle</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
@@ -2136,7 +2268,7 @@
             </div>
         </div>
     </div>
-    <p id="playerNote" class="player-note" hidden></p>
+    <p id="playerNote" class="player-note" onclick="maybeForceUpdate()" hidden></p>
 
     <div class="day-strip" id="dayStrip">
         <div id="dailySurprise" class="daily-surprise" hidden>
@@ -2181,6 +2313,10 @@
             <div class="q-lights" aria-hidden="true">
                 <span class="q-lights-grp"><i class="q-bulb b-red"></i><i class="q-bulb b-gold"></i><i class="q-bulb b-green"></i></span>
                 <span class="q-lights-grp"><i class="q-bulb b-cyan"></i><i class="q-bulb b-red"></i><i class="q-bulb b-gold"></i></span>
+            </div>
+            <div class="q-toran" aria-hidden="true">
+                <span class="q-toran-grp"><i class="q-marigold"></i><i class="q-diya-mini"></i><i class="q-marigold m-rose"></i></span>
+                <span class="q-toran-grp"><i class="q-marigold m-rose"></i><i class="q-diya-mini"></i><i class="q-marigold"></i></span>
             </div>
             <span id="qCategoryBadge" class="q-category-badge" aria-hidden="true" hidden>MATH</span>
             <div id="qText" class="question-text">Waiting for Login...</div>
@@ -2243,6 +2379,15 @@
                         <polygon fill="#f8fcff" points="34,6 54,6 60,12 66,16 60,20 50,17 44,21 36,17 28,21 20,17 24,12"/>
                         <rect x="34" y="6" width="20" height="4" fill="#ffffff"/>
                     </g>
+                    <g class="diwali-trim">
+                        <path d="M16,28 Q44,38 72,28" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                        <circle cx="24" cy="31" r="2.6" fill="#fde047"/>
+                        <circle cx="36" cy="33" r="2.6" fill="#ec4899"/>
+                        <circle cx="48" cy="33" r="2.6" fill="#fde047"/>
+                        <circle cx="60" cy="31" r="2.6" fill="#38bdf8"/>
+                        <path d="M38,6 Q44,10 50,6" fill="#b45309" stroke="#451a03" stroke-width="1.2"/>
+                        <ellipse cx="44" cy="3.2" rx="2.2" ry="3.2" fill="#fef08a"/>
+                    </g>
                 </symbol>
                 <symbol id="px-bush" viewBox="0 0 72 40">
                     <polygon fill="#0b4e12" points="28,0 44,0 44,4 52,4 52,8 60,8 60,12 68,12 68,16 72,16 72,40 0,40 0,16 4,16 4,12 12,12 12,8 20,8 20,4 28,4"/>
@@ -2251,6 +2396,12 @@
                     <rect x="24" y="8" width="8" height="4" fill="#8ef070"/>
                     <g class="xmas-snow">
                         <polygon fill="#f8fcff" points="28,2 44,2 54,9 48,14 40,11 35,14 26,11 18,13 18,8"/>
+                    </g>
+                    <g class="diwali-trim">
+                        <circle cx="18" cy="18" r="2.6" fill="#fde047"/>
+                        <circle cx="30" cy="14" r="2.6" fill="#f97316"/>
+                        <circle cx="42" cy="15" r="2.6" fill="#ec4899"/>
+                        <circle cx="54" cy="19" r="2.6" fill="#fde047"/>
                     </g>
                 </symbol>
                 <symbol id="px-pipe" viewBox="0 0 32 64">
@@ -2268,6 +2419,14 @@
                         <rect x="8" y="21" width="16" height="5" fill="#dc2626"/>
                         <rect x="8" y="34" width="16" height="5" fill="#dc2626"/>
                         <rect x="8" y="47" width="16" height="5" fill="#dc2626"/>
+                    </g>
+                    <g class="diwali-trim">
+                        <rect x="4" y="5" width="24" height="3" fill="#fbbf24"/>
+                        <rect x="8" y="22" width="16" height="4" fill="#f59e0b"/>
+                        <rect x="8" y="36" width="16" height="4" fill="#ec4899"/>
+                        <rect x="8" y="50" width="16" height="4" fill="#f59e0b"/>
+                        <path d="M10,3 Q16,8 22,3 Z" fill="#b45309" stroke="#451a03" stroke-width="1"/>
+                        <ellipse cx="16" cy="1.6" rx="1.8" ry="2.4" fill="#fef08a"/>
                     </g>
                 </symbol>
                 <symbol id="px-xmas-tree" viewBox="0 0 64 84">
@@ -2298,6 +2457,36 @@
                     <rect x="19" y="5" width="18" height="13" rx="2" fill="#1e293b" stroke="#141414" stroke-width="2"/>
                     <rect x="19" y="13" width="18" height="3.5" fill="#dc2626"/>
                 </symbol>
+                <symbol id="px-diwali-stand" viewBox="0 0 64 84">
+                    <ellipse cx="32" cy="79" rx="20" ry="4" fill="#92400e" stroke="#291205" stroke-width="2.5"/>
+                    <polygon points="18,78 46,78 40,68 24,68" fill="#d97706" stroke="#291205" stroke-width="2.5"/>
+                    <rect x="29" y="20" width="6" height="50" fill="#f59e0b" stroke="#291205" stroke-width="2.4"/>
+                    <path d="M10,56 Q32,66 54,56 Z" fill="#b45309" stroke="#291205" stroke-width="2.4"/>
+                    <path d="M14,38 Q32,47 50,38 Z" fill="#d97706" stroke="#291205" stroke-width="2.4"/>
+                    <path d="M21,22 Q32,29 43,22 Z" fill="#f59e0b" stroke="#291205" stroke-width="2.2"/>
+                    <circle cx="32" cy="10" r="6.5" fill="#fde047" opacity="0.38"/>
+                    <path d="M32,3 C36,8 36,13 32,16 C28,13 28,8 32,3 Z" fill="#f97316"/>
+                    <ellipse cx="32" cy="11" rx="2.2" ry="3.8" fill="#fef9c3"/>
+                    <path d="M13,47 C16,51 16,54 13,56 C10,54 10,51 13,47 Z" fill="#fb923c"/>
+                    <ellipse cx="13" cy="52.5" rx="1.6" ry="2.6" fill="#fef9c3"/>
+                    <path d="M51,47 C54,51 54,54 51,56 C48,54 48,51 51,47 Z" fill="#fb923c"/>
+                    <ellipse cx="51" cy="52.5" rx="1.6" ry="2.6" fill="#fef9c3"/>
+                    <path d="M17,30 C20,33 20,36 17,38 C14,36 14,33 17,30 Z" fill="#fb923c"/>
+                    <ellipse cx="17" cy="34.8" rx="1.5" ry="2.4" fill="#fef9c3"/>
+                    <path d="M47,30 C50,33 50,36 47,38 C44,36 44,33 47,30 Z" fill="#fb923c"/>
+                    <ellipse cx="47" cy="34.8" rx="1.5" ry="2.4" fill="#fef9c3"/>
+                </symbol>
+                <symbol id="px-diwali-rangoli" viewBox="0 0 68 54">
+                    <ellipse cx="34" cy="44" rx="28" ry="8" fill="#831843" stroke="#fde047" stroke-width="2"/>
+                    <ellipse cx="34" cy="44" rx="19" ry="5.4" fill="#ec4899" stroke="#fef08a" stroke-width="1.5"/>
+                    <ellipse cx="34" cy="44" rx="10" ry="3" fill="#10b981" stroke="#fde047" stroke-width="1.4"/>
+                    <circle cx="34" cy="44" r="2.6" fill="#fef9c3"/>
+                    <path d="M16,32 Q34,42 52,32 Q44,44 34,44 Q24,44 16,32 Z" fill="#b45309" stroke="#451a03" stroke-width="2.4"/>
+                    <path d="M20,33 Q34,39 48,33" fill="none" stroke="#fde047" stroke-width="2"/>
+                    <circle cx="34" cy="21" r="8" fill="#fde047" opacity="0.35"/>
+                    <path d="M34,11 C40,18 40,26 34,31 C28,26 28,18 34,11 Z" fill="#f97316" stroke="#9a3412" stroke-width="1.2"/>
+                    <ellipse cx="34" cy="23" rx="3.2" ry="5.5" fill="#fef9c3"/>
+                </symbol>
             </defs>
         </svg>
         <div class="cloud-track cloud-track-back">
@@ -2326,9 +2515,11 @@
         </div>
         <svg class="hill" viewBox="0 0 88 52"><use href="#px-hill"/></svg>
         <svg class="xmas-prop xmas-tree" viewBox="0 0 64 84"><use href="#px-xmas-tree"/></svg>
+        <svg class="diwali-prop diwali-stand" viewBox="0 0 64 84"><use href="#px-diwali-stand"/></svg>
         <svg class="bush bush-a" viewBox="0 0 72 40"><use href="#px-bush"/></svg>
         <svg class="bush bush-b" viewBox="0 0 72 40"><use href="#px-bush"/></svg>
         <svg class="xmas-prop xmas-snowman" viewBox="0 0 56 72"><use href="#px-xmas-snowman"/></svg>
+        <svg class="diwali-prop diwali-rangoli" viewBox="0 0 68 54"><use href="#px-diwali-rangoli"/></svg>
         <div class="sky-row">
             <span class="deco-brick"></span>
             <span class="deco-brick"></span>
@@ -2337,6 +2528,7 @@
         </div>
         <svg class="pipe" viewBox="0 0 32 64"><use href="#px-pipe"/></svg>
         <div id="snowLayer" class="snow-layer"></div>
+        <div id="diwaliLayer" class="diwali-layer"></div>
     </div>
     <div class="ground"></div>
 
@@ -2916,7 +3108,8 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-19a';
+        var APP_BUILD = '2026-11-20a';
+        var latestKnownBuild = '';
         var logActiveDays = {};
         var logRecoveryEmail = '';
         var statusFadeTimer = null;
@@ -5752,8 +5945,9 @@
         }
 
         var THEME_PACKS = {
-            christmas: { id: 'christmas', bodyClass: 'pack-christmas', shortLabel: '\uD83C\uDF84 XMAS', sky: '#183f78' },
-            classic: { id: 'classic', bodyClass: '', shortLabel: '\uD83C\uDF44 CLASSIC', sky: '#5C94FC' }
+            diwali: { id: 'diwali', bodyClass: 'pack-diwali', shortLabel: '\uD83E\uDE94 DIWALI', sky: '#3a1668', music: 'diwali' },
+            christmas: { id: 'christmas', bodyClass: 'pack-christmas', shortLabel: '\uD83C\uDF84 XMAS', sky: '#183f78', music: 'xmas' },
+            classic: { id: 'classic', bodyClass: '', shortLabel: '\uD83C\uDF44 CLASSIC', sky: '#5C94FC', music: 'mario' }
         };
 
         function activeThemePackId() {
@@ -5763,7 +5957,7 @@
                     if (saved && THEME_PACKS[saved]) return saved;
                 }
             } catch (e) {}
-            return 'christmas';
+            return 'diwali';
         }
 
         function ensureSnowflakes() {
@@ -5792,11 +5986,54 @@
             layer.appendChild(frag);
         }
 
+        function ensureDiwaliLights() {
+            var layer = document.getElementById('diwaliLayer');
+            if (!layer || layer.children.length > 0) return;
+            var frag = document.createDocumentFragment();
+            var i, spark, dx, drift, dur, delay, size, op, bloom;
+            var blooms = [
+                { bx: '14%', by: '12%', bsize: '50px', bc1: '#fde047', bc2: '#f472b6', bdur: '4.6s', bdelay: '-0.6s' },
+                { bx: '79%', by: '10%', bsize: '54px', bc1: '#fb923c', bc2: '#38bdf8', bdur: '5.2s', bdelay: '-2.3s' },
+                { bx: '32%', by: '19%', bsize: '42px', bc1: '#34d399', bc2: '#fde047', bdur: '5.8s', bdelay: '-3.8s' },
+                { bx: '64%', by: '17%', bsize: '44px', bc1: '#f472b6', bc2: '#fef08a', bdur: '4.9s', bdelay: '-1.5s' }
+            ];
+            for (i = 0; i < 20; i++) {
+                spark = document.createElement('i');
+                spark.className = 'diwali-spark';
+                dx = ((i * 41 + 7) % 96) + 2;
+                drift = (((i * 29) % 44) - 22);
+                dur = (8.4 + ((i * 17) % 50) * 0.11);
+                delay = -(((i * 23) % 90) * 0.13);
+                size = (5 + ((i * 11) % 5));
+                op = (0.58 + ((i * 7) % 4) * 0.08).toFixed(2);
+                spark.style.setProperty('--dx', dx + 'vw');
+                spark.style.setProperty('--ddrift', drift + 'px');
+                spark.style.setProperty('--ddur', dur.toFixed(2) + 's');
+                spark.style.setProperty('--ddelay', delay.toFixed(2) + 's');
+                spark.style.setProperty('--dsize', size + 'px');
+                spark.style.setProperty('--dop', op);
+                frag.appendChild(spark);
+            }
+            for (i = 0; i < blooms.length; i++) {
+                bloom = document.createElement('i');
+                bloom.className = 'diwali-bloom';
+                bloom.style.setProperty('--bx', blooms[i].bx);
+                bloom.style.setProperty('--by', blooms[i].by);
+                bloom.style.setProperty('--bsize', blooms[i].bsize);
+                bloom.style.setProperty('--bc1', blooms[i].bc1);
+                bloom.style.setProperty('--bc2', blooms[i].bc2);
+                bloom.style.setProperty('--bdur', blooms[i].bdur);
+                bloom.style.setProperty('--bdelay', blooms[i].bdelay);
+                frag.appendChild(bloom);
+            }
+            layer.appendChild(frag);
+        }
+
         function applyThemePack() {
             var packId = activeThemePackId();
-            var pack = THEME_PACKS[packId] || THEME_PACKS.christmas;
+            var pack = THEME_PACKS[packId] || THEME_PACKS.diwali;
             var keys = Object.keys(THEME_PACKS);
-            var i, cls, labelEl, btnEl, opts;
+            var i, cls, labelEl, btnEl, opts, metaTheme;
             for (i = 0; i < keys.length; i++) {
                 cls = THEME_PACKS[keys[i]].bodyClass;
                 if (cls) {
@@ -5809,11 +6046,17 @@
                 document.body.classList.add(pack.bodyClass);
             }
             document.body.style.backgroundColor = pack.sky;
+            metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) metaTheme.setAttribute('content', pack.sky);
             if (packId === 'christmas') ensureSnowflakes();
+            if (packId === 'diwali') ensureDiwaliLights();
             labelEl = document.getElementById('packBtnLabel');
             if (labelEl) labelEl.textContent = pack.shortLabel;
             btnEl = document.getElementById('packBtn');
-            if (btnEl) btnEl.classList.toggle('is-xmas', packId === 'christmas');
+            if (btnEl) {
+                btnEl.classList.toggle('is-xmas', packId === 'christmas');
+                btnEl.classList.toggle('is-diwali', packId === 'diwali');
+            }
             opts = document.querySelectorAll('#packMenu .ctrl-opt');
             for (i = 0; i < opts.length; i++) {
                 var active = opts[i].getAttribute('data-pack') === packId;
@@ -5823,11 +6066,19 @@
         }
 
         function setThemePack(packId) {
-            if (!THEME_PACKS[packId]) packId = 'christmas';
+            if (!THEME_PACKS[packId]) packId = 'diwali';
+            var pack = THEME_PACKS[packId];
             try {
-                if (window.localStorage) localStorage.setItem('marioMathThemePack', packId);
+                if (window.localStorage) {
+                    localStorage.setItem('marioMathThemePack', packId);
+                    if (pack && pack.music) localStorage.setItem('marioMathMusicTrack', pack.music);
+                }
             } catch (e) {}
             applyThemePack();
+            if (pack && pack.music && (packId === 'diwali' || musicMode !== 'off')) {
+                selectMusicTrack(pack.music);
+                return;
+            }
             closeTopMenus();
         }
 
@@ -5896,6 +6147,17 @@
         };
         var XMAS_BASS = [48, 48, 48, 48, 41, 48, 50, 43, 48, 48, 48, 48, 41, 48, 43, 48];
 
+        var DIWALI_NOTES = {
+            0:[72,2], 2:[74,2], 4:[76,3], 7:[79,1], 8:[81,2], 10:[79,2], 12:[76,2], 14:[74,2],
+            16:[76,3], 19:[79,1], 20:[84,4], 24:[83,2], 26:[81,2], 28:[79,4],
+            32:[81,2], 34:[84,2], 36:[83,2], 38:[81,2], 40:[79,3], 43:[76,1], 44:[74,2], 46:[76,2],
+            48:[79,2], 50:[76,2], 52:[74,2], 54:[72,2], 56:[74,3], 59:[76,1], 60:[72,4],
+            64:[79,2], 66:[81,2], 68:[84,3], 71:[86,1], 72:[84,2], 74:[83,2], 76:[81,2], 78:[79,2],
+            80:[81,3], 83:[79,1], 84:[76,2], 86:[79,2], 88:[81,4], 92:[79,4],
+            96:[84,2], 98:[83,2], 100:[81,2], 102:[79,2], 104:[78,2], 106:[79,2], 108:[81,2], 110:[76,2],
+            112:[74,2], 114:[76,2], 116:[79,2], 118:[74,2], 120:[72,6]
+        };
+
         function midiFreq(m) {
             return 440 * Math.pow(2, (m - 69) / 12);
         }
@@ -5963,6 +6225,53 @@
             osc.stop(t + 0.1);
         }
 
+        function chipSitarVoice(ctx, dest, midi, t, dur) {
+            var f = midiFreq(midi);
+            var osc = ctx.createOscillator();
+            var flt = ctx.createBiquadFilter();
+            var g = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(f * 1.028, t);
+            osc.frequency.exponentialRampToValueAtTime(f, t + 0.026);
+            flt.type = 'bandpass';
+            flt.frequency.setValueAtTime(2150, t);
+            flt.frequency.exponentialRampToValueAtTime(1150, t + Math.max(0.06, dur));
+            flt.Q.setValueAtTime(2.1, t);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.linearRampToValueAtTime(0.095, t + 0.006);
+            g.gain.exponentialRampToValueAtTime(0.0008, t + Math.max(0.05, dur));
+            osc.connect(flt);
+            flt.connect(g);
+            g.connect(dest);
+            osc.start(t);
+            osc.stop(t + Math.max(0.06, dur + 0.015));
+            chipVoice(ctx, dest, f * 2, 'triangle', t, dur * 0.65, 0.028, 3200);
+        }
+
+        function chipTablaBaya(ctx, dest, t, bend) {
+            var osc = ctx.createOscillator();
+            var g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(92, t);
+            if (bend) {
+                osc.frequency.linearRampToValueAtTime(128, t + 0.055);
+                osc.frequency.exponentialRampToValueAtTime(78, t + 0.15);
+            } else {
+                osc.frequency.exponentialRampToValueAtTime(68, t + 0.12);
+            }
+            g.gain.setValueAtTime(0.13, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+            osc.connect(g);
+            g.connect(dest);
+            osc.start(t);
+            osc.stop(t + 0.17);
+        }
+
+        function chipTablaDaya(ctx, dest, t, midi, peak) {
+            chipVoice(ctx, dest, midiFreq(midi), 'triangle', t, 0.095, peak || 0.055, 2900);
+            chipPerc(ctx, dest, t, 0.024, 0.018, 5200);
+        }
+
         function scheduleSonicStep(ctx, dest, step, t, stepSec) {
             var s = step % 64;
             var bar = Math.floor(s / 16);
@@ -6005,6 +6314,43 @@
             }
         }
 
+        function scheduleDiwaliStep(ctx, dest, step, t, stepSec) {
+            var s = step % 128;
+            var k = s % 16;
+            var note = DIWALI_NOTES[s];
+            if (note) {
+                chipSitarVoice(ctx, dest, note[0], t, note[1] * stepSec * 0.94);
+            }
+            if (k === 0) {
+                chipVoice(ctx, dest, midiFreq(48), 'triangle', t, stepSec * 7.5, 0.048, 820);
+                chipVoice(ctx, dest, midiFreq(55), 'sine', t, stepSec * 7.5, 0.034);
+            } else if (k === 8) {
+                chipVoice(ctx, dest, midiFreq(55), 'triangle', t, stepSec * 7.2, 0.042, 820);
+                chipVoice(ctx, dest, midiFreq(60), 'sine', t, stepSec * 7.2, 0.03);
+            }
+            if (k === 0) {
+                chipTablaBaya(ctx, dest, t, true);
+                chipTablaDaya(ctx, dest, t, 72, 0.058);
+            } else if (k === 3) {
+                chipTablaBaya(ctx, dest, t, false);
+            } else if (k === 4 || k === 14) {
+                chipTablaDaya(ctx, dest, t, 72, 0.048);
+            } else if (k === 6 || k === 10) {
+                chipTablaDaya(ctx, dest, t, 79, 0.038);
+            } else if (k === 8) {
+                chipTablaDaya(ctx, dest, t, 72, 0.042);
+            } else if (k === 12) {
+                chipTablaBaya(ctx, dest, t, true);
+                chipTablaDaya(ctx, dest, t, 76, 0.052);
+            }
+            if (k === 0 || k === 8) {
+                chipPerc(ctx, dest, t, 0.05, 0.026, 7600);
+                chipVoice(ctx, dest, midiFreq(96), 'sine', t, 0.055, 0.016);
+            } else if (k === 4 || k === 12) {
+                chipPerc(ctx, dest, t, 0.03, 0.015, 8200);
+            }
+        }
+
         function stopChipMusic() {
             if (chipTimer) {
                 clearInterval(chipTimer);
@@ -6030,12 +6376,13 @@
             chipMaster.connect(audioCtx.destination);
             chipStep = 0;
             chipNextTime = audioCtx.currentTime + 0.04;
-            var stepSec = mode === 'xmas' ? 0.098 : 0.095;
+            var stepSec = mode === 'diwali' ? 0.106 : (mode === 'xmas' ? 0.098 : 0.095);
             var dest = chipMaster;
             function pump() {
                 if (!chipMaster || chipMaster !== dest) return;
                 while (chipNextTime < audioCtx.currentTime + 0.24) {
-                    if (mode === 'xmas') scheduleXmasStep(audioCtx, dest, chipStep, chipNextTime, stepSec);
+                    if (mode === 'diwali') scheduleDiwaliStep(audioCtx, dest, chipStep, chipNextTime, stepSec);
+                    else if (mode === 'xmas') scheduleXmasStep(audioCtx, dest, chipStep, chipNextTime, stepSec);
                     else scheduleSonicStep(audioCtx, dest, chipStep, chipNextTime, stepSec);
                     chipStep++;
                     chipNextTime += stepSec;
@@ -6049,10 +6396,11 @@
             try {
                 if (window.localStorage) {
                     var t = String(localStorage.getItem('marioMathMusicTrack') || '').trim().toLowerCase();
-                    if (t === 'mario' || t === 'sonic' || t === 'xmas') return t;
+                    if (t === 'mario' || t === 'sonic' || t === 'xmas' || t === 'diwali') return t;
                 }
             } catch (e) {}
-            return 'mario';
+            var pack = THEME_PACKS[activeThemePackId()];
+            return (pack && pack.music) ? pack.music : 'diwali';
         }
 
         function updateMusicUI() {
@@ -6061,6 +6409,7 @@
             var opts = document.querySelectorAll('#musicMenu .ctrl-opt');
             var labels = {
                 off: '\uD83C\uDFB5 OFF',
+                diwali: '\uD83D\uDD0A DIWALI',
                 mario: '\uD83D\uDD0A MARIO',
                 sonic: '\uD83D\uDD0A SONIC',
                 xmas: '\uD83D\uDD0A XMAS'
@@ -6077,7 +6426,7 @@
 
         function selectMusicTrack(trackId) {
             var bgm = document.getElementById('bgm');
-            if (trackId !== 'off' && trackId !== 'mario' && trackId !== 'sonic' && trackId !== 'xmas') trackId = 'off';
+            if (trackId !== 'off' && trackId !== 'mario' && trackId !== 'sonic' && trackId !== 'xmas' && trackId !== 'diwali') trackId = 'off';
             musicMode = trackId;
             musicPausedForCard = false;
             stopChipMusic();
@@ -6094,7 +6443,7 @@
                     try { bgm.currentTime = 0; } catch (e) {}
                     bgm.play().catch(function () {});
                 }
-            } else if (trackId === 'sonic' || trackId === 'xmas') {
+            } else if (trackId === 'sonic' || trackId === 'xmas' || trackId === 'diwali') {
                 startChipMusic(trackId);
             }
             updateMusicUI();
@@ -6133,7 +6482,7 @@
             musicPausedForCard = false;
             if (musicMode === 'mario') {
                 if (bgm) bgm.play().catch(function () {});
-            } else if (musicMode === 'sonic' || musicMode === 'xmas') {
+            } else if (musicMode === 'sonic' || musicMode === 'xmas' || musicMode === 'diwali') {
                 startChipMusic(musicMode);
             }
         }
@@ -6189,10 +6538,14 @@
             const streakEl = document.getElementById('streakDisplay');
             if (streakEl) streakEl.classList.toggle('on-fire', gameState.streak >= 5);
         }
+        function isStaleNotice(txt) {
+            var s = String(txt || '');
+            return s.indexOf('Old copy') === 0 || s.indexOf('Newer game is ready') !== -1;
+        }
         function accountLabel() {
             var guest = !currentUserEmail || currentUserEmail === 'guest';
             var who = guest ? 'Guest' : currentUserEmail;
-            if (cloudStatusText && cloudStatusText.indexOf('Old copy') === 0) return 'Newer game is ready. Refresh to update.';
+            if (isStaleNotice(cloudStatusText)) return 'Newer game is ready (' + (latestKnownBuild || 'update') + '). Tap here to update.';
             if (cloudStatusText && cloudStatusText.indexOf('Offline') === 0) return cloudStatusText;
             if (!guest && cloudStatusText && cloudStatusText.indexOf('Cloud save failed') === 0) return 'Cloud save failed. Progress is still on this phone.';
             if (!guest && cloudStatusText === 'Saved to the cloud.') return who + ' · saved · ' + APP_BUILD;
@@ -6214,7 +6567,7 @@
         function accountNoteSticks() {
             var guest = !currentUserEmail || currentUserEmail === 'guest';
             if (guest) return true;
-            return cloudStatusText.indexOf('Cloud save failed') === 0 || cloudStatusText.indexOf('Old copy') === 0 || cloudStatusText.indexOf('Offline') === 0;
+            return cloudStatusText.indexOf('Cloud save failed') === 0 || isStaleNotice(cloudStatusText) || cloudStatusText.indexOf('Offline') === 0;
         }
 
         function cancelStatusFade() {
@@ -6261,7 +6614,8 @@
             var text = accountLabel();
             var guest = !currentUserEmail || currentUserEmail === 'guest';
             var sticks = accountNoteSticks();
-            var failed = !guest && (cloudStatusText.indexOf('Cloud save failed') === 0 || cloudStatusText.indexOf('Old copy') === 0 || cloudStatusText.indexOf('Offline') === 0);
+            var stale = isStaleNotice(cloudStatusText);
+            var failed = stale || (!guest && (cloudStatusText.indexOf('Cloud save failed') === 0 || cloudStatusText.indexOf('Offline') === 0));
             if (sticks) cancelStatusFade();
             if (!sticks && statusDismissed) {
                 if (note) {
@@ -6274,7 +6628,8 @@
             if (note && !note.classList.contains('is-fading')) {
                 note.hidden = false;
                 note.textContent = text;
-                note.classList.toggle('is-guest', guest);
+                note.style.cursor = stale ? 'pointer' : '';
+                note.classList.toggle('is-guest', guest && !stale);
                 note.classList.toggle('is-error', failed);
             }
             if (collectionNote) collectionNote.textContent = text;
@@ -8145,9 +8500,9 @@
             if (playingEl) playingEl.textContent = 'Playing as ' + playAsName(play);
             if (hintEl) {
                 if (onGold && owned.length < total) hintEl.textContent = 'Find every friend first. Then one shiny gold friend appears each day!';
-                else if (onPower && pageOwned === 0) hintEl.textContent = 'Power-up heroes unlock in the daily surprise, one each day!';
+                else if (onPower && pageOwned < pageList.length) hintEl.textContent = 'Fire Mario, Ice Luigi, Tanooki & Bowser Jr. unlock in the daily surprise!';
                 else if (onXmas && pageOwned === 0) hintEl.textContent = 'Festive friends unlock in the daily surprise, one each day!';
-                else if (onSpeed && pageOwned === 0) hintEl.textContent = 'Speedy friends show up in the daily surprise, one each day.';
+                else if (onSpeed && pageOwned < pageList.length) hintEl.textContent = 'Dr. Eggman, Super Sonic, Silver & Blaze unlock in the daily surprise!';
                 else hintEl.textContent = collectionHintText(owned.length, goldOwned.length, claimed, ready);
             }
             if (!grid) return;
@@ -9066,7 +9421,9 @@
         }
 
         document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState !== 'visible' || !appStarted) return;
+            if (document.visibilityState !== 'visible') return;
+            try { checkAppVersion(); } catch (e) {}
+            if (!appStarted) return;
             try {
                 if (!dateClaimed(gameState)) {
                     dailyClaimLock = false;
@@ -9078,14 +9435,48 @@
             }
         });
 
+        window.addEventListener('pageshow', function (ev) {
+            if (ev && ev.persisted) {
+                try { checkAppVersion(); } catch (e) {}
+            }
+        });
+
         window.addEventListener('online', function () {
+            try { checkAppVersion(); } catch (e) {}
             if (!currentUserEmail || currentUserEmail === 'guest') return;
             try { loadCloudData(); } catch (e) {}
         });
 
         function showBuildStamp() {
             var stamp = document.getElementById('buildStamp');
-            if (stamp && stamp.textContent.indexOf('Old copy') !== 0) stamp.textContent = 'Build ' + APP_BUILD;
+            if (stamp && !isStaleNotice(stamp.textContent)) stamp.textContent = 'Build ' + APP_BUILD;
+        }
+
+        function forceAppUpdate(targetBuild) {
+            var b = String(targetBuild || latestKnownBuild || Date.now());
+            var nextUrl;
+            try {
+                var u = new URL(window.location.href);
+                u.searchParams.set('v', b);
+                nextUrl = u.toString();
+            } catch (e) {
+                nextUrl = window.location.pathname + '?v=' + encodeURIComponent(b);
+            }
+            try {
+                fetch(window.location.pathname, { cache: 'reload' }).then(function () {
+                    window.location.replace(nextUrl);
+                }, function () {
+                    window.location.replace(nextUrl);
+                });
+            } catch (e) {
+                window.location.replace(nextUrl);
+            }
+        }
+
+        function maybeForceUpdate() {
+            if (latestKnownBuild && buildIsOlder(APP_BUILD, latestKnownBuild)) {
+                forceAppUpdate(latestKnownBuild);
+            }
         }
 
         function checkAppVersion() {
@@ -9095,9 +9486,10 @@
                 if (!res.ok) return null;
                 return res.json();
             }).then(function (data) {
-                var status, stale, stamp;
+                var status, stale, stamp, guardKey, alreadyTried;
                 if (!data || !data.build || !buildIsOlder(APP_BUILD, data.build)) return;
-                stale = 'Newer game is ready (' + data.build + '). Refresh to update.';
+                latestKnownBuild = String(data.build);
+                stale = 'Newer game is ready (' + data.build + '). Tap here to update.';
                 if (cloudStatusText.indexOf('Cloud save failed') === 0) cloudStatusText = cloudStatusText + '\n' + stale;
                 else cloudStatusText = stale;
                 var overlay = document.getElementById('login-overlay');
@@ -9110,7 +9502,21 @@
                     status.style.color = '#8a1c12';
                 }
                 stamp = document.getElementById('buildStamp');
-                if (stamp) stamp.textContent = stale;
+                if (stamp) {
+                    stamp.textContent = stale;
+                    stamp.style.cursor = 'pointer';
+                }
+                guardKey = 'marioMathReloaded_' + data.build;
+                alreadyTried = false;
+                try {
+                    if (window.sessionStorage) {
+                        alreadyTried = sessionStorage.getItem(guardKey) === '1';
+                        if (!alreadyTried) sessionStorage.setItem(guardKey, '1');
+                    }
+                } catch (e) {}
+                if (!alreadyTried) {
+                    forceAppUpdate(data.build);
+                }
             }).catch(function () {});
         }
 

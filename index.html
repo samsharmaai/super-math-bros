@@ -2292,6 +2292,19 @@
             font-weight: 800;
             white-space: nowrap;
         }
+        .test-tier {
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 10.5px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .test-tier.t-2 { background: #eff6ff; color: #1d4ed8; }
+        .test-tier.t-3 { background: #f3e8ff; color: #6d28d9; }
+        .test-tier.is-retry { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
+        .test-tier[hidden] { display: none !important; }
         .test-read-btn {
             appearance: none;
             -webkit-appearance: none;
@@ -2652,7 +2665,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-21d</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-22a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -2788,6 +2801,7 @@
                 <div class="test-head-left">
                     <span id="testQNum" class="test-q-num">PART A · Q1 OF 10</span>
                     <span id="testStrand" class="test-strand">Number &amp; Algebra</span>
+                    <span id="testTier" class="test-tier" hidden>Step 1</span>
                 </div>
                 <button type="button" id="testReadBtn" class="test-read-btn" onclick="readTestQuestion()" aria-label="Read question aloud">🔊 Read</button>
             </div>
@@ -3584,7 +3598,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-21d';
+        var APP_BUILD = '2026-11-22a';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -3592,6 +3606,10 @@
         var pinnedQuestions = { test: null, classic: null };
         var pinnedAttempts = { test: 0, classic: 0 };
         var recentTestIds = [];
+        var lastTestCat = '';
+        var lastRetryStep = -99;
+        var testMastery = null;
+        var testMasteryHydrated = false;
         var testRoundStats = { num: [0, 0], meas: [0, 0], data: [0, 0] };
         var logActiveDays = {};
         var logRecoveryEmail = '';
@@ -3832,6 +3850,7 @@
             return fetchPlayerLogDocs(email).then(function (rows) {
                 var i, dt, day, before, today;
                 if (!rows || !rows.length || String(accountDocId() || '').trim().toLowerCase() !== lower) return;
+                try { hydrateTestMasteryFromLogs(rows); } catch (e) {}
                 for (i = 0; i < rows.length; i++) {
                     dt = asLogDate(rows[i] && rows[i].timestamp);
                     if (!dt) continue;
@@ -5915,102 +5934,154 @@
         };
 
         var TEST_BANK = [
-            { id:'t01', s:'num', cat:'Subtraction', q:'A school library has 403 books. During the week, 168 books are borrowed. How many books are left?', opts:['365','245','235','335'], ans:'235', trap:'365', trapMsg:'Careful — rename across the 0 instead of subtracting 8 − 3!', cue:'Write H | T | U:  <code>403 − 168</code>  (rename 40 tens → 39 tens + 13)', hint:'Take 168 from 403 by renaming across the zero.' },
-            { id:'t02', s:'num', cat:'Subtraction', q:'A baker makes 500 buns and sells 247 by lunchtime. How many buns are left?', opts:['347','253','263','353'], ans:'253', trap:'347', trapMsg:'Rename 500 as 4 hundreds, 9 tens and 10 units on your rough sheet!', cue:'Write H | T | U:  <code>500 − 247</code>  (rename 50 tens → 49 tens + 10)', hint:'Count on from 247 to 300 (53), then add 200 more.' },
-            { id:'t03', s:'num', cat:'Subtraction', q:'What is 604 − 279?', opts:['475','335','325','425'], ans:'325', trap:'475', trapMsg:'Check your borrowing across the zero in the tens column!', cue:'Write H | T | U:  <code>604 − 279</code>', hint:'Add 21 to 279 to reach 300, then add 304.' },
-            { id:'t04', s:'num', cat:'Subtraction', q:'A farmer collected 702 eggs and packed 356 into cartons. How many eggs are still loose?', opts:['454','356','346','446'], ans:'346', trap:'454', trapMsg:'Write 702 − 356 vertically and rename carefully across 0.', cue:'Write H | T | U:  <code>702 − 356</code>', hint:'From 356 to 400 is 44; add 302 to get the total difference.' },
-            { id:'t05', s:'num', cat:'Subtraction', q:'805 people came to a match. 468 left early. How many stayed?', opts:['463','347','337','437'], ans:'337', trap:'463', trapMsg:'Watch the zero in 805 — rename before subtracting 8 from 15.', cue:'Write H | T | U:  <code>805 − 468</code>', hint:'468 + 32 = 500, and 500 + 305 = 805. Add 32 + 305.' },
-            { id:'t06', s:'num', cat:'Subtraction', q:'What is 310 − 146?', opts:['236','174','164','264'], ans:'164', trap:'236', trapMsg:'Rename 1 ten as 10 units first so you do 10 − 6.', cue:'Write H | T | U:  <code>310 − 146</code>', hint:'310 − 100 = 210, then 210 − 46.' },
-            { id:'t07', s:'num', cat:'Addition', q:'One bus carries 386 fans and a train carries 259 fans. How many fans altogether?', opts:['535','635','645','545'], ans:'645', trap:'535', trapMsg:'Remember to carry 1 ten and 1 hundred on your rough sheet!', cue:'Write H | T | U:  <code>386 + 259</code>  (watch the carries!)', hint:'Add 386 + 260, then take away 1.' },
-            { id:'t08', s:'num', cat:'Addition', q:'What is 478 + 365?', opts:['733','843','833','743'], ans:'843', trap:'733', trapMsg:'Write the columns and mark both carried 1s clearly.', cue:'Write H | T | U:  <code>478 + 365</code>', hint:'8 + 5 = 13 (carry 1), 7 + 6 + 1 = 14 (carry 1).' },
-            { id:'t09', s:'num', cat:'Addition', q:'A school raised €294 on Monday and €438 on Tuesday. How much did they raise in total?', opts:['€622','€722','€732','€632'], ans:'€732', trap:'€622', trapMsg:'Check your carried ten and hundred!', cue:'Write H | T | U:  <code>294 + 438</code>', hint:'294 is 6 less than 300. Add 300 + 438, then take away 6.' },
-            { id:'t10', s:'num', cat:'Addition', q:'What is 567 + 286?', opts:['743','853','843','753'], ans:'853', trap:'743', trapMsg:'Write 567 + 286 in columns so you do not drop a carry.', cue:'Write H | T | U:  <code>567 + 286</code>', hint:'7 + 6 = 13; 60 + 80 + 10 = 150; 500 + 200 + 100 = 800.' },
-            { id:'t11', s:'num', cat:'Place Value', q:'What is the value of the digit 4 in the number 748?', opts:['4','40','400','48'], ans:'40', hint:'Check which column the 4 sits in: H | T | U.' },
-            { id:'t12', s:'num', cat:'Place Value', q:'What is the value of the digit 6 in the number 609?', opts:['6','60','600','609'], ans:'600', hint:'The 6 is in the Hundreds place.' },
-            { id:'t13', s:'num', cat:'Place Value', q:'Round 468 to the nearest 10.', opts:['460','470','500','400'], ans:'470', hint:'Look at the units digit 8 — 5 or more rounds up!' },
-            { id:'t14', s:'num', cat:'Place Value', q:'Round 649 to the nearest 100.', opts:['650','600','700','640'], ans:'600', trap:'650', trapMsg:'Read carefully — it asks for the nearest HUNDRED, not nearest ten!', hint:'49 is below halfway (50), so round down to 600.' },
-            { id:'t15', s:'num', cat:'Place Value', q:'Round 752 to the nearest 100.', opts:['750','700','800','760'], ans:'800', trap:'750', trapMsg:'Nearest HUNDRED means 700 or 800!', hint:'52 is above halfway (50), so round up to 800.' },
-            { id:'t16', s:'num', cat:'Place Value', q:'What number is 10 less than 504?', opts:['404','494','514','490'], ans:'494', trap:'404', trapMsg:'404 is 100 less — we only want 10 less!', hint:'Count back 10 from 504: 504 → 500 (4 back), then 6 more back.' },
-            { id:'t17', s:'num', cat:'Place Value', q:'What number is 100 more than 789?', opts:['799','889','899','689'], ans:'889', hint:'Add 1 to the hundreds digit only.' },
-            { id:'t18', s:'num', cat:'Place Value', q:'Which of these numbers is the LARGEST?', opts:['689','698','869','896'], ans:'896', hint:'Compare the hundreds digit first, then the tens digit.' },
-            { id:'t19', s:'num', cat:'Multiplication', q:'There are 7 boxes with 6 crayons in each box. How many crayons altogether?', opts:['13','36','42','48'], ans:'42', hint:'Count 7 sixes (or 6 × 7).' },
-            { id:'t20', s:'num', cat:'Multiplication', q:'A gardener plants 9 rows of 8 tulips. How many tulips are planted?', opts:['17','64','72','81'], ans:'72', hint:'10 × 8 = 80, then take away one group of 8.' },
-            { id:'t21', s:'num', cat:'Division', q:'26 apples are packed into bags of 4. How many FULL bags can be made?', opts:['5','6','7','22'], ans:'6', trap:'7', trapMsg:'7 bags would need 28 apples — we only have 26!', cue:'Rough sheet:  <code>4 × 6 = ___</code>  (how many left over?)', hint:'Find the biggest multiple of 4 that is 26 or less.' },
-            { id:'t22', s:'num', cat:'Division', q:'35 stickers are shared equally among 4 friends. How many stickers are LEFT OVER?', opts:['8','3','4','7'], ans:'3', trap:'8', trapMsg:'8 is how many each friend gets — read the question: how many are LEFT OVER?', cue:'Rough sheet:  <code>35 ÷ 4 = ___ R ___</code>', hint:'4 × 8 = 32. Subtract 32 from 35 to find the remainder.' },
-            { id:'t23', s:'num', cat:'Division', q:'48 chairs are set out in 6 equal rows. How many chairs are in each row?', opts:['6','7','8','9'], ans:'8', hint:'Think: 6 × ? = 48.' },
-            { id:'t24', s:'num', cat:'Multiplication', q:'Mia has 4 packs of 9 cards and 7 loose cards. How many cards does she have in total?', opts:['36','43','45','20'], ans:'43', trap:'36', trapMsg:'36 is Step 1 (4 × 9). Do not forget to add the 7 loose cards!', cue:'Step 1:  <code>4 × 9 = ___</code>   →   Step 2:  <code>___ + 7</code>', hint:'Multiply 4 × 9 first, then add 7.' },
-            { id:'t25', s:'num', cat:'Multiplication', q:'5 teams of 6 players arrive at a pitch. 4 players go home early. How many players stay?', opts:['30','26','34','24'], ans:'26', trap:'30', trapMsg:'30 is Step 1 (5 × 6). Now subtract the 4 players who went home!', cue:'Step 1:  <code>5 × 6 = ___</code>   →   Step 2:  <code>___ − 4</code>', hint:'Find 5 × 6 first, then take away 4.' },
-            { id:'t26', s:'num', cat:'Fractions', q:'What is 3/4 of 24?', opts:['6','12','18','20'], ans:'18', trap:'6', trapMsg:'6 is 1/4 of 24! Multiply by 3 to find 3/4.', cue:'Step 1:  <code>24 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Divide by the bottom (4), then multiply by the top (3).' },
-            { id:'t27', s:'num', cat:'Fractions', q:'What is 3/4 of 32?', opts:['8','16','24','28'], ans:'24', trap:'8', trapMsg:'8 is 1/4 of 32! Now find 3 quarters (3 × 8).', cue:'Step 1:  <code>32 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Find one quarter (32 ÷ 4), then triple it.' },
-            { id:'t28', s:'num', cat:'Fractions', q:'What is 2/5 of 25?', opts:['5','10','15','20'], ans:'10', trap:'5', trapMsg:'5 is 1/5 of 25 — multiply by 2 to get 2/5!', cue:'Step 1:  <code>25 ÷ 5 = ___</code>   →   Step 2:  <code>___ × 2</code>', hint:'Divide 25 by 5, then multiply by 2.' },
-            { id:'t29', s:'num', cat:'Fractions', q:'A pizza is cut into 8 equal slices. Sam eats 3 slices. What fraction of the pizza is LEFT?', opts:['3/8','4/8','5/8','6/8'], ans:'5/8', trap:'3/8', trapMsg:'3/8 is the part eaten — the question asks what fraction is LEFT!', cue:'Rough sheet:  <code>8/8 − 3/8 = ___</code>', hint:'A whole pizza is 8/8. Take away 3/8.' },
-            { id:'t30', s:'num', cat:'Fractions', q:'Which of these fractions is the BIGGEST?', opts:['1/2','1/4','1/8','1/10'], ans:'1/2', trap:'1/10', trapMsg:'Bigger bottom number means MORE cuts, so smaller pieces!', hint:'Half of a cake is larger than a quarter or an eighth.' },
-            { id:'t31', s:'num', cat:'Fractions', q:'Which fraction is equal to 1/2?', opts:['1/4','2/4','3/4','2/8'], ans:'2/4', hint:'Half of 4 quarters is 2 quarters.' },
-            { id:'t32', s:'num', cat:'Decimals', q:'What is 0.4 + 0.5?', opts:['0.8','0.9','9.0','0.45'], ans:'0.9', hint:'4 tenths + 5 tenths = 9 tenths.' },
-            { id:'t33', s:'num', cat:'Decimals', q:'What is 1.0 − 0.3?', opts:['0.3','0.6','0.7','1.3'], ans:'0.7', hint:'10 tenths minus 3 tenths = 7 tenths.' },
-            { id:'t34', s:'num', cat:'Patterns', q:'Find the missing number:  47 + ☐ = 112', opts:['55','65','75','159'], ans:'65', trap:'159', trapMsg:'159 is 47 + 112! Subtract 47 from 112 to find ☐.', cue:'Rough sheet:  <code>112 − 47 = ___</code>', hint:'Jump from 47 to 50 (+3), then 50 to 112 (+62).' },
-            { id:'t35', s:'num', cat:'Patterns', q:'Find the missing number:  ☐ − 38 = 64', opts:['26','92','102','112'], ans:'102', trap:'26', trapMsg:'Check: 26 − 38 cannot be 64! Add 64 + 38 instead.', cue:'Rough sheet:  <code>64 + 38 = ___</code>', hint:'Use the inverse: add 64 and 38.' },
-            { id:'t36', s:'num', cat:'Patterns', q:'What number goes in the box?  6 × 4 = 3 × ☐', opts:['6','8','12','24'], ans:'8', trap:'24', trapMsg:'24 is 6 × 4, so now solve 3 × ☐ = 24!', cue:'Step 1:  <code>6 × 4 = ___</code>   →   Step 2:  <code>___ ÷ 3</code>', hint:'Both sides must equal 24.' },
-            { id:'t37', s:'num', cat:'Patterns', q:'What comes next in this pattern?  14, 21, 28, 35, ☐', opts:['40','41','42','49'], ans:'42', hint:'Each jump adds 7.' },
-            { id:'t38', s:'num', cat:'Patterns', q:'What comes next in this pattern?  95, 86, 77, 68, ☐', opts:['57','58','59','60'], ans:'59', cue:'Rough sheet: find the gap  <code>95 − 86 = ___</code>', hint:'Subtract 9 each time.' },
-            { id:'t39', s:'num', cat:'Patterns', q:'What comes next in this pattern?  3, 6, 12, 24, ☐', opts:['30','36','42','48'], ans:'48', hint:'Each number is doubled (× 2).' },
+            { id:'t01', t:3, s:'num', cat:'Subtraction', q:'A school library has 403 books. During the week, 168 books are borrowed. How many books are left?', opts:['365','245','235','335'], ans:'235', trap:'365', trapMsg:'Careful — rename across the 0 instead of subtracting 8 − 3!', cue:'Write H | T | U:  <code>403 − 168</code>  (rename 40 tens → 39 tens + 13)', hint:'Take 168 from 403 by renaming across the zero.' },
+            { id:'t02', t:3, s:'num', cat:'Subtraction', q:'A baker makes 500 buns and sells 247 by lunchtime. How many buns are left?', opts:['347','253','263','353'], ans:'253', trap:'347', trapMsg:'Rename 500 as 4 hundreds, 9 tens and 10 units on your rough sheet!', cue:'Write H | T | U:  <code>500 − 247</code>  (rename 50 tens → 49 tens + 10)', hint:'Count on from 247 to 300 (53), then add 200 more.' },
+            { id:'t03', t:3, s:'num', cat:'Subtraction', q:'What is 604 − 279?', opts:['475','335','325','425'], ans:'325', trap:'475', trapMsg:'Check your borrowing across the zero in the tens column!', cue:'Write H | T | U:  <code>604 − 279</code>', hint:'Add 21 to 279 to reach 300, then add 304.' },
+            { id:'t04', t:3, s:'num', cat:'Subtraction', q:'A farmer collected 702 eggs and packed 356 into cartons. How many eggs are still loose?', opts:['454','356','346','446'], ans:'346', trap:'454', trapMsg:'Write 702 − 356 vertically and rename carefully across 0.', cue:'Write H | T | U:  <code>702 − 356</code>', hint:'From 356 to 400 is 44; add 302 to get the total difference.' },
+            { id:'t05', t:3, s:'num', cat:'Subtraction', q:'805 people came to a match. 468 left early. How many stayed?', opts:['463','347','337','437'], ans:'337', trap:'463', trapMsg:'Watch the zero in 805 — rename before subtracting 8 from 15.', cue:'Write H | T | U:  <code>805 − 468</code>', hint:'468 + 32 = 500, and 500 + 305 = 805. Add 32 + 305.' },
+            { id:'t06', t:2, s:'num', cat:'Subtraction', q:'What is 310 − 146?', opts:['236','174','164','264'], ans:'164', trap:'236', trapMsg:'Rename 1 ten as 10 units first so you do 10 − 6.', cue:'Write H | T | U:  <code>310 − 146</code>', hint:'310 − 100 = 210, then 210 − 46.' },
+            { id:'t07', t:2, s:'num', cat:'Addition', q:'One bus carries 386 fans and a train carries 259 fans. How many fans altogether?', opts:['535','635','645','545'], ans:'645', trap:'535', trapMsg:'Remember to carry 1 ten and 1 hundred on your rough sheet!', cue:'Write H | T | U:  <code>386 + 259</code>  (watch the carries!)', hint:'Add 386 + 260, then take away 1.' },
+            { id:'t08', t:3, s:'num', cat:'Addition', q:'What is 478 + 365?', opts:['733','843','833','743'], ans:'843', trap:'733', trapMsg:'Write the columns and mark both carried 1s clearly.', cue:'Write H | T | U:  <code>478 + 365</code>', hint:'8 + 5 = 13 (carry 1), 7 + 6 + 1 = 14 (carry 1).' },
+            { id:'t09', t:3, s:'num', cat:'Addition', q:'A school raised €294 on Monday and €438 on Tuesday. How much did they raise in total?', opts:['€622','€722','€732','€632'], ans:'€732', trap:'€622', trapMsg:'Check your carried ten and hundred!', cue:'Write H | T | U:  <code>294 + 438</code>', hint:'294 is 6 less than 300. Add 300 + 438, then take away 6.' },
+            { id:'t10', t:3, s:'num', cat:'Addition', q:'What is 567 + 286?', opts:['743','853','843','753'], ans:'853', trap:'743', trapMsg:'Write 567 + 286 in columns so you do not drop a carry.', cue:'Write H | T | U:  <code>567 + 286</code>', hint:'7 + 6 = 13; 60 + 80 + 10 = 150; 500 + 200 + 100 = 800.' },
+            { id:'t11', t:1, s:'num', cat:'Place Value', q:'What is the value of the digit 4 in the number 748?', opts:['4','40','400','48'], ans:'40', hint:'Check which column the 4 sits in: H | T | U.' },
+            { id:'t12', t:1, s:'num', cat:'Place Value', q:'What is the value of the digit 6 in the number 609?', opts:['6','60','600','609'], ans:'600', hint:'The 6 is in the Hundreds place.' },
+            { id:'t13', t:2, s:'num', cat:'Place Value', q:'Round 468 to the nearest 10.', opts:['460','470','500','400'], ans:'470', hint:'Look at the units digit 8 — 5 or more rounds up!' },
+            { id:'t14', t:2, s:'num', cat:'Place Value', q:'Round 649 to the nearest 100.', opts:['650','600','700','640'], ans:'600', trap:'650', trapMsg:'Read carefully — it asks for the nearest HUNDRED, not nearest ten!', hint:'49 is below halfway (50), so round down to 600.' },
+            { id:'t15', t:2, s:'num', cat:'Place Value', q:'Round 752 to the nearest 100.', opts:['750','700','800','760'], ans:'800', trap:'750', trapMsg:'Nearest HUNDRED means 700 or 800!', hint:'52 is above halfway (50), so round up to 800.' },
+            { id:'t16', t:3, s:'num', cat:'Place Value', q:'What number is 10 less than 504?', opts:['404','494','514','490'], ans:'494', trap:'404', trapMsg:'404 is 100 less — we only want 10 less!', hint:'Count back 10 from 504: 504 → 500 (4 back), then 6 more back.' },
+            { id:'t17', t:2, s:'num', cat:'Place Value', q:'What number is 100 more than 789?', opts:['799','889','899','689'], ans:'889', hint:'Add 1 to the hundreds digit only.' },
+            { id:'t18', t:2, s:'num', cat:'Place Value', q:'Which of these numbers is the LARGEST?', opts:['689','698','869','896'], ans:'896', hint:'Compare the hundreds digit first, then the tens digit.' },
+            { id:'t19', t:2, s:'num', cat:'Multiplication', q:'There are 7 boxes with 6 crayons in each box. How many crayons altogether?', opts:['13','36','42','48'], ans:'42', hint:'Count 7 sixes (or 6 × 7).' },
+            { id:'t20', t:2, s:'num', cat:'Multiplication', q:'A gardener plants 9 rows of 8 tulips. How many tulips are planted?', opts:['17','64','72','81'], ans:'72', hint:'10 × 8 = 80, then take away one group of 8.' },
+            { id:'t21', t:3, s:'num', cat:'Division', q:'26 apples are packed into bags of 4. How many FULL bags can be made?', opts:['5','6','7','22'], ans:'6', trap:'7', trapMsg:'7 bags would need 28 apples — we only have 26!', cue:'Rough sheet:  <code>4 × 6 = ___</code>  (how many left over?)', hint:'Find the biggest multiple of 4 that is 26 or less.' },
+            { id:'t22', t:3, s:'num', cat:'Division', q:'35 stickers are shared equally among 4 friends. How many stickers are LEFT OVER?', opts:['8','3','4','7'], ans:'3', trap:'8', trapMsg:'8 is how many each friend gets — read the question: how many are LEFT OVER?', cue:'Rough sheet:  <code>35 ÷ 4 = ___ R ___</code>', hint:'4 × 8 = 32. Subtract 32 from 35 to find the remainder.' },
+            { id:'t23', t:2, s:'num', cat:'Division', q:'48 chairs are set out in 6 equal rows. How many chairs are in each row?', opts:['6','7','8','9'], ans:'8', hint:'Think: 6 × ? = 48.' },
+            { id:'t24', t:3, s:'num', cat:'Multiplication', q:'Mia has 4 packs of 9 cards and 7 loose cards. How many cards does she have in total?', opts:['36','43','45','20'], ans:'43', trap:'36', trapMsg:'36 is Step 1 (4 × 9). Do not forget to add the 7 loose cards!', cue:'Step 1:  <code>4 × 9 = ___</code>   →   Step 2:  <code>___ + 7</code>', hint:'Multiply 4 × 9 first, then add 7.' },
+            { id:'t25', t:3, s:'num', cat:'Multiplication', q:'5 teams of 6 players arrive at a pitch. 4 players go home early. How many players stay?', opts:['30','26','34','24'], ans:'26', trap:'30', trapMsg:'30 is Step 1 (5 × 6). Now subtract the 4 players who went home!', cue:'Step 1:  <code>5 × 6 = ___</code>   →   Step 2:  <code>___ − 4</code>', hint:'Find 5 × 6 first, then take away 4.' },
+            { id:'t26', t:2, s:'num', cat:'Fractions', q:'What is 3/4 of 24?', opts:['6','12','18','20'], ans:'18', trap:'6', trapMsg:'6 is 1/4 of 24! Multiply by 3 to find 3/4.', cue:'Step 1:  <code>24 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Divide by the bottom (4), then multiply by the top (3).' },
+            { id:'t27', t:3, s:'num', cat:'Fractions', q:'What is 3/4 of 32?', opts:['8','16','24','28'], ans:'24', trap:'8', trapMsg:'8 is 1/4 of 32! Now find 3 quarters (3 × 8).', cue:'Step 1:  <code>32 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Find one quarter (32 ÷ 4), then triple it.' },
+            { id:'t28', t:3, s:'num', cat:'Fractions', q:'What is 2/5 of 25?', opts:['5','10','15','20'], ans:'10', trap:'5', trapMsg:'5 is 1/5 of 25 — multiply by 2 to get 2/5!', cue:'Step 1:  <code>25 ÷ 5 = ___</code>   →   Step 2:  <code>___ × 2</code>', hint:'Divide 25 by 5, then multiply by 2.' },
+            { id:'t29', t:2, s:'num', cat:'Fractions', q:'A pizza is cut into 8 equal slices. Sam eats 3 slices. What fraction of the pizza is LEFT?', opts:['3/8','4/8','5/8','6/8'], ans:'5/8', trap:'3/8', trapMsg:'3/8 is the part eaten — the question asks what fraction is LEFT!', cue:'Rough sheet:  <code>8/8 − 3/8 = ___</code>', hint:'A whole pizza is 8/8. Take away 3/8.' },
+            { id:'t30', t:2, s:'num', cat:'Fractions', q:'Which of these fractions is the BIGGEST?', opts:['1/2','1/4','1/8','1/10'], ans:'1/2', trap:'1/10', trapMsg:'Bigger bottom number means MORE cuts, so smaller pieces!', hint:'Half of a cake is larger than a quarter or an eighth.' },
+            { id:'t31', t:1, s:'num', cat:'Fractions', q:'Which fraction is equal to 1/2?', opts:['1/4','2/4','3/4','2/8'], ans:'2/4', hint:'Half of 4 quarters is 2 quarters.' },
+            { id:'t32', t:1, s:'num', cat:'Decimals', q:'What is 0.4 + 0.5?', opts:['0.8','0.9','9.0','0.45'], ans:'0.9', hint:'4 tenths + 5 tenths = 9 tenths.' },
+            { id:'t33', t:2, s:'num', cat:'Decimals', q:'What is 1.0 − 0.3?', opts:['0.3','0.6','0.7','1.3'], ans:'0.7', hint:'10 tenths minus 3 tenths = 7 tenths.' },
+            { id:'t34', t:3, s:'num', cat:'Patterns', q:'Find the missing number:  47 + ☐ = 112', opts:['55','65','75','159'], ans:'65', trap:'159', trapMsg:'159 is 47 + 112! Subtract 47 from 112 to find ☐.', cue:'Rough sheet:  <code>112 − 47 = ___</code>', hint:'Jump from 47 to 50 (+3), then 50 to 112 (+62).' },
+            { id:'t35', t:3, s:'num', cat:'Patterns', q:'Find the missing number:  ☐ − 38 = 64', opts:['26','92','102','112'], ans:'102', trap:'26', trapMsg:'Check: 26 − 38 cannot be 64! Add 64 + 38 instead.', cue:'Rough sheet:  <code>64 + 38 = ___</code>', hint:'Use the inverse: add 64 and 38.' },
+            { id:'t36', t:3, s:'num', cat:'Patterns', q:'What number goes in the box?  6 × 4 = 3 × ☐', opts:['6','8','12','24'], ans:'8', trap:'24', trapMsg:'24 is 6 × 4, so now solve 3 × ☐ = 24!', cue:'Step 1:  <code>6 × 4 = ___</code>   →   Step 2:  <code>___ ÷ 3</code>', hint:'Both sides must equal 24.' },
+            { id:'t37', t:2, s:'num', cat:'Patterns', q:'What comes next in this pattern?  14, 21, 28, 35, ☐', opts:['40','41','42','49'], ans:'42', hint:'Each jump adds 7.' },
+            { id:'t38', t:2, s:'num', cat:'Patterns', q:'What comes next in this pattern?  95, 86, 77, 68, ☐', opts:['57','58','59','60'], ans:'59', cue:'Rough sheet: find the gap  <code>95 − 86 = ___</code>', hint:'Subtract 9 each time.' },
+            { id:'t39', t:2, s:'num', cat:'Patterns', q:'What comes next in this pattern?  3, 6, 12, 24, ☐', opts:['30','36','42','48'], ans:'48', hint:'Each number is doubled (× 2).' },
 
-            { id:'t40', s:'meas', cat:'Money', q:'Liam buys 3 notebooks at 45c each. He pays with a €2 coin. How much change does he get?', opts:['€1.35','55c','65c','€1.55'], ans:'65c', trap:'€1.35', trapMsg:'€1.35 is Step 1 (cost of 3 notebooks). Now subtract €1.35 from €2.00!', cue:'Step 1:  <code>45c × 3 = ___</code>   →   Step 2:  <code>200c − ___</code>', hint:'3 × 45c = 135c (€1.35). Subtract 135c from 200c.' },
-            { id:'t41', s:'meas', cat:'Money', q:'Nora buys 2 pencils at 35c each and a ruler for €1.10. She pays with €2.00. How much change?', opts:['€1.80','20c','30c','55c'], ans:'20c', trap:'€1.80', trapMsg:'€1.80 is the total cost — now take €1.80 from €2.00 for the change!', cue:'Step 1:  <code>35c + 35c + 110c = ___</code>   →   Step 2:  <code>200c − ___</code>', hint:'70c + €1.10 = €1.80. Change from €2.00 is 20c.' },
-            { id:'t42', s:'meas', cat:'Money', q:'Evan buys 4 apples at 40c each and pays with a €5 note. How much change does he get?', opts:['€1.60','€3.40','€3.60','€4.60'], ans:'€3.40', trap:'€1.60', trapMsg:'€1.60 is the cost of the 4 apples — now subtract from €5.00!', cue:'Step 1:  <code>4 × 40c = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'4 × 40c = €1.60. From €1.60 to €5.00 is €3.40.' },
-            { id:'t43', s:'meas', cat:'Money', q:'A comic costs €3.45 and a sticker pack costs 85c. You pay with €5.00. How much change?', opts:['€4.30','60c','70c','80c'], ans:'70c', trap:'€4.30', trapMsg:'€4.30 is the total bill — subtract €4.30 from €5.00!', cue:'Step 1:  <code>€3.45 + €0.85 = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'€3.45 + 85c = €4.30. Then €5.00 − €4.30.' },
-            { id:'t44', s:'meas', cat:'Money', q:'Two cinema tickets cost €3.20 each. Dad pays with a €10 note. How much change?', opts:['€6.40','€3.60','€4.60','€6.80'], ans:'€3.60', trap:'€6.40', trapMsg:'€6.40 is the price of 2 tickets! Subtract €6.40 from €10.00.', cue:'Step 1:  <code>€3.20 × 2 = ___</code>   →   Step 2:  <code>€10.00 − ___</code>', hint:'Double €3.20 is €6.40. From €6.40 to €10.00 is €3.60.' },
-            { id:'t45', s:'meas', cat:'Money', q:'Three granola bars cost 75c each. You pay with €5.00. How much change do you get?', opts:['€2.25','€2.75','€3.25','€4.25'], ans:'€2.75', trap:'€2.25', trapMsg:'€2.25 is the cost of 3 bars — subtract €2.25 from €5.00!', cue:'Step 1:  <code>75c × 3 = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'3 × 75c = €2.25. €5.00 − €2.25 = €2.75.' },
-            { id:'t46', s:'meas', cat:'Money', q:'A sandwich costs €2.80 and a juice costs €1.45. What is the total cost?', opts:['€3.25','€4.15','€4.25','€4.35'], ans:'€4.25', cue:'Write in columns:  <code>€2.80 + €1.45</code>', hint:'€2.80 + €1.00 = €3.80, then add 45c.' },
-            { id:'t47', s:'meas', cat:'Money', q:'How many 20c coins make €2.40?', opts:['10','11','12','14'], ans:'12', cue:'Rough sheet:  <code>5 × 20c = €1.00</code>', hint:'€2.00 needs 10 coins and 40c needs 2 more coins.' },
-            { id:'t48', s:'meas', cat:'Time', q:'A bus leaves at the time shown on this clock. The journey takes 35 minutes. What time does it arrive?', opts:['3:15','3:20','3:25','2:80'], ans:'3:20', diagram:{ type:'clock', h:2, m:45 }, cue:'Jump to the hour:  <code>2:45 + 15m = 3:00</code>  → add remaining 20m', hint:'15 mins brings 2:45 to 3:00, leaving 20 mins past 3.' },
-            { id:'t49', s:'meas', cat:'Time', q:'Maths class starts at the time shown and lasts 45 minutes. What time does it finish?', opts:['9:55','10:00','10:05','10:15'], ans:'10:05', diagram:{ type:'clock', h:9, m:20 }, cue:'Jump to the hour:  <code>9:20 + 40m = 10:00</code>  → add 5m', hint:'40 minutes after 9:20 is 10:00, plus 5 more minutes.' },
-            { id:'t50', s:'meas', cat:'Time', q:'What time is shown on this clock?', opts:['7:07','7:35','8:35','6:35'], ans:'7:35', diagram:{ type:'clock', h:7, m:35 }, hint:'Hour hand is past 7; minute hand at 7 means 7 × 5 = 35 minutes.' },
-            { id:'t51', s:'meas', cat:'Time', q:'How many minutes is it from the time on this clock until 12:15?', opts:['15 mins','20 mins','25 mins','35 mins'], ans:'25 mins', diagram:{ type:'clock', h:11, m:50 }, cue:'Rough sheet:  <code>11:50 → 12:00 (10m)</code>  →  <code>+ 15m</code>', hint:'10 minutes to 12:00, plus 15 minutes after 12:00.' },
-            { id:'t52', s:'meas', cat:'Time', q:'A cartoon starts at 3:20 and ends at 4:05. How long is the cartoon?', opts:['35 mins','40 mins','45 mins','55 mins'], ans:'45 mins', cue:'Rough sheet:  <code>3:20 → 4:00 (40m)</code>  +  <code>5m</code>', hint:'From 3:20 to 4:00 is 40 mins; add 5 more mins.' },
-            { id:'t53', s:'meas', cat:'Time', q:'Training ends at 4:15. It lasted 25 minutes. What time did training start?', opts:['3:40','3:45','3:50','4:40'], ans:'3:50', trap:'4:40', trapMsg:'Training ENDED at 4:15, so count BACKWARDS 25 minutes!', cue:'Count back:  <code>4:15 − 15m = 4:00</code>  →  <code>− 10m</code>', hint:'Go back 15 mins to 4:00, then back 10 more mins.' },
-            { id:'t54', s:'meas', cat:'Time', q:'Look at the calendar for April. What day of the week is April 18th?', opts:['Friday','Saturday','Sunday','Thursday'], ans:'Saturday', diagram:{ type:'cal', title:'April', start:2, days:30, hi:18 }, hint:'Follow the column above 18 up to the day heading.' },
-            { id:'t55', s:'meas', cat:'Time', q:'Look at the calendar for April. What date is 2 weeks after April 6th?', opts:['April 13th','April 18th','April 20th','April 21st'], ans:'April 20th', diagram:{ type:'cal', title:'April', start:2, days:30, hi:6 }, cue:'Rough sheet:  <code>2 weeks = 14 days</code>  →  <code>6 + 14</code>', hint:'Drop down 2 rows directly below the 6th.' },
-            { id:'t56', s:'meas', cat:'Time', q:'Look at the calendar for May. How many Saturdays are in May?', opts:['3','4','5','6'], ans:'5', diagram:{ type:'cal', title:'May', start:4, days:31 }, hint:'Count every number in the Sat column.' },
-            { id:'t57', s:'meas', cat:'Time', q:'Sam goes on holiday on May 9th for 10 days. What date does he return?', opts:['May 18th','May 19th','May 20th','May 21st'], ans:'May 19th', diagram:{ type:'cal', title:'May', start:4, days:31, hi:9 }, cue:'Rough sheet:  <code>9 + 10 = ___</code>', hint:'Add 10 days to May 9th.' },
-            { id:'t58', s:'meas', cat:'Measurement', q:'Write 2 metres 35 centimetres in centimetres.', opts:['55 cm','2035 cm','235 cm','352 cm'], ans:'235 cm', hint:'1 metre = 100 cm, so 2 metres = 200 cm.' },
-            { id:'t59', s:'meas', cat:'Measurement', q:'A ribbon is 1 metre long. Eva cuts off 38 cm. How much ribbon is left?', opts:['62 cm','72 cm','68 cm','52 cm'], ans:'62 cm', cue:'Rough sheet:  <code>100 cm − 38 cm</code>', hint:'1 m = 100 cm. Count on from 38 to 100.' },
-            { id:'t60', s:'meas', cat:'Measurement', q:'A bag holds 1 kg of flour. Mum uses 350 g for a cake. How much flour is left?', opts:['550 g','650 g','750 g','600 g'], ans:'650 g', cue:'Rough sheet:  <code>1000 g − 350 g</code>', hint:'1 kg = 1,000 g. Take 350 away from 1,000.' },
-            { id:'t61', s:'meas', cat:'Measurement', q:'How many grams are in 1/4 kg?', opts:['25 g','200 g','250 g','500 g'], ans:'250 g', hint:'Half of 1,000 g is 500 g; half again is 250 g.' },
-            { id:'t62', s:'meas', cat:'Measurement', q:'A jug holds 1 litre of water. You pour out 3 cups of 200 ml each. How much water is left in the jug?', opts:['600 ml','400 ml','300 ml','800 ml'], ans:'400 ml', trap:'600 ml', trapMsg:'600 ml is the amount poured out — subtract 600 ml from 1,000 ml!', cue:'Step 1:  <code>3 × 200 ml = ___</code>   →   Step 2:  <code>1000 ml − ___</code>', hint:'1 litre = 1,000 ml. Subtract 600 ml.' },
-            { id:'t63', s:'meas', cat:'Measurement', q:'How many millilitres are in 2 1/2 litres?', opts:['250 ml','2,050 ml','2,500 ml','25,000 ml'], ans:'2,500 ml', hint:'2 litres = 2,000 ml and 1/2 litre = 500 ml.' },
-            { id:'t64', s:'meas', cat:'Measurement', q:'Each small square is 1 square unit. What is the AREA of the shaded shape?', opts:['11 sq units','12 sq units','13 sq units','15 sq units'], ans:'13 sq units', diagram:{ type:'area', rows:3, cols:5, skip:[[0,4],[2,4]] }, hint:'Count the shaded squares carefully row by row.' },
-            { id:'t65', s:'meas', cat:'Measurement', q:'What is the PERIMETER (total distance around the outside) of this rectangle?', opts:['11 cm','18 cm','22 cm','28 cm'], ans:'22 cm', trap:'11 cm', trapMsg:'11 cm is only 2 sides (7 + 4)! Add all 4 sides around the rectangle.', diagram:{ type:'perim', w:7, h:4 }, cue:'Rough sheet:  <code>7 + 4 + 7 + 4 = ___</code>', hint:'Add all four sides: 7 + 4 + 7 + 4.' },
+            { id:'t40', t:2, s:'meas', cat:'Money', q:'Liam buys 3 notebooks at 45c each. He pays with a €2 coin. How much change does he get?', opts:['€1.35','55c','65c','€1.55'], ans:'65c', trap:'€1.35', trapMsg:'€1.35 is Step 1 (cost of 3 notebooks). Now subtract €1.35 from €2.00!', cue:'Step 1:  <code>45c × 3 = ___</code>   →   Step 2:  <code>200c − ___</code>', hint:'3 × 45c = 135c (€1.35). Subtract 135c from 200c.' },
+            { id:'t41', t:3, s:'meas', cat:'Money', q:'Nora buys 2 pencils at 35c each and a ruler for €1.10. She pays with €2.00. How much change?', opts:['€1.80','20c','30c','55c'], ans:'20c', trap:'€1.80', trapMsg:'€1.80 is the total cost — now take €1.80 from €2.00 for the change!', cue:'Step 1:  <code>35c + 35c + 110c = ___</code>   →   Step 2:  <code>200c − ___</code>', hint:'70c + €1.10 = €1.80. Change from €2.00 is 20c.' },
+            { id:'t42', t:2, s:'meas', cat:'Money', q:'Evan buys 4 apples at 40c each and pays with a €5 note. How much change does he get?', opts:['€1.60','€3.40','€3.60','€4.60'], ans:'€3.40', trap:'€1.60', trapMsg:'€1.60 is the cost of the 4 apples — now subtract from €5.00!', cue:'Step 1:  <code>4 × 40c = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'4 × 40c = €1.60. From €1.60 to €5.00 is €3.40.' },
+            { id:'t43', t:3, s:'meas', cat:'Money', q:'A comic costs €3.45 and a sticker pack costs 85c. You pay with €5.00. How much change?', opts:['€4.30','60c','70c','80c'], ans:'70c', trap:'€4.30', trapMsg:'€4.30 is the total bill — subtract €4.30 from €5.00!', cue:'Step 1:  <code>€3.45 + €0.85 = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'€3.45 + 85c = €4.30. Then €5.00 − €4.30.' },
+            { id:'t44', t:3, s:'meas', cat:'Money', q:'Two cinema tickets cost €3.20 each. Dad pays with a €10 note. How much change?', opts:['€6.40','€3.60','€4.60','€6.80'], ans:'€3.60', trap:'€6.40', trapMsg:'€6.40 is the price of 2 tickets! Subtract €6.40 from €10.00.', cue:'Step 1:  <code>€3.20 × 2 = ___</code>   →   Step 2:  <code>€10.00 − ___</code>', hint:'Double €3.20 is €6.40. From €6.40 to €10.00 is €3.60.' },
+            { id:'t45', t:3, s:'meas', cat:'Money', q:'Three granola bars cost 75c each. You pay with €5.00. How much change do you get?', opts:['€2.25','€2.75','€3.25','€4.25'], ans:'€2.75', trap:'€2.25', trapMsg:'€2.25 is the cost of 3 bars — subtract €2.25 from €5.00!', cue:'Step 1:  <code>75c × 3 = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'3 × 75c = €2.25. €5.00 − €2.25 = €2.75.' },
+            { id:'t46', t:2, s:'meas', cat:'Money', q:'A sandwich costs €2.80 and a juice costs €1.45. What is the total cost?', opts:['€3.25','€4.15','€4.25','€4.35'], ans:'€4.25', cue:'Write in columns:  <code>€2.80 + €1.45</code>', hint:'€2.80 + €1.00 = €3.80, then add 45c.' },
+            { id:'t47', t:2, s:'meas', cat:'Money', q:'How many 20c coins make €2.40?', opts:['10','11','12','14'], ans:'12', cue:'Rough sheet:  <code>5 × 20c = €1.00</code>', hint:'€2.00 needs 10 coins and 40c needs 2 more coins.' },
+            { id:'t48', t:2, s:'meas', cat:'Time', q:'A bus leaves at the time shown on this clock. The journey takes 35 minutes. What time does it arrive?', opts:['3:15','3:20','3:25','2:80'], ans:'3:20', diagram:{ type:'clock', h:2, m:45 }, cue:'Jump to the hour:  <code>2:45 + 15m = 3:00</code>  → add remaining 20m', hint:'15 mins brings 2:45 to 3:00, leaving 20 mins past 3.' },
+            { id:'t49', t:3, s:'meas', cat:'Time', q:'Maths class starts at the time shown and lasts 45 minutes. What time does it finish?', opts:['9:55','10:00','10:05','10:15'], ans:'10:05', diagram:{ type:'clock', h:9, m:20 }, cue:'Jump to the hour:  <code>9:20 + 40m = 10:00</code>  → add 5m', hint:'40 minutes after 9:20 is 10:00, plus 5 more minutes.' },
+            { id:'t50', t:1, s:'meas', cat:'Time', q:'What time is shown on this clock?', opts:['7:07','7:35','8:35','6:35'], ans:'7:35', diagram:{ type:'clock', h:7, m:35 }, hint:'Hour hand is past 7; minute hand at 7 means 7 × 5 = 35 minutes.' },
+            { id:'t51', t:2, s:'meas', cat:'Time', q:'How many minutes is it from the time on this clock until 12:15?', opts:['15 mins','20 mins','25 mins','35 mins'], ans:'25 mins', diagram:{ type:'clock', h:11, m:50 }, cue:'Rough sheet:  <code>11:50 → 12:00 (10m)</code>  →  <code>+ 15m</code>', hint:'10 minutes to 12:00, plus 15 minutes after 12:00.' },
+            { id:'t52', t:2, s:'meas', cat:'Time', q:'A cartoon starts at 3:20 and ends at 4:05. How long is the cartoon?', opts:['35 mins','40 mins','45 mins','55 mins'], ans:'45 mins', cue:'Rough sheet:  <code>3:20 → 4:00 (40m)</code>  +  <code>5m</code>', hint:'From 3:20 to 4:00 is 40 mins; add 5 more mins.' },
+            { id:'t53', t:3, s:'meas', cat:'Time', q:'Training ends at 4:15. It lasted 25 minutes. What time did training start?', opts:['3:40','3:45','3:50','4:40'], ans:'3:50', trap:'4:40', trapMsg:'Training ENDED at 4:15, so count BACKWARDS 25 minutes!', cue:'Count back:  <code>4:15 − 15m = 4:00</code>  →  <code>− 10m</code>', hint:'Go back 15 mins to 4:00, then back 10 more mins.' },
+            { id:'t54', t:1, s:'meas', cat:'Time', q:'Look at the calendar for April. What day of the week is April 18th?', opts:['Friday','Saturday','Sunday','Thursday'], ans:'Saturday', diagram:{ type:'cal', title:'April', start:2, days:30, hi:18 }, hint:'Follow the column above 18 up to the day heading.' },
+            { id:'t55', t:2, s:'meas', cat:'Time', q:'Look at the calendar for April. What date is 2 weeks after April 6th?', opts:['April 13th','April 18th','April 20th','April 21st'], ans:'April 20th', diagram:{ type:'cal', title:'April', start:2, days:30, hi:6 }, cue:'Rough sheet:  <code>2 weeks = 14 days</code>  →  <code>6 + 14</code>', hint:'Drop down 2 rows directly below the 6th.' },
+            { id:'t56', t:1, s:'meas', cat:'Time', q:'Look at the calendar for May. How many Saturdays are in May?', opts:['3','4','5','6'], ans:'5', diagram:{ type:'cal', title:'May', start:4, days:31 }, hint:'Count every number in the Sat column.' },
+            { id:'t57', t:2, s:'meas', cat:'Time', q:'Sam goes on holiday on May 9th for 10 days. What date does he return?', opts:['May 18th','May 19th','May 20th','May 21st'], ans:'May 19th', diagram:{ type:'cal', title:'May', start:4, days:31, hi:9 }, cue:'Rough sheet:  <code>9 + 10 = ___</code>', hint:'Add 10 days to May 9th.' },
+            { id:'t58', t:2, s:'meas', cat:'Measurement', q:'Write 2 metres 35 centimetres in centimetres.', opts:['55 cm','2035 cm','235 cm','352 cm'], ans:'235 cm', hint:'1 metre = 100 cm, so 2 metres = 200 cm.' },
+            { id:'t59', t:2, s:'meas', cat:'Measurement', q:'A ribbon is 1 metre long. Eva cuts off 38 cm. How much ribbon is left?', opts:['62 cm','72 cm','68 cm','52 cm'], ans:'62 cm', cue:'Rough sheet:  <code>100 cm − 38 cm</code>', hint:'1 m = 100 cm. Count on from 38 to 100.' },
+            { id:'t60', t:2, s:'meas', cat:'Measurement', q:'A bag holds 1 kg of flour. Mum uses 350 g for a cake. How much flour is left?', opts:['550 g','650 g','750 g','600 g'], ans:'650 g', cue:'Rough sheet:  <code>1000 g − 350 g</code>', hint:'1 kg = 1,000 g. Take 350 away from 1,000.' },
+            { id:'t61', t:2, s:'meas', cat:'Measurement', q:'How many grams are in 1/4 kg?', opts:['25 g','200 g','250 g','500 g'], ans:'250 g', hint:'Half of 1,000 g is 500 g; half again is 250 g.' },
+            { id:'t62', t:3, s:'meas', cat:'Measurement', q:'A jug holds 1 litre of water. You pour out 3 cups of 200 ml each. How much water is left in the jug?', opts:['600 ml','400 ml','300 ml','800 ml'], ans:'400 ml', trap:'600 ml', trapMsg:'600 ml is the amount poured out — subtract 600 ml from 1,000 ml!', cue:'Step 1:  <code>3 × 200 ml = ___</code>   →   Step 2:  <code>1000 ml − ___</code>', hint:'1 litre = 1,000 ml. Subtract 600 ml.' },
+            { id:'t63', t:3, s:'meas', cat:'Measurement', q:'How many millilitres are in 2 1/2 litres?', opts:['250 ml','2,050 ml','2,500 ml','25,000 ml'], ans:'2,500 ml', hint:'2 litres = 2,000 ml and 1/2 litre = 500 ml.' },
+            { id:'t64', t:2, s:'meas', cat:'Measurement', q:'Each small square is 1 square unit. What is the AREA of the shaded shape?', opts:['11 sq units','12 sq units','13 sq units','15 sq units'], ans:'13 sq units', diagram:{ type:'area', rows:3, cols:5, skip:[[0,4],[2,4]] }, hint:'Count the shaded squares carefully row by row.' },
+            { id:'t65', t:3, s:'meas', cat:'Measurement', q:'What is the PERIMETER (total distance around the outside) of this rectangle?', opts:['11 cm','18 cm','22 cm','28 cm'], ans:'22 cm', trap:'11 cm', trapMsg:'11 cm is only 2 sides (7 + 4)! Add all 4 sides around the rectangle.', diagram:{ type:'perim', w:7, h:4 }, cue:'Rough sheet:  <code>7 + 4 + 7 + 4 = ___</code>', hint:'Add all four sides: 7 + 4 + 7 + 4.' },
 
-            { id:'t66', s:'data', cat:'Data', q:'How many MORE pupils chose Football than Swimming?', opts:['3','10','15','25'], ans:'15', trap:'3', trapMsg:'Check the Key! 3 symbols × 5 pupils each = 15 (not 3).', diagram:{ type:'picto', title:'Favourite Sports', key:'⚽ = 5 pupils', icon:'⚽', rows:[['Football',5],['Hurling',3],['Swimming',2],['Running',4]] }, cue:'Step 1:  <code>Football = 5 × 5</code>   |   <code>Swimming = 2 × 5</code>', hint:'Multiply the difference in symbols (3) by 5 pupils.' },
-            { id:'t67', s:'data', cat:'Data', q:'How many books did Mia and Noah read ALTOGETHER?', opts:['9','12','18','20'], ans:'18', trap:'9', trapMsg:'Check the Key! Each 📘 stands for 2 books (9 × 2 = 18).', diagram:{ type:'picto', title:'Books Read This Month', key:'📘 = 2 books', icon:'📘', rows:[['Mia',6],['Jack',4],['Ella',5],['Noah',3]] }, cue:'Rough sheet:  <code>Mia = 6 × 2</code>   +   <code>Noah = 3 × 2</code>', hint:'6 + 3 = 9 icons, and each icon equals 2 books.' },
-            { id:'t68', s:'data', cat:'Data', q:'How many apples were sold on Tuesday?', opts:['5','16','20','24'], ans:'20', trap:'5', trapMsg:'Check the Key! Each 🍎 means 4 apples (5 × 4 = 20).', diagram:{ type:'picto', title:'Shop Apples Sold', key:'🍎 = 4 apples', icon:'🍎', rows:[['Mon',3],['Tue',5],['Wed',2],['Thu',4]] }, cue:'Rough sheet:  <code>5 × 4 = ___</code>', hint:'Count Tuesday icons (5) and multiply by 4.' },
-            { id:'t69', s:'data', cat:'Data', q:'How many FEWER Birds than Dogs are in the class?', opts:['4','6','8','10'], ans:'8', trap:'4', trapMsg:'4 is the number of icons — multiply by 2 because 🐾 = 2 pets!', diagram:{ type:'picto', title:'Class Pets', key:'🐾 = 2 pets', icon:'🐾', rows:[['Dogs',6],['Cats',5],['Fish',3],['Birds',2]] }, cue:'Rough sheet:  <code>Dogs = 6 × 2</code>   −   <code>Birds = 2 × 2</code>', hint:'Dogs = 12, Birds = 4. Find 12 − 4.' },
-            { id:'t70', s:'data', cat:'Data', q:'How many trees were planted IN TOTAL?', opts:['13','120','130','140'], ans:'130', trap:'13', trapMsg:'13 is the number of tree icons — each 🌳 stands for 10 trees!', diagram:{ type:'picto', title:'Trees Planted', key:'🌳 = 10 trees', icon:'🌳', rows:[['Oak',4],['Pine',6],['Birch',3]] }, cue:'Rough sheet:  <code>(4 + 6 + 3) × 10</code>', hint:'Add 4 + 6 + 3 = 13, then multiply by 10.' },
-            { id:'t71', s:'data', cat:'Data', q:'Look at the bar chart. How many MORE Sunny days were there than Rainy days?', opts:['4','6','8','18'], ans:'6', diagram:{ type:'bar', title:'Weather in June', max:14, step:2, bars:[['Sunny',12,'#f59e0b'],['Cloudy',8,'#64748b'],['Rainy',6,'#3b82f6'],['Windy',4,'#10b981']] }, hint:'Sunny = 12, Rainy = 6. Subtract 12 − 6.' },
-            { id:'t72', s:'data', cat:'Data', q:'How many pupils are in Art and Chess ALTOGETHER?', opts:['20','22','24','26'], ans:'24', diagram:{ type:'bar', title:'After-School Clubs', max:18, step:3, bars:[['Art',14,'#ec4899'],['Chess',10,'#4f46e5'],['Choir',16,'#f59e0b'],['Drama',8,'#10b981']] }, cue:'Rough sheet:  <code>Art (14) + Chess (10)</code>', hint:'Read Art (14) and Chess (10), then add them.' },
-            { id:'t73', s:'data', cat:'Data', q:'How many pupils answered this ice cream survey IN TOTAL?', opts:['36','40','42','45'], ans:'42', diagram:{ type:'bar', title:'Favourite Ice Cream', max:18, step:3, bars:[['Vanilla',9,'#f59e0b'],['Choc',15,'#78350f'],['Berry',12,'#ec4899'],['Mint',6,'#10b981']] }, cue:'Rough sheet:  <code>9 + 15 + 12 + 6</code>', hint:'Add all four bar heights: 9 + 15 + 12 + 6.' },
-            { id:'t74', s:'data', cat:'Data', q:'Which day had HALF as many library visits as Tuesday?', opts:['Monday','Wednesday','Thursday','None'], ans:'Monday', diagram:{ type:'bar', title:'Library Visits', max:20, step:4, bars:[['Mon',9,'#3b82f6'],['Tue',18,'#4f46e5'],['Wed',12,'#10b981'],['Thu',15,'#f59e0b']] }, hint:'Tuesday is 18. Half of 18 is 9.' },
-            { id:'t75', s:'data', cat:'Data', q:'What is the difference between the HIGHEST and LOWEST team scores?', opts:['6','8','9','19'], ans:'9', diagram:{ type:'bar', title:'Goals Scored', max:16, step:4, bars:[['Team A',8,'#3b82f6'],['Team B',14,'#ef4444'],['Team C',11,'#10b981'],['Team D',5,'#f59e0b']] }, cue:'Rough sheet:  <code>Highest (14) − Lowest (5)</code>', hint:'Highest is Team B (14), lowest is Team D (5).' },
-            { id:'t76', s:'data', cat:'Data', q:'Look at the traffic table. How many vehicles passed IN TOTAL?', opts:['26','28','30','32'], ans:'30', diagram:{ type:'table', title:'Vehicles Passing School', cols:['Vehicle','Count'], rows:[['Cars','14'],['Bikes','7'],['Buses','5'],['Vans','4']] }, cue:'Rough sheet:  <code>14 + 7 + 5 + 4</code>', hint:'Add 14 + 7 = 21, then + 5 = 26, then + 4.' },
-            { id:'t77', s:'data', cat:'Data', q:'There are 32 pieces of fruit in total. How many Oranges are missing from the table?', opts:['25','7','6','8'], ans:'7', trap:'25', trapMsg:'25 is Apples + Bananas + Pears! Subtract 25 from 32.', diagram:{ type:'table', title:'Fruit Basket (Total = 32)', cols:['Fruit','Count'], rows:[['Apples','11'],['Bananas','9'],['Pears','5'],['Oranges','?']] }, cue:'Step 1:  <code>11 + 9 + 5 = ___</code>   →   Step 2:  <code>32 − ___</code>', hint:'Add the three shown rows (25), then subtract from 32.' },
-            { id:'t78', s:'data', cat:'Data', q:'How many MORE children chose Pasta than Soup?', opts:['5','6','7','19'], ans:'7', diagram:{ type:'table', title:'School Lunches', cols:['Lunch','Pupils'], rows:[['Pasta','13'],['Soup','6'],['Roll','9'],['Salad','4']] }, hint:'Subtract Soup (6) from Pasta (13).' },
-            { id:'t79', s:'data', cat:'Chance', q:'A bag has 9 red marbles and 1 blue marble. Without looking, picking a RED marble is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Likely', hint:'Almost all the marbles are red, but 1 is blue so it is not certain.' },
-            { id:'t80', s:'data', cat:'Chance', q:'A bag contains 8 green marbles and no other colours. Picking a YELLOW marble is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Impossible', hint:'There are zero yellow marbles in the bag.' },
-            { id:'t81', s:'data', cat:'Chance', q:'You roll a normal 1 to 6 dice. Rolling a number LESS THAN 7 is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Certain', hint:'Every face (1, 2, 3, 4, 5, 6) is less than 7.' },
-            { id:'t82', s:'data', cat:'Chance', q:'A jar holds 1 green sweet and 11 yellow sweets. Picking a GREEN sweet is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Unlikely', hint:'Only 1 out of 12 sweets is green.' },
-            { id:'t83', s:'data', cat:'Chance', q:'Look at the spinner. Which colour is LEAST likely to win?', opts:['Blue','Red','Both equal','Impossible'], ans:'Red', diagram:{ type:'spinner' }, hint:'Count how many sections are Red (1) vs Blue (3).' },
-            { id:'t84', s:'data', cat:'Shapes', q:'How many flat faces does a CUBE have?', opts:['4','6','8','12'], ans:'6', diagram:{ type:'shape', kind:'cube' }, hint:'Think of a dice — it is numbered 1 to 6.' },
-            { id:'t85', s:'data', cat:'Shapes', q:'How many EDGES does a cube have?', opts:['6','8','10','12'], ans:'12', diagram:{ type:'shape', kind:'cube' }, hint:'4 on top, 4 on bottom, and 4 going down the sides.' },
-            { id:'t86', s:'data', cat:'Shapes', q:'How many CORNERS (vertices) does a cuboid have?', opts:['4','6','8','12'], ans:'8', diagram:{ type:'shape', kind:'cube' }, hint:'Count 4 corners on top and 4 on the bottom.' },
-            { id:'t87', s:'data', cat:'Shapes', q:'How many flat circular faces does a CYLINDER have?', opts:['1','2','3','4'], ans:'2', diagram:{ type:'shape', kind:'cyl' }, hint:'One flat circle on top and one on the bottom.' },
-            { id:'t88', s:'data', cat:'Shapes', q:'How many faces does a TRIANGULAR PRISM have in total?', opts:['3','4','5','6'], ans:'5', diagram:{ type:'shape', kind:'prism' }, hint:'2 triangular ends + 3 rectangular sides.' },
-            { id:'t89', s:'data', cat:'Shapes', q:'What type of angle is shown here?', opts:['Right angle','Smaller than right angle','Greater than right angle','Straight line'], ans:'Right angle', diagram:{ type:'angle', kind:'right' }, hint:'It matches the exact square corner of a book.' },
-            { id:'t90', s:'data', cat:'Shapes', q:'Compare this angle to a right angle. It is...', opts:['Equal to a right angle','Smaller than a right angle','Greater than a right angle','A full turn'], ans:'Smaller than a right angle', diagram:{ type:'angle', kind:'acute' }, hint:'This narrow opening is tighter than a square corner.' },
-            { id:'t91', s:'data', cat:'Shapes', q:'Compare this angle to a right angle. It is...', opts:['Equal to a right angle','Smaller than a right angle','Greater than a right angle','Zero degrees'], ans:'Greater than a right angle', diagram:{ type:'angle', kind:'obtuse' }, hint:'This wide opening is wider than a square corner.' },
-            { id:'t92', s:'data', cat:'Shapes', q:'Two straight lines that stay the exact same distance apart and never meet are called...', opts:['Parallel','Vertical','Curved','Perpendicular'], ans:'Parallel', diagram:{ type:'shape', kind:'parallel' }, hint:'Think of train tracks running side by side.' },
-            { id:'t93', s:'data', cat:'Shapes', q:'How many sides does a HEXAGON have?', opts:['5','6','7','8'], ans:'6', diagram:{ type:'shape', kind:'hex' }, hint:'Count the straight edges around the shape.' },
-            { id:'t94', s:'data', cat:'Shapes', q:'How many lines of symmetry does a rectangle (not a square) have?', opts:['1','2','4','6'], ans:'2', diagram:{ type:'shape', kind:'sym' }, hint:'You can fold it evenly vertically or horizontally, not diagonally.' }
+            { id:'t66', t:3, s:'data', cat:'Data', q:'How many MORE pupils chose Football than Swimming?', opts:['3','10','15','25'], ans:'15', trap:'3', trapMsg:'Check the Key! 3 symbols × 5 pupils each = 15 (not 3).', diagram:{ type:'picto', title:'Favourite Sports', key:'⚽ = 5 pupils', icon:'⚽', rows:[['Football',5],['Hurling',3],['Swimming',2],['Running',4]] }, cue:'Step 1:  <code>Football = 5 × 5</code>   |   <code>Swimming = 2 × 5</code>', hint:'Multiply the difference in symbols (3) by 5 pupils.' },
+            { id:'t67', t:2, s:'data', cat:'Data', q:'How many books did Mia and Noah read ALTOGETHER?', opts:['9','12','18','20'], ans:'18', trap:'9', trapMsg:'Check the Key! Each 📘 stands for 2 books (9 × 2 = 18).', diagram:{ type:'picto', title:'Books Read This Month', key:'📘 = 2 books', icon:'📘', rows:[['Mia',6],['Jack',4],['Ella',5],['Noah',3]] }, cue:'Rough sheet:  <code>Mia = 6 × 2</code>   +   <code>Noah = 3 × 2</code>', hint:'6 + 3 = 9 icons, and each icon equals 2 books.' },
+            { id:'t68', t:2, s:'data', cat:'Data', q:'How many apples were sold on Tuesday?', opts:['5','16','20','24'], ans:'20', trap:'5', trapMsg:'Check the Key! Each 🍎 means 4 apples (5 × 4 = 20).', diagram:{ type:'picto', title:'Shop Apples Sold', key:'🍎 = 4 apples', icon:'🍎', rows:[['Mon',3],['Tue',5],['Wed',2],['Thu',4]] }, cue:'Rough sheet:  <code>5 × 4 = ___</code>', hint:'Count Tuesday icons (5) and multiply by 4.' },
+            { id:'t69', t:2, s:'data', cat:'Data', q:'How many FEWER Birds than Dogs are in the class?', opts:['4','6','8','10'], ans:'8', trap:'4', trapMsg:'4 is the number of icons — multiply by 2 because 🐾 = 2 pets!', diagram:{ type:'picto', title:'Class Pets', key:'🐾 = 2 pets', icon:'🐾', rows:[['Dogs',6],['Cats',5],['Fish',3],['Birds',2]] }, cue:'Rough sheet:  <code>Dogs = 6 × 2</code>   −   <code>Birds = 2 × 2</code>', hint:'Dogs = 12, Birds = 4. Find 12 − 4.' },
+            { id:'t70', t:3, s:'data', cat:'Data', q:'How many trees were planted IN TOTAL?', opts:['13','120','130','140'], ans:'130', trap:'13', trapMsg:'13 is the number of tree icons — each 🌳 stands for 10 trees!', diagram:{ type:'picto', title:'Trees Planted', key:'🌳 = 10 trees', icon:'🌳', rows:[['Oak',4],['Pine',6],['Birch',3]] }, cue:'Rough sheet:  <code>(4 + 6 + 3) × 10</code>', hint:'Add 4 + 6 + 3 = 13, then multiply by 10.' },
+            { id:'t71', t:2, s:'data', cat:'Data', q:'Look at the bar chart. How many MORE Sunny days were there than Rainy days?', opts:['4','6','8','18'], ans:'6', diagram:{ type:'bar', title:'Weather in June', max:14, step:2, bars:[['Sunny',12,'#f59e0b'],['Cloudy',8,'#64748b'],['Rainy',6,'#3b82f6'],['Windy',4,'#10b981']] }, hint:'Sunny = 12, Rainy = 6. Subtract 12 − 6.' },
+            { id:'t72', t:2, s:'data', cat:'Data', q:'How many pupils are in Art and Chess ALTOGETHER?', opts:['20','22','24','26'], ans:'24', diagram:{ type:'bar', title:'After-School Clubs', max:18, step:3, bars:[['Art',14,'#ec4899'],['Chess',10,'#4f46e5'],['Choir',16,'#f59e0b'],['Drama',8,'#10b981']] }, cue:'Rough sheet:  <code>Art (14) + Chess (10)</code>', hint:'Read Art (14) and Chess (10), then add them.' },
+            { id:'t73', t:3, s:'data', cat:'Data', q:'How many pupils answered this ice cream survey IN TOTAL?', opts:['36','40','42','45'], ans:'42', diagram:{ type:'bar', title:'Favourite Ice Cream', max:18, step:3, bars:[['Vanilla',9,'#f59e0b'],['Choc',15,'#78350f'],['Berry',12,'#ec4899'],['Mint',6,'#10b981']] }, cue:'Rough sheet:  <code>9 + 15 + 12 + 6</code>', hint:'Add all four bar heights: 9 + 15 + 12 + 6.' },
+            { id:'t74', t:3, s:'data', cat:'Data', q:'Which day had HALF as many library visits as Tuesday?', opts:['Monday','Wednesday','Thursday','None'], ans:'Monday', diagram:{ type:'bar', title:'Library Visits', max:20, step:4, bars:[['Mon',9,'#3b82f6'],['Tue',18,'#4f46e5'],['Wed',12,'#10b981'],['Thu',15,'#f59e0b']] }, hint:'Tuesday is 18. Half of 18 is 9.' },
+            { id:'t75', t:2, s:'data', cat:'Data', q:'What is the difference between the HIGHEST and LOWEST team scores?', opts:['6','8','9','19'], ans:'9', diagram:{ type:'bar', title:'Goals Scored', max:16, step:4, bars:[['Team A',8,'#3b82f6'],['Team B',14,'#ef4444'],['Team C',11,'#10b981'],['Team D',5,'#f59e0b']] }, cue:'Rough sheet:  <code>Highest (14) − Lowest (5)</code>', hint:'Highest is Team B (14), lowest is Team D (5).' },
+            { id:'t76', t:2, s:'data', cat:'Data', q:'Look at the traffic table. How many vehicles passed IN TOTAL?', opts:['26','28','30','32'], ans:'30', diagram:{ type:'table', title:'Vehicles Passing School', cols:['Vehicle','Count'], rows:[['Cars','14'],['Bikes','7'],['Buses','5'],['Vans','4']] }, cue:'Rough sheet:  <code>14 + 7 + 5 + 4</code>', hint:'Add 14 + 7 = 21, then + 5 = 26, then + 4.' },
+            { id:'t77', t:3, s:'data', cat:'Data', q:'There are 32 pieces of fruit in total. How many Oranges are missing from the table?', opts:['25','7','6','8'], ans:'7', trap:'25', trapMsg:'25 is Apples + Bananas + Pears! Subtract 25 from 32.', diagram:{ type:'table', title:'Fruit Basket (Total = 32)', cols:['Fruit','Count'], rows:[['Apples','11'],['Bananas','9'],['Pears','5'],['Oranges','?']] }, cue:'Step 1:  <code>11 + 9 + 5 = ___</code>   →   Step 2:  <code>32 − ___</code>', hint:'Add the three shown rows (25), then subtract from 32.' },
+            { id:'t78', t:1, s:'data', cat:'Data', q:'How many MORE children chose Pasta than Soup?', opts:['5','6','7','19'], ans:'7', diagram:{ type:'table', title:'School Lunches', cols:['Lunch','Pupils'], rows:[['Pasta','13'],['Soup','6'],['Roll','9'],['Salad','4']] }, hint:'Subtract Soup (6) from Pasta (13).' },
+            { id:'t79', t:2, s:'data', cat:'Chance', q:'A bag has 9 red marbles and 1 blue marble. Without looking, picking a RED marble is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Likely', hint:'Almost all the marbles are red, but 1 is blue so it is not certain.' },
+            { id:'t80', t:1, s:'data', cat:'Chance', q:'A bag contains 8 green marbles and no other colours. Picking a YELLOW marble is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Impossible', hint:'There are zero yellow marbles in the bag.' },
+            { id:'t81', t:2, s:'data', cat:'Chance', q:'You roll a normal 1 to 6 dice. Rolling a number LESS THAN 7 is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Certain', hint:'Every face (1, 2, 3, 4, 5, 6) is less than 7.' },
+            { id:'t82', t:2, s:'data', cat:'Chance', q:'A jar holds 1 green sweet and 11 yellow sweets. Picking a GREEN sweet is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Unlikely', hint:'Only 1 out of 12 sweets is green.' },
+            { id:'t83', t:2, s:'data', cat:'Chance', q:'Look at the spinner. Which colour is LEAST likely to win?', opts:['Blue','Red','Both equal','Impossible'], ans:'Red', diagram:{ type:'spinner' }, hint:'Count how many sections are Red (1) vs Blue (3).' },
+            { id:'t84', t:1, s:'data', cat:'Shapes', q:'How many flat faces does a CUBE have?', opts:['4','6','8','12'], ans:'6', diagram:{ type:'shape', kind:'cube' }, hint:'Think of a dice — it is numbered 1 to 6.' },
+            { id:'t85', t:3, s:'data', cat:'Shapes', q:'How many EDGES does a cube have?', opts:['6','8','10','12'], ans:'12', diagram:{ type:'shape', kind:'cube' }, hint:'4 on top, 4 on bottom, and 4 going down the sides.' },
+            { id:'t86', t:2, s:'data', cat:'Shapes', q:'How many CORNERS (vertices) does a cuboid have?', opts:['4','6','8','12'], ans:'8', diagram:{ type:'shape', kind:'cube' }, hint:'Count 4 corners on top and 4 on the bottom.' },
+            { id:'t87', t:2, s:'data', cat:'Shapes', q:'How many flat circular faces does a CYLINDER have?', opts:['1','2','3','4'], ans:'2', diagram:{ type:'shape', kind:'cyl' }, hint:'One flat circle on top and one on the bottom.' },
+            { id:'t88', t:3, s:'data', cat:'Shapes', q:'How many faces does a TRIANGULAR PRISM have in total?', opts:['3','4','5','6'], ans:'5', diagram:{ type:'shape', kind:'prism' }, hint:'2 triangular ends + 3 rectangular sides.' },
+            { id:'t89', t:1, s:'data', cat:'Shapes', q:'What type of angle is shown here?', opts:['Right angle','Smaller than right angle','Greater than right angle','Straight line'], ans:'Right angle', diagram:{ type:'angle', kind:'right' }, hint:'It matches the exact square corner of a book.' },
+            { id:'t90', t:2, s:'data', cat:'Shapes', q:'Compare this angle to a right angle. It is...', opts:['Equal to a right angle','Smaller than a right angle','Greater than a right angle','A full turn'], ans:'Smaller than a right angle', diagram:{ type:'angle', kind:'acute' }, hint:'This narrow opening is tighter than a square corner.' },
+            { id:'t91', t:2, s:'data', cat:'Shapes', q:'Compare this angle to a right angle. It is...', opts:['Equal to a right angle','Smaller than a right angle','Greater than a right angle','Zero degrees'], ans:'Greater than a right angle', diagram:{ type:'angle', kind:'obtuse' }, hint:'This wide opening is wider than a square corner.' },
+            { id:'t92', t:2, s:'data', cat:'Shapes', q:'Two straight lines that stay the exact same distance apart and never meet are called...', opts:['Parallel','Vertical','Curved','Perpendicular'], ans:'Parallel', diagram:{ type:'shape', kind:'parallel' }, hint:'Think of train tracks running side by side.' },
+            { id:'t93', t:1, s:'data', cat:'Shapes', q:'How many sides does a HEXAGON have?', opts:['5','6','7','8'], ans:'6', diagram:{ type:'shape', kind:'hex' }, hint:'Count the straight edges around the shape.' },
+            { id:'t94', t:3, s:'data', cat:'Shapes', q:'How many lines of symmetry does a rectangle (not a square) have?', opts:['1','2','4','6'], ans:'2', diagram:{ type:'shape', kind:'sym' }, hint:'You can fold it evenly vertically or horizontally, not diagonally.' },
+
+            { id:'t95', t:1, s:'num', cat:'Subtraction', q:'What is 64 − 28?', opts:['44','36','38','46'], ans:'36', trap:'44', trapMsg:'Watch the units column — rename 1 ten so you do 14 − 8 (not 8 − 4)!', cue:'Write T | U:  <code>64 − 28</code>  (rename 6 tens → 5 tens + 14)', hint:'64 − 20 = 44, then 44 − 8 = 36.' },
+            { id:'t96', t:1, s:'num', cat:'Subtraction', q:'Liam has 82 stickers and gives 35 to his sister. How many stickers are left?', opts:['53','47','57','45'], ans:'47', trap:'53', trapMsg:'Rename 1 ten into 12 units before subtracting 5!', cue:'Write T | U:  <code>82 − 35</code>', hint:'82 − 30 = 52, then 52 − 5 = 47.' },
+            { id:'t97', t:1, s:'num', cat:'Subtraction', q:'What is 91 − 46?', opts:['55','45','53','47'], ans:'45', trap:'55', trapMsg:'Remember 9 tens became 8 tens after renaming to 11 units!', cue:'Write T | U:  <code>91 − 46</code>', hint:'Count on from 46 to 50 (+4), then 50 to 91 (+41).' },
+            { id:'t98', t:2, s:'num', cat:'Subtraction', q:'A shop had 245 apples and sold 128. How many apples are left?', opts:['123','117','127','107'], ans:'117', trap:'123', trapMsg:'Rename 4 tens to 3 tens + 15 units before subtracting 8!', cue:'Write H | T | U:  <code>245 − 128</code>', hint:'245 − 120 = 125, then 125 − 8 = 117.' },
+            { id:'t99', t:2, s:'num', cat:'Subtraction', q:'What is 352 − 176?', opts:['224','186','176','276'], ans:'176', trap:'224', trapMsg:'Write 352 − 176 in columns and rename carefully in both units and tens.', cue:'Write H | T | U:  <code>352 − 176</code>', hint:'176 + 24 = 200, then + 152 reaches 352. Add 24 + 152.' },
+            { id:'t100', t:1, s:'num', cat:'Addition', q:'What is 48 + 37?', opts:['75','85','95','84'], ans:'85', trap:'75', trapMsg:'8 + 7 = 15 — remember to carry the 1 ten!', cue:'Write T | U:  <code>48 + 37</code>', hint:'40 + 30 = 70, and 8 + 7 = 15. Add 70 + 15.' },
+            { id:'t101', t:1, s:'num', cat:'Addition', q:'A class has 29 girls and 26 boys. How many children altogether?', opts:['45','55','56','65'], ans:'55', trap:'45', trapMsg:'Carry 1 ten from 9 + 6 = 15!', cue:'Write T | U:  <code>29 + 26</code>', hint:'Add 30 + 26 = 56, then take away 1.' },
+            { id:'t102', t:1, s:'num', cat:'Addition', q:'What is 67 + 45?', opts:['102','112','113','122'], ans:'112', trap:'102', trapMsg:'7 + 5 = 12 — carry 1 ten to 6 + 4!', cue:'Write T | U:  <code>67 + 45</code>', hint:'60 + 40 = 100 and 7 + 5 = 12.' },
+            { id:'t103', t:2, s:'num', cat:'Addition', q:'A baker made 235 plain rolls and 148 brown rolls. How many rolls in total?', opts:['373','383','393','483'], ans:'383', trap:'373', trapMsg:'5 + 8 = 13 — carry 1 ten into the tens column!', cue:'Write H | T | U:  <code>235 + 148</code>', hint:'235 + 140 = 375, then add 8.' },
+            { id:'t104', t:1, s:'num', cat:'Place Value', q:'What number is made by 3 hundreds, 5 tens and 2 units?', opts:['325','352','532','253'], ans:'352', hint:'Put 3 in H, 5 in T, and 2 in U.' },
+            { id:'t105', t:1, s:'num', cat:'Place Value', q:'Round 73 to the nearest 10.', opts:['60','70','80','75'], ans:'70', hint:'3 is less than 5, so round down to 70.' },
+            { id:'t106', t:1, s:'num', cat:'Place Value', q:'What number is 10 more than 295?', opts:['205','305','315','285'], ans:'305', hint:'295 + 5 = 300, then add 5 more.' },
+            { id:'t107', t:1, s:'num', cat:'Multiplication', q:'There are 4 bags with 5 oranges in each bag. How many oranges altogether?', opts:['9','15','20','25'], ans:'20', hint:'Count in 5s four times: 5, 10, 15, 20.' },
+            { id:'t108', t:1, s:'num', cat:'Multiplication', q:'A tricycle has 3 wheels. How many wheels do 6 tricycles have?', opts:['9','15','18','21'], ans:'18', hint:'Multiply 6 × 3.' },
+            { id:'t109', t:1, s:'num', cat:'Multiplication', q:'What is 8 × 4?', opts:['12','24','28','32'], ans:'32', hint:'Double 8 is 16; double 16 is 32.' },
+            { id:'t110', t:2, s:'num', cat:'Multiplication', q:'Each pack holds 6 yoghurts. Mum buys 8 packs. How many yoghurts is that?', opts:['14','42','48','54'], ans:'48', hint:'Multiply 8 × 6 (or 6 × 8).' },
+            { id:'t111', t:2, s:'num', cat:'Multiplication', q:'3 boxes hold 8 markers each, and there are 5 extra markers. How many markers in total?', opts:['24','29','33','16'], ans:'29', trap:'24', trapMsg:'24 is Step 1 (3 × 8). Remember to add the 5 extra markers!', cue:'Step 1:  <code>3 × 8 = ___</code>   →   Step 2:  <code>___ + 5</code>', hint:'Find 3 × 8 first, then add 5.' },
+            { id:'t112', t:1, s:'num', cat:'Division', q:'24 sweets are shared equally between 4 children. How many sweets does each child get?', opts:['4','5','6','8'], ans:'6', hint:'Think: 4 × ? = 24.' },
+            { id:'t113', t:1, s:'num', cat:'Division', q:'30 pencils are put into boxes of 5. How many boxes are filled?', opts:['5','6','7','25'], ans:'6', hint:'Count in 5s up to 30.' },
+            { id:'t114', t:1, s:'num', cat:'Division', q:'What is 27 ÷ 3?', opts:['6','7','8','9'], ans:'9', hint:'Think: 3 × ? = 27.' },
+            { id:'t115', t:2, s:'num', cat:'Division', q:'17 cookies are shared equally among 3 friends. How many cookies are LEFT OVER?', opts:['5','2','3','1'], ans:'2', trap:'5', trapMsg:'5 is how many each friend gets — the question asks how many are LEFT OVER!', cue:'<code>17 ÷ 3 = ___ R ___</code>', hint:'3 × 5 = 15. Subtract 15 from 17 to find the remainder.' },
+            { id:'t116', t:2, s:'num', cat:'Division', q:'29 eggs are packed into boxes of 6. How many FULL boxes can be filled?', opts:['4','5','6','3'], ans:'4', trap:'5', trapMsg:'5 boxes need 30 eggs — we only have 29!', cue:'<code>6 × 4 = 24</code>  (is 6 × 5 too big?)', hint:'4 × 6 = 24 fits inside 29, with 5 eggs left over.' },
+            { id:'t117', t:1, s:'num', cat:'Fractions', q:'What is 1/2 of 18?', opts:['6','8','9','12'], ans:'9', hint:'Split 18 into 2 equal groups (18 ÷ 2).' },
+            { id:'t118', t:1, s:'num', cat:'Fractions', q:'What is 1/4 of 20?', opts:['4','5','10','16'], ans:'5', hint:'Divide 20 by 4.' },
+            { id:'t119', t:1, s:'num', cat:'Fractions', q:'What is 1/3 of 15?', opts:['3','5','6','12'], ans:'5', hint:'Divide 15 by 3.' },
+            { id:'t120', t:2, s:'num', cat:'Fractions', q:'What is 2/3 of 18?', opts:['6','9','12','15'], ans:'12', trap:'6', trapMsg:'6 is 1/3 of 18! Multiply by 2 to find 2/3.', cue:'Step 1:  <code>18 ÷ 3 = ___</code>   →   Step 2:  <code>___ × 2</code>', hint:'Divide 18 by 3 (= 6), then double it.' },
+            { id:'t121', t:1, s:'num', cat:'Decimals', q:'What is 0.2 + 0.5?', opts:['0.3','0.7','7.0','0.25'], ans:'0.7', hint:'2 tenths + 5 tenths = 7 tenths.' },
+            { id:'t122', t:1, s:'num', cat:'Decimals', q:'What is 0.8 − 0.3?', opts:['0.4','0.5','0.6','5.0'], ans:'0.5', hint:'8 tenths minus 3 tenths = 5 tenths.' },
+            { id:'t123', t:1, s:'num', cat:'Decimals', q:'Which decimal is equal to 1/2?', opts:['0.2','0.4','0.5','1.2'], ans:'0.5', hint:'Half of 10 tenths is 5 tenths (0.5).' },
+            { id:'t124', t:2, s:'num', cat:'Decimals', q:'What is 1.4 + 0.5?', opts:['1.8','1.9','2.0','1.45'], ans:'1.9', hint:'Add 4 tenths + 5 tenths = 9 tenths, keeping 1 whole.' },
+            { id:'t125', t:3, s:'num', cat:'Decimals', q:'What is 2.0 − 0.6?', opts:['1.6','1.4','1.5','2.6'], ans:'1.4', trap:'1.6', trapMsg:'Think of 20 tenths minus 6 tenths = 14 tenths (1.4)!', cue:'<code>20 tenths − 6 tenths = ___</code>', hint:'0.6 + 0.4 = 1.0, plus 1.0 more makes 2.0.' },
+            { id:'t126', t:1, s:'num', cat:'Patterns', q:'What comes next in this pattern?  15, 20, 25, 30, ☐', opts:['32','35','40','45'], ans:'35', hint:'Each jump adds 5.' },
+            { id:'t127', t:1, s:'num', cat:'Patterns', q:'Find the missing number:  18 + ☐ = 30', opts:['10','12','14','48'], ans:'12', trap:'48', trapMsg:'48 is 18 + 30! Count on from 18 to 30 instead.', cue:'<code>30 − 18 = ___</code>', hint:'18 + 2 = 20, then + 10 reaches 30.' },
+            { id:'t128', t:2, s:'num', cat:'Patterns', q:'What comes next in this pattern?  50, 44, 38, 32, ☐', opts:['24','26','28','30'], ans:'26', cue:'Find the step:  <code>50 − 44 = ___</code>', hint:'Subtract 6 each time.' },
+            { id:'t129', t:1, s:'meas', cat:'Money', q:'An apple costs 35c. You pay with a €1 coin. How much change do you get?', opts:['55c','65c','75c','45c'], ans:'65c', cue:'<code>100c − 35c = ___</code>', hint:'35c + 5c = 40c, then + 60c makes €1.00.' },
+            { id:'t130', t:1, s:'meas', cat:'Money', q:'A rubber costs 45c and a pencil costs 30c. What is the total cost?', opts:['65c','70c','75c','85c'], ans:'75c', hint:'Add 45c + 30c.' },
+            { id:'t131', t:1, s:'meas', cat:'Money', q:'A toy costs €1.20. You pay with a €2 coin. How much change do you get?', opts:['60c','70c','80c','€1.80'], ans:'80c', cue:'<code>200c − 120c = ___</code>', hint:'Count on from €1.20 to €2.00.' },
+            { id:'t132', t:2, s:'meas', cat:'Money', q:'Two bananas cost 40c each. You pay with €1.00. How much change?', opts:['80c','20c','30c','60c'], ans:'20c', trap:'80c', trapMsg:'80c is the cost of 2 bananas! Now subtract 80c from €1.00.', cue:'Step 1:  <code>40c + 40c = ___</code>   →   Step 2:  <code>100c − ___</code>', hint:'2 × 40c = 80c. Change from 100c is 20c.' },
+            { id:'t133', t:1, s:'meas', cat:'Time', q:'Look at this clock. What time does it show?', opts:['4:03','4:15','3:20','4:45'], ans:'4:15', diagram:{ type:'clock', h:4, m:15 }, hint:'Hour hand is just past 4; minute hand at 3 means 15 minutes.' },
+            { id:'t134', t:1, s:'meas', cat:'Time', q:'Break starts at 10:30 and lasts 15 minutes. What time does break finish?', opts:['10:35','10:40','10:45','11:00'], ans:'10:45', hint:'Add 15 minutes to 30 minutes.' },
+            { id:'t135', t:1, s:'meas', cat:'Time', q:'How many minutes are in 1 hour?', opts:['30 mins','45 mins','60 mins','100 mins'], ans:'60 mins', hint:'One full trip around the clock face is 60 minutes.' },
+            { id:'t136', t:1, s:'meas', cat:'Measurement', q:'How many centimetres are in 1 metre?', opts:['10 cm','50 cm','100 cm','1,000 cm'], ans:'100 cm', hint:'Centi means hundred — 100 cm = 1 m.' },
+            { id:'t137', t:1, s:'meas', cat:'Measurement', q:'How many grams are in 1/2 kg?', opts:['50 g','250 g','500 g','1,000 g'], ans:'500 g', hint:'1 kg = 1,000 g, so half of 1,000 g is 500 g.' },
+            { id:'t138', t:1, s:'meas', cat:'Measurement', q:'A pencil is 14 cm long and a crayon is 8 cm long. How much longer is the pencil?', opts:['4 cm','6 cm','8 cm','22 cm'], ans:'6 cm', hint:'Subtract 14 − 8.' },
+            { id:'t139', t:2, s:'meas', cat:'Measurement', q:'A bottle holds 500 ml of juice. You drink 150 ml. How much juice is left?', opts:['250 ml','350 ml','450 ml','300 ml'], ans:'350 ml', cue:'<code>500 ml − 150 ml = ___</code>', hint:'500 − 100 = 400, then 400 − 50 = 350.' },
+            { id:'t140', t:1, s:'data', cat:'Data', q:'How many stars did Class 3A earn?', opts:['4','6','8','10'], ans:'8', trap:'4', trapMsg:'Check the Key! Each ⭐ stands for 2 stars (4 × 2 = 8).', diagram:{ type:'picto', title:'Class Star Chart', key:'⭐ = 2 stars', icon:'⭐', rows:[['Class 3A',4],['Class 3B',3],['Class 3C',5]] }, cue:'<code>4 × 2 = ___</code>', hint:'Count the 4 stars for Class 3A and multiply by 2.' },
+            { id:'t141', t:1, s:'data', cat:'Data', q:'Look at the bar chart. Which fruit was the MOST popular?', opts:['Apples','Bananas','Grapes','Pears'], ans:'Bananas', diagram:{ type:'bar', title:'Favourite Fruit', max:12, step:2, bars:[['Apples',6,'#ef4444'],['Bananas',10,'#f59e0b'],['Grapes',4,'#8b5cf6'],['Pears',8,'#10b981']] }, hint:'Look for the tallest bar on the chart.' },
+            { id:'t142', t:1, s:'data', cat:'Chance', q:'You flip a fair coin. Landing on Heads is...', opts:['Certain','Even chance','Impossible','Unlikely'], ans:'Even chance', hint:'Heads and Tails are equally likely (1 out of 2).' },
+            { id:'t143', t:1, s:'data', cat:'Chance', q:'A bag holds 5 blue cubes and 5 red cubes. Picking a blue cube is...', opts:['Certain','Even chance','Unlikely','Impossible'], ans:'Even chance', hint:'There are the exact same number of blue and red cubes.' },
+            { id:'t144', t:2, s:'data', cat:'Chance', q:'You roll a normal 1 to 6 dice. Rolling the number 6 is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Unlikely', hint:'Only 1 out of 6 faces shows a 6.' },
+            { id:'t145', t:1, s:'data', cat:'Shapes', q:'How many sides does a PENTAGON have?', opts:['4','5','6','8'], ans:'5', hint:'Penta means 5 — a pentagon has 5 straight sides.' }
         ];
 
         function readSavedPlayMode() {
@@ -6045,7 +6116,7 @@
                 pinnedQuestions[prevMode] = currentQ;
                 pinnedAttempts[prevMode] = Math.max(0, attemptsOnCurrentQuestion || 0);
                 if (prevMode === 'test' && currentQ.__testItem && currentQ.__testItem.id) {
-                    writePinnedTestQ(currentQ.__testItem.id, pinnedAttempts.test);
+                    writePinnedTestQ(currentQ.__testItem.id, pinnedAttempts.test, currentQ.__testItem);
                 }
             }
             playMode = (prevMode === 'test') ? 'classic' : 'test';
@@ -6284,13 +6355,320 @@
             };
         }
 
+        var testBankByKeyCache = null;
+
+        function normTestQKey(q) {
+            return String(q == null ? '' : q)
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/&times;/gi, '\u00d7').replace(/&#215;/g, '\u00d7')
+                .replace(/&divide;/gi, '\u00f7').replace(/&#247;/g, '\u00f7')
+                .replace(/&minus;/gi, '\u2212')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toLowerCase();
+        }
+
+        function getTestBankByKey() {
+            if (testBankByKeyCache) return testBankByKeyCache;
+            var map = {};
+            for (var i = 0; i < TEST_BANK.length; i++) {
+                map[normTestQKey(TEST_BANK[i].q)] = TEST_BANK[i];
+            }
+            testBankByKeyCache = map;
+            return map;
+        }
+
+        function freshTestMastery() {
+            return { step: 0, byQ: {}, byCat: {} };
+        }
+
+        function readLocalTestMastery() {
+            try {
+                if (window.localStorage) {
+                    var raw = localStorage.getItem('marioMathTestMastery');
+                    if (raw) {
+                        var parsed = JSON.parse(raw);
+                        if (parsed && typeof parsed === 'object' && parsed.byQ && parsed.byCat) {
+                            parsed.step = Math.max(0, Math.floor(Number(parsed.step) || 0));
+                            return parsed;
+                        }
+                    }
+                }
+            } catch (e) {}
+            return freshTestMastery();
+        }
+
+        function writeLocalTestMastery() {
+            try {
+                if (window.localStorage && testMastery) {
+                    localStorage.setItem('marioMathTestMastery', JSON.stringify(testMastery));
+                }
+            } catch (e) {}
+        }
+
+        function ensureTestMastery() {
+            if (!testMastery) testMastery = readLocalTestMastery();
+            return testMastery;
+        }
+
+        function getCatMastery(m, cat) {
+            if (!m.byCat[cat]) {
+                m.byCat[cat] = { tier: 1, winStreak: 0, seen: 0, firstWins: 0, misses: 0 };
+            }
+            return m.byCat[cat];
+        }
+
+        function applyTestOutcomeToMastery(m, item, cleanFirstTry, hintUsed) {
+            if (!m || !item) return;
+            var qKey = normTestQKey(item.q);
+            var cat = item.cat || 'General';
+            m.step = (m.step || 0) + 1;
+            var qs = m.byQ[qKey];
+            if (!qs) qs = m.byQ[qKey] = { seen: 0, firstWins: 0, misses: 0, streak: 0, lastStep: 0, dueAt: 0 };
+            qs.seen += 1;
+            qs.lastStep = m.step;
+            if (cleanFirstTry && !hintUsed) {
+                qs.firstWins += 1;
+                qs.streak = (qs.streak || 0) + 1;
+                if (qs.misses === 0 || qs.streak >= 2) {
+                    qs.dueAt = 999999;
+                } else {
+                    qs.dueAt = m.step + 5;
+                }
+            } else {
+                qs.misses += 1;
+                qs.streak = 0;
+                qs.dueAt = m.step + 4;
+            }
+            var cs = getCatMastery(m, cat);
+            cs.seen += 1;
+            if (cleanFirstTry && !hintUsed) {
+                cs.firstWins += 1;
+                cs.winStreak = (cs.winStreak || 0) + 1;
+                if (cs.winStreak >= 2) {
+                    cs.tier = Math.min(3, (cs.tier || 1) + 1);
+                    cs.winStreak = 0;
+                }
+            } else {
+                cs.misses += 1;
+                cs.winStreak = 0;
+                cs.tier = Math.max(1, (cs.tier || 1) - 1);
+            }
+        }
+
+        function recordTestMasteryOutcome(item, cleanFirstTry, hintUsed) {
+            if (!item) return;
+            var m = ensureTestMastery();
+            applyTestOutcomeToMastery(m, item, cleanFirstTry, hintUsed);
+            writeLocalTestMastery();
+        }
+
+        function hydrateTestMasteryFromLogs(rows) {
+            if (!Array.isArray(rows) || !rows.length) return;
+            var lookup = getTestBankByKey();
+            var testRows = [];
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                if (!r || !r.question) continue;
+                var dt = asLogDate(r.timestamp);
+                if (!dt) continue;
+                var qKey = normTestQKey(r.question);
+                var matched = lookup[qKey] || null;
+                if (!matched && r.mode !== 'test') continue;
+                testRows.push({
+                    qKey: qKey,
+                    q: r.question,
+                    cat: matched ? matched.cat : (r.category || 'General'),
+                    s: matched ? matched.s : (r.strand || 'num'),
+                    t: matched ? (matched.t || 2) : 2,
+                    isCorrect: r.result === 'Correct',
+                    hintUsed: r.hintUsed === true,
+                    ts: dt.getTime()
+                });
+            }
+            if (!testRows.length) return;
+            testRows.sort(function (a, b) { return a.ts - b.ts; });
+            var instances = [];
+            for (var j = 0; j < testRows.length; j++) {
+                var row = testRows[j];
+                var prev = instances.length ? instances[instances.length - 1] : null;
+                if (prev && prev.qKey === row.qKey && !prev.resolved && (row.ts - prev.lastTs) <= 180000) {
+                    prev.lastTs = row.ts;
+                    if (row.hintUsed) prev.hintUsed = true;
+                    if (row.isCorrect) prev.resolved = true;
+                } else {
+                    instances.push({
+                        qKey: row.qKey,
+                        q: row.q,
+                        cat: row.cat,
+                        s: row.s,
+                        t: row.t,
+                        firstCorrect: row.isCorrect,
+                        resolved: row.isCorrect,
+                        hintUsed: row.hintUsed,
+                        lastTs: row.ts
+                    });
+                }
+            }
+            var rebuilt = freshTestMastery();
+            for (var k = 0; k < instances.length; k++) {
+                var inst = instances[k];
+                applyTestOutcomeToMastery(rebuilt, { q: inst.q, cat: inst.cat, s: inst.s, t: inst.t }, inst.firstCorrect && !inst.hintUsed, inst.hintUsed);
+            }
+            testMastery = rebuilt;
+            testMasteryHydrated = true;
+            writeLocalTestMastery();
+        }
+
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArr(arr) {
+            var out = arr.slice();
+            for (var i = out.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var tmp = out[i];
+                out[i] = out[j];
+                out[j] = tmp;
+            }
+            return out;
+        }
+
+        function uniqueOpts(ansStr, candList) {
+            var set = [ansStr];
+            for (var i = 0; i < candList.length && set.length < 4; i++) {
+                var c = String(candList[i]);
+                if (c && set.indexOf(c) === -1) set.push(c);
+            }
+            var n = 1;
+            while (set.length < 4) {
+                var num = parseInt(ansStr.replace(/[^0-9-]/g, ''), 10);
+                var pad = isNaN(num) ? (ansStr + ' ' + n) : String(num + n * 3);
+                if (set.indexOf(pad) === -1) set.push(pad);
+                n++;
+            }
+            return shuffleArr(set);
+        }
+
+        function fmtEuro(cents) {
+            if (cents < 100) return cents + 'c';
+            return '\u20ac' + (cents / 100).toFixed(2);
+        }
+
+        function makeHillClimbVariant(cat, tier) {
+            var t = Math.max(1, Math.min(3, tier || 1));
+            var id = 'v_' + cat.toLowerCase().replace(/[^a-z]/g, '') + '_' + Date.now().toString(36).slice(-4) + randInt(10, 99);
+            if (cat === 'Subtraction') {
+                var a, b, ans, trap, q, cue, hint;
+                if (t === 1) {
+                    var t1 = randInt(5, 9), u1 = randInt(1, 5);
+                    var t2 = randInt(1, t1 - 2), u2 = randInt(u1 + 2, 9);
+                    a = t1 * 10 + u1; b = t2 * 10 + u2; ans = a - b;
+                    trap = (t1 - t2) * 10 + (u2 - u1);
+                    q = 'Work out ' + a + ' \u2212 ' + b + '.';
+                    cue = 'Write T | U:  <code>' + a + ' \u2212 ' + b + '</code>  (rename 1 ten into 10 units)';
+                    hint = a + ' \u2212 ' + (t2 * 10) + ' = ' + (a - t2 * 10) + ', then subtract ' + u2 + '.';
+                } else if (t === 2) {
+                    a = randInt(2, 5) * 100 + randInt(2, 6) * 10 + randInt(1, 4);
+                    b = randInt(1, 1) * 100 + randInt(3, 8) * 10 + randInt(6, 9);
+                    if (b >= a - 20) b = a - randInt(55, 135);
+                    ans = a - b; trap = ans + 10;
+                    q = 'Work out ' + a + ' \u2212 ' + b + '.';
+                    cue = 'Write H | T | U:  <code>' + a + ' \u2212 ' + b + '</code>';
+                    hint = 'Write in columns and rename carefully when the top digit is smaller.';
+                } else {
+                    a = randInt(4, 9) * 100 + randInt(1, 6);
+                    b = randInt(1, 3) * 100 + randInt(3, 8) * 10 + randInt(7, 9);
+                    ans = a - b; trap = ans + 100;
+                    q = 'Work out ' + a + ' \u2212 ' + b + '.';
+                    cue = 'Write H | T | U:  <code>' + a + ' \u2212 ' + b + '</code>  (rename across the 0)';
+                    hint = 'Rename across the zero carefully on your rough sheet.';
+                }
+                return { id: id, t: t, s: 'num', cat: 'Subtraction', q: q, opts: uniqueOpts(String(ans), [String(trap), String(ans + 10), String(Math.max(1, ans - 10)), String(ans + 2)]), ans: String(ans), trap: String(trap), trapMsg: 'Check your renaming column by column on your rough sheet!', cue: cue, hint: hint };
+            }
+            if (cat === 'Addition') {
+                var x, y, sum, tr;
+                if (t === 1) {
+                    x = randInt(2, 6) * 10 + randInt(6, 9);
+                    y = randInt(1, 4) * 10 + randInt(5, 9);
+                    sum = x + y; tr = sum - 10;
+                } else {
+                    x = randInt(2, 5) * 100 + randInt(5, 9) * 10 + randInt(5, 9);
+                    y = randInt(1, 3) * 100 + randInt(4, 8) * 10 + randInt(5, 9);
+                    sum = x + y; tr = sum - 10;
+                }
+                return { id: id, t: t, s: 'num', cat: 'Addition', q: 'Work out ' + x + ' + ' + y + '.', opts: uniqueOpts(String(sum), [String(tr), String(sum + 10), String(sum - 100 > 0 ? sum - 100 : sum + 1), String(sum + 2)]), ans: String(sum), trap: String(tr), trapMsg: 'Check your carried 1 on your rough sheet!', cue: 'Write in columns:  <code>' + x + ' + ' + y + '</code>', hint: 'Add units first, carry 1 ten if it is 10 or more.' };
+            }
+            if (cat === 'Multiplication') {
+                var m1, m2, ext, res;
+                if (t === 1) {
+                    m1 = randInt(3, 8); m2 = randInt(3, 6); res = m1 * m2;
+                    return { id: id, t: 1, s: 'num', cat: 'Multiplication', q: 'There are ' + m1 + ' boxes with ' + m2 + ' pencils in each box. How many pencils altogether?', opts: uniqueOpts(String(res), [String(m1 + m2), String(res + m2), String(Math.max(2, res - m2))]), ans: String(res), hint: 'Multiply ' + m1 + ' \u00d7 ' + m2 + '.' };
+                }
+                m1 = randInt(3, 7); m2 = randInt(6, 9); ext = randInt(3, 8); res = m1 * m2 + ext;
+                return { id: id, t: t, s: 'num', cat: 'Multiplication', q: 'There are ' + m1 + ' packs of ' + m2 + ' cards and ' + ext + ' loose cards. How many cards in total?', opts: uniqueOpts(String(res), [String(m1 * m2), String(res + 4), String(Math.max(2, res - 3))]), ans: String(res), trap: String(m1 * m2), trapMsg: (m1 * m2) + ' is Step 1 (' + m1 + ' \u00d7 ' + m2 + '). Remember to add the ' + ext + ' loose cards!', cue: 'Step 1:  <code>' + m1 + ' \u00d7 ' + m2 + ' = ___</code>   \u2192   Step 2:  <code>___ + ' + ext + '</code>', hint: 'Multiply first, then add the extra cards.' };
+            }
+            if (cat === 'Division') {
+                var d = randInt(3, 6);
+                if (t === 1) {
+                    var qn = randInt(4, 9), tot = d * qn;
+                    return { id: id, t: 1, s: 'num', cat: 'Division', q: tot + ' stickers are shared equally between ' + d + ' friends. How many does each friend get?', opts: uniqueOpts(String(qn), [String(qn - 1), String(qn + 1), String(qn + 2)]), ans: String(qn), hint: 'Think: ' + d + ' \u00d7 ? = ' + tot + '.' };
+                }
+                var full = randInt(4, 8), rem = randInt(1, d - 1), total = d * full + rem;
+                return { id: id, t: t, s: 'num', cat: 'Division', q: total + ' marbles are shared equally among ' + d + ' friends. How many marbles are LEFT OVER?', opts: uniqueOpts(String(rem), [String(full), String(rem + 1), String(Math.max(1, rem + 2))]), ans: String(rem), trap: String(full), trapMsg: full + ' is how many each friend gets — read the question: how many are LEFT OVER?', cue: '<code>' + total + ' \u00f7 ' + d + ' = ___ R ___</code>', hint: d + ' \u00d7 ' + full + ' = ' + (d * full) + '. Subtract from ' + total + '.' };
+            }
+            if (cat === 'Fractions') {
+                var den = t === 1 ? [2, 3, 4][randInt(0, 2)] : [3, 4, 5][randInt(0, 2)];
+                var num = t === 1 ? 1 : (den - 1);
+                var unit = randInt(3, 8);
+                var whole = den * unit;
+                var val = num * unit;
+                return { id: id, t: t, s: 'num', cat: 'Fractions', q: 'Find ' + num + '/' + den + ' of ' + whole + '.', opts: uniqueOpts(String(val), [String(unit), String(val + unit), String(Math.max(1, val - unit)), String(val + 2)]), ans: String(val), trap: num > 1 ? String(unit) : undefined, trapMsg: num > 1 ? (unit + ' is 1/' + den + ' of ' + whole + '! Multiply by ' + num + ' to find ' + num + '/' + den + '.') : undefined, cue: num > 1 ? ('Step 1:  <code>' + whole + ' \u00f7 ' + den + ' = ___</code>   \u2192   Step 2:  <code>___ \u00d7 ' + num + '</code>') : ('<code>' + whole + ' \u00f7 ' + den + ' = ___</code>'), hint: 'Divide ' + whole + ' by ' + den + (num > 1 ? ', then multiply by ' + num + '.' : '.') };
+            }
+            if (cat === 'Decimals') {
+                if (t === 1) {
+                    var a1 = randInt(2, 5), b1 = randInt(1, 9 - a1);
+                    var r1 = ((a1 + b1) / 10).toFixed(1);
+                    return { id: id, t: 1, s: 'num', cat: 'Decimals', q: 'Work out 0.' + a1 + ' + 0.' + b1 + '.', opts: uniqueOpts(r1, [((a1 + b1 - 1) / 10).toFixed(1), '0.' + a1 + b1, ((a1 + b1) + '.0')]), ans: r1, hint: a1 + ' tenths + ' + b1 + ' tenths.' };
+                }
+                var wholeDec = t === 2 ? 10 : 20;
+                var subDec = randInt(2, 8);
+                var ansDec = ((wholeDec - subDec) / 10).toFixed(1);
+                return { id: id, t: t, s: 'num', cat: 'Decimals', q: 'Work out ' + (wholeDec / 10).toFixed(1) + ' \u2212 0.' + subDec + '.', opts: uniqueOpts(ansDec, [((wholeDec - subDec + 1) / 10).toFixed(1), ((wholeDec - subDec - 1) / 10).toFixed(1), ((wholeDec + subDec) / 10).toFixed(1)]), ans: ansDec, cue: '<code>' + wholeDec + ' tenths \u2212 ' + subDec + ' tenths = ___</code>', hint: 'Count on from 0.' + subDec + ' to ' + (wholeDec / 10).toFixed(1) + '.' };
+            }
+            if (cat === 'Money') {
+                if (t === 1) {
+                    var cost = randInt(2, 8) * 10 + 5;
+                    var chg = 100 - cost;
+                    return { id: id, t: 1, s: 'meas', cat: 'Money', q: 'A snack costs ' + cost + 'c. You pay with a \u20ac1 coin. How much change do you get?', opts: uniqueOpts(chg + 'c', [(chg + 10) + 'c', Math.max(5, chg - 10) + 'c', (chg + 5) + 'c']), ans: chg + 'c', cue: '<code>100c \u2212 ' + cost + 'c = ___</code>', hint: 'Count on from ' + cost + 'c to 100c.' };
+                }
+                var qty = randInt(2, 4);
+                var unitC = [35, 45, 55, 65, 75][randInt(0, 4)];
+                var bill = qty * unitC;
+                var pay = bill < 200 ? 200 : 500;
+                var change = pay - bill;
+                return { id: id, t: t, s: 'meas', cat: 'Money', q: 'You buy ' + qty + ' items at ' + unitC + 'c each and pay with ' + fmtEuro(pay) + '. How much change do you get?', opts: uniqueOpts(fmtEuro(change), [fmtEuro(bill), fmtEuro(change + 10), fmtEuro(Math.max(5, change - 10))]), ans: fmtEuro(change), trap: fmtEuro(bill), trapMsg: fmtEuro(bill) + ' is Step 1 (total cost). Now subtract from ' + fmtEuro(pay) + '!', cue: 'Step 1:  <code>' + qty + ' \u00d7 ' + unitC + 'c = ___</code>   \u2192   Step 2:  <code>' + pay + 'c \u2212 ___</code>', hint: 'Multiply ' + qty + ' \u00d7 ' + unitC + 'c first, then subtract from ' + fmtEuro(pay) + '.' };
+            }
+            if (cat === 'Measurement') {
+                var used = randInt(2, 7) * 100 + [0, 50][randInt(0, 1)];
+                var left = 1000 - used;
+                return { id: id, t: t, s: 'meas', cat: 'Measurement', q: 'A bag holds 1 kg of rice. You use ' + used + ' g. How much rice is left?', opts: uniqueOpts(left + ' g', [(left + 100) + ' g', Math.max(50, left - 100) + ' g', used + ' g']), ans: left + ' g', cue: '<code>1000 g \u2212 ' + used + ' g = ___</code>', hint: '1 kg = 1,000 g. Subtract ' + used + ' g from 1,000 g.' };
+            }
+            return null;
+        }
+
         function readPinnedTestQ() {
             try {
                 if (window.localStorage) {
                     var raw = localStorage.getItem('marioMathActiveTestQ');
                     if (!raw) return null;
                     var parsed = JSON.parse(raw);
-                    if (!parsed || !parsed.id) return null;
+                    if (!parsed) return null;
+                    if (parsed.item && parsed.item.q && parsed.item.ans) {
+                        return { qObj: makeTestQObj(parsed.item), attempts: Math.max(0, Math.floor(Number(parsed.attempts) || 0)) };
+                    }
+                    if (!parsed.id) return null;
                     for (var i = 0; i < TEST_BANK.length; i++) {
                         if (TEST_BANK[i].id === parsed.id) {
                             return { qObj: makeTestQObj(TEST_BANK[i]), attempts: Math.max(0, Math.floor(Number(parsed.attempts) || 0)) };
@@ -6301,10 +6679,12 @@
             return null;
         }
 
-        function writePinnedTestQ(id, attempts) {
+        function writePinnedTestQ(id, attempts, itemObj) {
             try {
                 if (window.localStorage && id) {
-                    localStorage.setItem('marioMathActiveTestQ', JSON.stringify({ id: String(id), attempts: Math.max(0, Math.floor(Number(attempts) || 0)) }));
+                    var payload = { id: String(id), attempts: Math.max(0, Math.floor(Number(attempts) || 0)) };
+                    if (String(id).indexOf('v_') === 0 && itemObj) payload.item = itemObj;
+                    localStorage.setItem('marioMathActiveTestQ', JSON.stringify(payload));
                 }
             } catch (e) {}
         }
@@ -6315,20 +6695,151 @@
             } catch (e) {}
         }
 
+        function pickFromList(list) {
+            if (!list || !list.length) return null;
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
         function pickTestQuestion() {
+            var m = ensureTestMastery();
             var qSlot = Math.max(0, Math.floor(finiteNumber(gameState && gameState.questionsAnsweredLevel) || 0)) % 10;
             var plan = ['num','meas','data','num','meas','data','num','data','meas','num'];
             var wantStrand = plan[qSlot] || 'num';
-            var candidates = TEST_BANK.filter(function (item) {
-                return item.s === wantStrand && recentTestIds.indexOf(item.id) === -1;
-            });
-            if (!candidates.length) {
-                candidates = TEST_BANK.filter(function (item) { return item.s === wantStrand; });
+            var recentShort = recentTestIds.slice(-4);
+            var chosen = null;
+            var isRetryPick = false;
+
+            if ((m.step - lastRetryStep) >= 2) {
+                var dueList = TEST_BANK.filter(function (item) {
+                    if (recentShort.indexOf(item.id) !== -1) return false;
+                    var st = m.byQ[normTestQKey(item.q)];
+                    return st && st.seen > 0 && (st.misses > 0 || st.firstWins === 0) && (st.streak || 0) < 2 && (st.dueAt || 0) <= m.step;
+                });
+                if (dueList.length) {
+                    dueList.sort(function (a, b) {
+                        var sa = m.byQ[normTestQKey(a.q)];
+                        var sb = m.byQ[normTestQKey(b.q)];
+                        return (sa.dueAt - sb.dueAt) || (sb.misses - sa.misses);
+                    });
+                    var dueItem = dueList[0];
+                    var dueCatState = getCatMastery(m, dueItem.cat);
+                    var dueQState = m.byQ[normTestQKey(dueItem.q)];
+                    if ((dueItem.t || 2) > dueCatState.tier) {
+                        var bridge = TEST_BANK.filter(function (x) {
+                            var xs = m.byQ[normTestQKey(x.q)];
+                            return x.cat === dueItem.cat && (x.t || 1) <= dueCatState.tier && (!xs || xs.seen === 0);
+                        });
+                        chosen = pickFromList(bridge) || makeHillClimbVariant(dueItem.cat, dueCatState.tier);
+                    }
+                    if (!chosen) {
+                        if (dueQState && dueQState.misses >= 2 && Math.random() < 0.5) {
+                            chosen = makeHillClimbVariant(dueItem.cat, dueItem.t || 2) || dueItem;
+                        } else {
+                            chosen = dueItem;
+                        }
+                        isRetryPick = true;
+                        lastRetryStep = m.step;
+                    }
+                }
             }
-            var item = candidates[Math.floor(Math.random() * candidates.length)] || TEST_BANK[0];
-            recentTestIds.push(item.id);
-            if (recentTestIds.length > 26) recentTestIds.shift();
-            return makeTestQObj(item);
+
+            if (!chosen) {
+                var allCats = [];
+                var catSeenMap = {};
+                for (var i = 0; i < TEST_BANK.length; i++) {
+                    var cName = TEST_BANK[i].cat;
+                    if (!catSeenMap[cName]) {
+                        catSeenMap[cName] = TEST_BANK[i].s;
+                        allCats.push(cName);
+                    }
+                }
+                var untriedCats = allCats.filter(function (c) {
+                    return !m.byCat[c] || m.byCat[c].seen === 0;
+                });
+                if (untriedCats.length) {
+                    var strandUntried = untriedCats.filter(function (c) { return catSeenMap[c] === wantStrand && c !== lastTestCat; });
+                    var pickCat = pickFromList(strandUntried) || pickFromList(untriedCats.filter(function (c) { return c !== lastTestCat; })) || untriedCats[0];
+                    var diagPool = TEST_BANK.filter(function (x) { return x.cat === pickCat && (x.t || 1) === 1; });
+                    if (!diagPool.length) diagPool = TEST_BANK.filter(function (x) { return x.cat === pickCat; });
+                    chosen = pickFromList(diagPool);
+                }
+            }
+
+            if (!chosen) {
+                var weakCats = Object.keys(m.byCat).filter(function (c) {
+                    var st = m.byCat[c];
+                    return st && st.seen > 0 && ((st.firstWins / st.seen) < 0.8 || (st.tier || 1) < 3);
+                });
+                if (weakCats.length && Math.random() < 0.65) {
+                    weakCats.sort(function (a, b) {
+                        var sa = m.byCat[a], sb = m.byCat[b];
+                        var ra = sa.firstWins / Math.max(1, sa.seen);
+                        var rb = sb.firstWins / Math.max(1, sb.seen);
+                        return (ra - rb) || ((sa.tier || 1) - (sb.tier || 1));
+                    });
+                    var altWeak = weakCats.filter(function (c) { return c !== lastTestCat; });
+                    var topWeak = altWeak.length ? altWeak.slice(0, 3) : weakCats.slice(0, 2);
+                    var targetCat = pickFromList(topWeak);
+                    var targetTier = getCatMastery(m, targetCat).tier || 1;
+                    var unseenTier = TEST_BANK.filter(function (x) {
+                        var xs = m.byQ[normTestQKey(x.q)];
+                        return x.cat === targetCat && (x.t || 1) === targetTier && (!xs || xs.seen === 0) && recentTestIds.indexOf(x.id) === -1;
+                    });
+                    var unseenAny = unseenTier.length ? unseenTier : TEST_BANK.filter(function (x) {
+                        var xs = m.byQ[normTestQKey(x.q)];
+                        return x.cat === targetCat && (!xs || xs.seen === 0) && recentTestIds.indexOf(x.id) === -1;
+                    });
+                    chosen = pickFromList(unseenAny);
+                    if (!chosen) {
+                        chosen = makeHillClimbVariant(targetCat, targetTier);
+                    }
+                    if (!chosen) {
+                        var retryCatPool = TEST_BANK.filter(function (x) {
+                            return x.cat === targetCat && recentShort.indexOf(x.id) === -1;
+                        });
+                        chosen = pickFromList(retryCatPool);
+                    }
+                }
+            }
+
+            if (!chosen) {
+                var unseenStrand = TEST_BANK.filter(function (x) {
+                    var xs = m.byQ[normTestQKey(x.q)];
+                    var ct = getCatMastery(m, x.cat).tier || 1;
+                    return x.s === wantStrand && (!xs || xs.seen === 0) && (x.t || 1) <= ct + 1 && x.cat !== lastTestCat;
+                });
+                if (!unseenStrand.length) {
+                    unseenStrand = TEST_BANK.filter(function (x) {
+                        var xs = m.byQ[normTestQKey(x.q)];
+                        return x.s === wantStrand && (!xs || xs.seen === 0);
+                    });
+                }
+                if (!unseenStrand.length) {
+                    unseenStrand = TEST_BANK.filter(function (x) {
+                        var xs = m.byQ[normTestQKey(x.q)];
+                        return !xs || xs.seen === 0;
+                    });
+                }
+                chosen = pickFromList(unseenStrand);
+            }
+
+            if (!chosen) {
+                var fallbackPool = TEST_BANK.filter(function (x) {
+                    return x.s === wantStrand && recentTestIds.indexOf(x.id) === -1;
+                });
+                if (!fallbackPool.length) fallbackPool = TEST_BANK.filter(function (x) { return x.s === wantStrand; });
+                chosen = pickFromList(fallbackPool) || TEST_BANK[0];
+            }
+
+            if (isRetryPick) {
+                chosen = Object.assign({}, chosen, { __isRetry: true });
+            }
+            lastTestCat = chosen.cat || '';
+            if (chosen.id && String(chosen.id).indexOf('v_') !== 0) {
+                recentTestIds.push(chosen.id);
+                if (recentTestIds.length > 26) recentTestIds.shift();
+            }
+            return makeTestQObj(chosen);
         }
 
         function readTestQuestion() {
@@ -6492,7 +7003,7 @@
                         pinnedQuestions.test = picked;
                         pinnedAttempts.test = 0;
                         if (picked && picked.__testItem && picked.__testItem.id) {
-                            writePinnedTestQ(picked.__testItem.id, 0);
+                            writePinnedTestQ(picked.__testItem.id, 0, picked.__testItem);
                         }
                     }
                 }
@@ -6530,12 +7041,19 @@
             var tItem = currentQ && currentQ.__testItem ? currentQ.__testItem : null;
             var qNumEl = document.getElementById('testQNum');
             var strandEl = document.getElementById('testStrand');
+            var tierEl = document.getElementById('testTier');
             var roughEl = document.getElementById('roughCue');
             if (inTest && tItem) {
                 var partLbl = (gameState.stage % 2 === 0) ? 'PART B' : 'PART A';
                 var numNow = Math.min(10, Math.max(1, (Math.floor(finiteNumber(gameState.questionsAnsweredLevel) || 0) + 1)));
                 if (qNumEl) qNumEl.textContent = partLbl + ' · Q' + numNow + ' OF 10';
                 if (strandEl) strandEl.textContent = (TEST_STRAND_META[tItem.s] && TEST_STRAND_META[tItem.s].label) || tItem.cat;
+                if (tierEl) {
+                    var tLvl = Math.max(1, Math.min(3, tItem.t || 1));
+                    tierEl.className = 'test-tier' + (tItem.__isRetry ? ' is-retry' : (tLvl === 2 ? ' t-2' : (tLvl === 3 ? ' t-3' : '')));
+                    tierEl.textContent = tItem.__isRetry ? '🔁 Retry · Step ' + tLvl : 'Step ' + tLvl;
+                    tierEl.hidden = false;
+                }
                 try { renderTestDiagram(tItem.diagram || null); } catch (e) {}
                 if (roughEl) {
                     if (tItem.cue) {
@@ -6547,6 +7065,7 @@
                     }
                 }
             } else {
+                if (tierEl) tierEl.hidden = true;
                 try { renderTestDiagram(null); } catch (e) {}
                 if (roughEl) { roughEl.hidden = true; roughEl.innerHTML = ''; }
                 try { renderQuestionVisual(currentQ); } catch (e) {}
@@ -6647,6 +7166,7 @@
                 if (!tItem) {
                     try { notePractice(currentQ, true); } catch (e) {}
                 } else {
+                    try { recordTestMasteryOutcome(tItem, attemptsOnCurrentQuestion === 0 && !hintRevealed, hintRevealed === true); } catch (e) {}
                     if (testRoundStats[tItem.s]) {
                         testRoundStats[tItem.s][1] += 1;
                         if (attemptsOnCurrentQuestion === 0) testRoundStats[tItem.s][0] += 1;
@@ -6694,7 +7214,7 @@
                 attemptsOnCurrentQuestion++;
                 var missedMode = tItem ? 'test' : 'classic';
                 pinnedAttempts[missedMode] = attemptsOnCurrentQuestion;
-                if (tItem && tItem.id) writePinnedTestQ(tItem.id, attemptsOnCurrentQuestion);
+                if (tItem && tItem.id) writePinnedTestQ(tItem.id, attemptsOnCurrentQuestion, tItem);
                 if (attemptsOnCurrentQuestion === 1) {
                     try { resetSuperStreak(); } catch (e) {}
                     if (!tItem) {

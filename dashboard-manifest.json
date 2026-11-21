@@ -1,0 +1,37 @@
+{
+  "id": "./dashboard.html",
+  "name": "Super Math Parent Dashboard",
+  "short_name": "Math Stats",
+  "description": "Review Test Mode readiness, strand progress, and session history.",
+  "start_url": "./dashboard.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "dashboard-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "dashboard-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "dashboard-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "dashboard-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

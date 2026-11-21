@@ -272,7 +272,7 @@ async function main() {
     let logs = await logsOf(desktop);
     check('correct-first still has no hint', state.slotHidden, JSON.stringify(state));
     check('correct-first logs one attempt without hintUsed', logs.length === 1 && logs[0].result === 'Correct' && logs[0].hasHintUsed === false && logs[0].user === 'player@example.com' && logs[0].category === 'Addition', JSON.stringify(logs));
-    check('build id is current', await desktop.evaluate(function () { return APP_BUILD; }) === '2026-11-20a');
+    check('build id is current', await desktop.evaluate(function () { return APP_BUILD; }) === '2026-11-21a');
     check('visual helper renders on maths and hides on fun', await desktop.evaluate(function () {
       var vis = document.getElementById('qVisual');
       var hero = document.getElementById('heroSprite');

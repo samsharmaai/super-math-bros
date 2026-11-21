@@ -2163,6 +2163,439 @@
             .bush-b { right: 12%; }
             .xmas-snowman, .diwali-rangoli { right: 15%; width: 44px; }
         }
+        .top-left-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: auto;
+        }
+        .mode-btn {
+            position: relative;
+            margin: 0;
+            min-height: 36px;
+            box-sizing: border-box;
+            background: rgba(8, 23, 64, 0.88);
+            color: #fef08a;
+            border: 2px solid rgba(253, 224, 71, 0.92);
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 8.5px;
+            line-height: 1.2;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.38);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.12s ease, background-color 0.14s ease, border-color 0.14s ease;
+            pointer-events: auto;
+        }
+        body.mode-test .mode-btn {
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+            color: #141a29;
+            border-color: #ffffff;
+        }
+        .mode-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.38); }
+        .compact-hud {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 5px 11px;
+            border-radius: 999px;
+            background: rgba(12, 20, 56, 0.9);
+            border: 2px solid rgba(253, 224, 71, 0.72);
+            color: #ffffff;
+            font-family: Verdana, sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+            pointer-events: auto;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.32);
+        }
+        body.mode-test .compact-hud { display: inline-flex; }
+        body.mode-test .hud,
+        body.mode-test .day-strip { display: none !important; }
+        .ch-stat { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+        .ch-coins { color: #fde047; }
+        .ch-btn {
+            appearance: none;
+            -webkit-appearance: none;
+            border: 1.5px solid rgba(255, 255, 255, 0.65);
+            border-radius: 999px;
+            background: rgba(30, 58, 138, 0.85);
+            color: #bae6fd;
+            font-family: Verdana, sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+        .ch-btn.is-ready { background: #f59e0b; color: #0f172a; border-color: #fef08a; }
+        .ch-quest { background: #fbbf24; color: #0f172a; border-color: #78350f; }
+        body.mode-test .question-container {
+            margin-top: 52px;
+            margin-bottom: 92px;
+            justify-content: center;
+        }
+        body.mode-test .question-board {
+            order: 1;
+            width: min(690px, 95%);
+            background: #f8fafc;
+            color: #0f172a;
+            border: 3px solid #fbbf24;
+            border-radius: 18px;
+            padding: 13px 16px 13px;
+            text-align: left;
+            box-shadow: 0 8px 0 rgba(15, 23, 42, 0.42), 0 14px 28px rgba(0, 0, 0, 0.28);
+        }
+        body.mode-test .q-bolt,
+        body.mode-test .q-lights,
+        body.mode-test .q-toran,
+        body.mode-test .q-category-badge,
+        body.mode-test .q-visual { display: none !important; }
+        .test-card-head {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding-bottom: 8px;
+            margin-bottom: 9px;
+            border-bottom: 1.5px solid #e2e8f0;
+            font-family: Verdana, sans-serif;
+        }
+        body.mode-test .test-card-head { display: flex; }
+        .test-head-left { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .test-q-num {
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: #e0e7ff;
+            color: #312e81;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .test-strand {
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .test-read-btn {
+            appearance: none;
+            -webkit-appearance: none;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 999px;
+            background: #eef2f7;
+            color: #1e293b;
+            font-family: Verdana, sans-serif;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+        .test-read-btn:hover { background: #dbeafe; border-color: #93c5fd; }
+        body.mode-test .question-text {
+            color: #0f172a;
+            text-shadow: none;
+            font-size: 20px;
+            line-height: 1.38;
+            text-align: left;
+            max-height: none;
+        }
+        .test-diagram {
+            margin-top: 9px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 8px 11px;
+            color: #0f172a;
+            font-family: Verdana, sans-serif;
+            font-size: 12.5px;
+            text-align: left;
+        }
+        .test-diagram[hidden] { display: none !important; }
+        .td-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding-bottom: 5px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 800;
+            font-size: 12px;
+            color: #1e293b;
+        }
+        .td-key {
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #e0e7ff;
+            color: #312e81;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .td-picto-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1.55;
+            font-weight: 700;
+            font-size: 12.5px;
+        }
+        .td-picto-lbl { width: 84px; color: #475569; flex-shrink: 0; }
+        .td-picto-icons { letter-spacing: 2px; font-size: 14px; }
+        .td-svg-wrap { display: flex; justify-content: center; align-items: center; }
+        .td-svg { display: block; max-width: 100%; max-height: 136px; height: auto; }
+        .td-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .td-table th, .td-table td {
+            border: 1px solid #cbd5e1;
+            padding: 4px 7px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .td-table th { background: #e0e7ff; color: #1e1b4b; }
+        .td-cal th { font-size: 10.5px; padding: 3px 4px; }
+        .td-cal td { font-size: 11.5px; padding: 3px 4px; }
+        .td-cal td.is-hi { background: #fef08a; color: #78350f; }
+        .rough-cue {
+            margin-top: 9px;
+            padding: 7px 11px;
+            border-radius: 10px;
+            border: 2px dashed #f59e0b;
+            background: #fffbeb;
+            color: #78350f;
+            font-family: Verdana, sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            line-height: 1.4;
+            text-align: left;
+        }
+        .rough-cue[hidden] { display: none !important; }
+        .rough-cue code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12.5px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 1px 5px;
+            border-radius: 5px;
+            color: #0f172a;
+        }
+        body.mode-test .status-dock {
+            order: 3;
+            width: min(690px, 95%);
+            height: auto;
+            min-height: 46px;
+            max-height: none;
+            margin-top: 10px;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        body.mode-test .status-dock::before { display: none; }
+        .test-check-btn {
+            display: none;
+            appearance: none;
+            -webkit-appearance: none;
+            border: 2.5px solid #ffffff;
+            border-radius: 11px;
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9.5px;
+            line-height: 1.25;
+            padding: 11px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 4px 0 #065f46, 0 8px 14px rgba(0, 0, 0, 0.25);
+            touch-action: manipulation;
+            margin-left: auto;
+        }
+        body.mode-test .test-check-btn { display: inline-flex; align-items: center; gap: 6px; }
+        .test-check-btn:disabled { opacity: 0.45; cursor: default; box-shadow: 0 2px 0 #065f46; }
+        .test-check-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #065f46; }
+        .test-trap-tip {
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 7px 11px;
+            border-radius: 10px;
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            color: #78350f;
+            font-family: Verdana, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.35;
+            text-align: left;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.24);
+        }
+        .test-trap-tip[hidden] { display: none !important; }
+        body.mode-test .answers-grid {
+            order: 2;
+            width: min(690px, 95%);
+            max-width: 690px;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            margin-top: 10px;
+        }
+        body.mode-test .answers-grid.is-stacked { grid-template-columns: 1fr; gap: 7px; }
+        .brick-btn.test-opt {
+            background-color: #ffffff !important;
+            background-image: none !important;
+            color: #0f172a;
+            border: 2.5px solid #cbd5e1;
+            border-radius: 12px;
+            text-shadow: none;
+            box-shadow: 0 3px 0 rgba(15, 23, 42, 0.28);
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 10px 13px;
+            font-size: 18px;
+            min-height: 52px;
+            max-height: 76px;
+            text-align: left;
+            line-height: 1.2;
+        }
+        .brick-btn.test-opt.is-selected {
+            border-color: #4f46e5 !important;
+            background-color: #eef2ff !important;
+            color: #1e1b4b;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35), 0 3px 0 #3730a3;
+        }
+        .opt-letter {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid #94a3b8;
+            background: #f8fafc;
+            color: #334155;
+            font-family: Verdana, sans-serif;
+            font-size: 12px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .brick-btn.test-opt.is-selected .opt-letter {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: #ffffff;
+        }
+        .brick-btn.test-opt.is-correct {
+            background-color: #dcfce7 !important;
+            border-color: #16a34a !important;
+            color: #14532d !important;
+        }
+        .brick-btn.test-opt.is-correct .opt-letter {
+            background: #16a34a;
+            border-color: #16a34a;
+            color: #ffffff;
+        }
+        .brick-btn.test-opt.is-wrong {
+            background-color: #fee2e2 !important;
+            border-color: #dc2626 !important;
+            color: #7f1d1d !important;
+        }
+        .brick-btn.test-opt.is-wrong .opt-letter {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #ffffff;
+        }
+        .test-strand-recap {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 7px;
+        }
+        .test-strand-recap[hidden] { display: none !important; }
+        .tsr-chip {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 5px 4px;
+            font-family: Verdana, sans-serif;
+            text-align: center;
+        }
+        .tsr-lbl { display: block; font-size: 9.5px; font-weight: 800; color: #475569; text-transform: uppercase; }
+        .tsr-val { display: block; font-size: 14px; font-weight: 900; color: #1e293b; margin-top: 2px; }
+        .rough-bonus-btn {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 8px 0 0;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 2.5px dashed #fbbf24;
+            background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+            color: #78350f;
+            font-family: Verdana, sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+            touch-action: manipulation;
+        }
+        .rough-bonus-btn[hidden] { display: none !important; }
+        .rough-bonus-btn.is-claimed {
+            border-style: solid;
+            border-color: #16a34a;
+            background: #dcfce7;
+            color: #14532d;
+            cursor: default;
+        }
+        @media (max-width: 639px) {
+            body.mode-test .top-controls {
+                flex-wrap: wrap;
+                row-gap: 5px;
+            }
+            body.mode-test .compact-hud {
+                order: 3;
+                margin: 0 auto;
+                padding: 3px 10px;
+                font-size: 11px;
+                gap: 7px;
+            }
+            body.mode-test .question-container {
+                margin-top: 78px;
+                margin-bottom: 84px;
+            }
+            body.mode-test .question-board { padding: 11px 12px 11px; }
+            body.mode-test .question-text { font-size: 16.5px; }
+            .td-svg { max-height: 110px; }
+            .rough-cue { font-size: 11.5px; padding: 6px 9px; }
+            .brick-btn.test-opt { font-size: 15.5px; padding: 8px 10px; min-height: 46px; gap: 7px; }
+            .opt-letter { width: 22px; height: 22px; font-size: 11px; }
+            .test-check-btn { font-size: 8.5px; padding: 9px 12px; }
+        }
+        @media (max-width: 460px) {
+            .mode-btn { font-size: 7.2px; padding: 6px 8px; min-height: 34px; gap: 4px; }
+        }
+        @media (min-width: 900px) and (max-height: 840px) {
+            body.mode-test .question-container { margin-top: 46px; margin-bottom: 60px; }
+            .td-svg { max-height: 122px; }
+        }
         @media (prefers-reduced-motion: reduce) {
             .cloud-track, .cloud-track-back,
             .snowflake, .diwali-spark, .diwali-bloom, .q-bulb, .q-diya-mini::before,
@@ -2198,7 +2631,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-20a</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-21a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -2223,7 +2656,9 @@
             <div class="recap-card">
                 <p class="level-recap" id="levelRecap"></p>
                 <p class="level-tricky" id="levelTricky"></p>
+                <div id="testStrandRecap" class="test-strand-recap" hidden></div>
             </div>
+            <button type="button" class="rough-bonus-btn" id="roughBonusBtn" onclick="claimRoughSheetBonus()" hidden>📄 Show Paper Rough Sheet (+10 Coins)</button>
             <button type="button" class="chest-btn" id="chestBtn" onclick="openLevelChest()" aria-label="Tap the chest for bonus coins">
                 <span class="chest-sprite" aria-hidden="true"><span class="chest-lid"></span><span class="chest-body"><span class="chest-lock"></span></span><span class="chest-coin"></span></span>
                 <span class="chest-label" id="chestLabel">Tap the chest!</span>
@@ -2233,7 +2668,16 @@
     </div>
 
     <div class="top-controls">
-        <button type="button" id="collectionBtn" class="collection-btn" onclick="openCollection()" aria-label="Character collection">COLLECTION <span id="collectionBtnCount">0/28</span></button>
+        <div class="top-left-controls">
+            <button type="button" id="collectionBtn" class="collection-btn" onclick="openCollection()" aria-label="Character collection">COLLECTION <span id="collectionBtnCount">0/28</span></button>
+            <button type="button" id="modeBtn" class="mode-btn" onclick="togglePlayMode()" aria-label="Switch between Classic and Test Mode"><span id="modeBtnLabel">📝 TEST</span></button>
+        </div>
+        <div id="compactHud" class="compact-hud" aria-label="Compact status">
+            <span class="ch-stat">🔥<span id="cStreak">0</span></span>
+            <span class="ch-stat ch-coins">🪙<span id="cCoins">00</span></span>
+            <button type="button" id="cDailyBtn" class="ch-btn" onclick="pokeMysteryBlock()" aria-label="Daily surprise progress">? <span id="cDaily">0/10</span></button>
+            <button type="button" id="cQuestBtn" class="ch-btn ch-quest" onclick="openQuests()" aria-label="Today's quests">Q <span id="cQuests">0/3</span></button>
+        </div>
         <div class="top-right-controls">
             <div class="ctrl-wrap" id="packWrap">
                 <button type="button" id="packBtn" class="pack-btn" onclick="togglePackMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Theme pack"><span id="packBtnLabel">🪔 DIWALI</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
@@ -2319,8 +2763,17 @@
                 <span class="q-toran-grp"><i class="q-marigold m-rose"></i><i class="q-diya-mini"></i><i class="q-marigold"></i></span>
             </div>
             <span id="qCategoryBadge" class="q-category-badge" aria-hidden="true" hidden>MATH</span>
+            <div id="testCardHead" class="test-card-head">
+                <div class="test-head-left">
+                    <span id="testQNum" class="test-q-num">PART A · Q1 OF 10</span>
+                    <span id="testStrand" class="test-strand">Number &amp; Algebra</span>
+                </div>
+                <button type="button" id="testReadBtn" class="test-read-btn" onclick="readTestQuestion()" aria-label="Read question aloud">🔊 Read</button>
+            </div>
             <div id="qText" class="question-text">Waiting for Login...</div>
             <div id="qVisual" class="q-visual" hidden></div>
+            <div id="testDiagram" class="test-diagram" hidden></div>
+            <div id="roughCue" class="rough-cue" hidden></div>
         </div>
         <div id="loading-container">
             <div style="font-size: 0.6em; margin-bottom:5px;">DOWNLOADING CURRICULUM...</div>
@@ -2334,6 +2787,8 @@
                 <button type="button" id="hintBtn" class="hint-btn" onclick="revealHint()" aria-expanded="false" aria-controls="hintText">Hint</button>
                 <p id="hintText" class="hint-text" hidden></p>
             </div>
+            <button type="button" id="testCheckBtn" class="test-check-btn" onclick="submitTestAnswer()" disabled>CHECK ANSWER ▶</button>
+            <p id="testTrapTip" class="test-trap-tip" hidden></p>
         </div>
         <div id="answers" class="answers-grid"></div>
     </div>
@@ -3108,8 +3563,13 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-20a';
+        var APP_BUILD = '2026-11-21a';
         var latestKnownBuild = '';
+        var playMode = 'classic';
+        var pendingTestChoice = null;
+        var pendingTestBtn = null;
+        var recentTestIds = [];
+        var testRoundStats = { num: [0, 0], meas: [0, 0], data: [0, 0] };
         var logActiveDays = {};
         var logRecoveryEmail = '';
         var statusFadeTimer = null;
@@ -5420,6 +5880,491 @@
             }
         }
 
+        var TEST_STRAND_META = {
+            num: { label: 'Number & Algebra', short: 'Number' },
+            meas: { label: 'Measures', short: 'Measures' },
+            data: { label: 'Shape & Data', short: 'Shape & Data' }
+        };
+
+        var TEST_BANK = [
+            { id:'t01', s:'num', cat:'Subtraction', q:'A school library has 403 books. During the week, 168 books are borrowed. How many books are left?', opts:['365','245','235','335'], ans:'235', trap:'365', trapMsg:'Careful — rename across the 0 instead of subtracting 8 − 3!', cue:'Write H | T | U:  <code>403 − 168</code>  (rename 40 tens → 39 tens + 13)', hint:'Take 168 from 403 by renaming across the zero.' },
+            { id:'t02', s:'num', cat:'Subtraction', q:'A baker makes 500 buns and sells 247 by lunchtime. How many buns are left?', opts:['347','253','263','353'], ans:'253', trap:'347', trapMsg:'Rename 500 as 4 hundreds, 9 tens and 10 units on your rough sheet!', cue:'Write H | T | U:  <code>500 − 247</code>  (rename 50 tens → 49 tens + 10)', hint:'Count on from 247 to 300 (53), then add 200 more.' },
+            { id:'t03', s:'num', cat:'Subtraction', q:'What is 604 − 279?', opts:['475','335','325','425'], ans:'325', trap:'475', trapMsg:'Check your borrowing across the zero in the tens column!', cue:'Write H | T | U:  <code>604 − 279</code>', hint:'Add 21 to 279 to reach 300, then add 304.' },
+            { id:'t04', s:'num', cat:'Subtraction', q:'A farmer collected 702 eggs and packed 356 into cartons. How many eggs are still loose?', opts:['454','356','346','446'], ans:'346', trap:'454', trapMsg:'Write 702 − 356 vertically and rename carefully across 0.', cue:'Write H | T | U:  <code>702 − 356</code>', hint:'From 356 to 400 is 44; add 302 to get the total difference.' },
+            { id:'t05', s:'num', cat:'Subtraction', q:'805 people came to a match. 468 left early. How many stayed?', opts:['463','347','337','437'], ans:'337', trap:'463', trapMsg:'Watch the zero in 805 — rename before subtracting 8 from 15.', cue:'Write H | T | U:  <code>805 − 468</code>', hint:'468 + 32 = 500, and 500 + 305 = 805. Add 32 + 305.' },
+            { id:'t06', s:'num', cat:'Subtraction', q:'What is 310 − 146?', opts:['236','174','164','264'], ans:'164', trap:'236', trapMsg:'Rename 1 ten as 10 units first so you do 10 − 6.', cue:'Write H | T | U:  <code>310 − 146</code>', hint:'310 − 100 = 210, then 210 − 46.' },
+            { id:'t07', s:'num', cat:'Addition', q:'One bus carries 386 fans and a train carries 259 fans. How many fans altogether?', opts:['535','635','645','545'], ans:'645', trap:'535', trapMsg:'Remember to carry 1 ten and 1 hundred on your rough sheet!', cue:'Write H | T | U:  <code>386 + 259</code>  (watch the carries!)', hint:'Add 386 + 260, then take away 1.' },
+            { id:'t08', s:'num', cat:'Addition', q:'What is 478 + 365?', opts:['733','843','833','743'], ans:'843', trap:'733', trapMsg:'Write the columns and mark both carried 1s clearly.', cue:'Write H | T | U:  <code>478 + 365</code>', hint:'8 + 5 = 13 (carry 1), 7 + 6 + 1 = 14 (carry 1).' },
+            { id:'t09', s:'num', cat:'Addition', q:'A school raised €294 on Monday and €438 on Tuesday. How much did they raise in total?', opts:['€622','€722','€732','€632'], ans:'€732', trap:'€622', trapMsg:'Check your carried ten and hundred!', cue:'Write H | T | U:  <code>294 + 438</code>', hint:'294 is 6 less than 300. Add 300 + 438, then take away 6.' },
+            { id:'t10', s:'num', cat:'Addition', q:'What is 567 + 286?', opts:['743','853','843','753'], ans:'853', trap:'743', trapMsg:'Write 567 + 286 in columns so you do not drop a carry.', cue:'Write H | T | U:  <code>567 + 286</code>', hint:'7 + 6 = 13; 60 + 80 + 10 = 150; 500 + 200 + 100 = 800.' },
+            { id:'t11', s:'num', cat:'Place Value', q:'What is the value of the digit 4 in the number 748?', opts:['4','40','400','48'], ans:'40', hint:'Check which column the 4 sits in: H | T | U.' },
+            { id:'t12', s:'num', cat:'Place Value', q:'What is the value of the digit 6 in the number 609?', opts:['6','60','600','609'], ans:'600', hint:'The 6 is in the Hundreds place.' },
+            { id:'t13', s:'num', cat:'Place Value', q:'Round 468 to the nearest 10.', opts:['460','470','500','400'], ans:'470', hint:'Look at the units digit 8 — 5 or more rounds up!' },
+            { id:'t14', s:'num', cat:'Place Value', q:'Round 649 to the nearest 100.', opts:['650','600','700','640'], ans:'600', trap:'650', trapMsg:'Read carefully — it asks for the nearest HUNDRED, not nearest ten!', hint:'49 is below halfway (50), so round down to 600.' },
+            { id:'t15', s:'num', cat:'Place Value', q:'Round 752 to the nearest 100.', opts:['750','700','800','760'], ans:'800', trap:'750', trapMsg:'Nearest HUNDRED means 700 or 800!', hint:'52 is above halfway (50), so round up to 800.' },
+            { id:'t16', s:'num', cat:'Place Value', q:'What number is 10 less than 504?', opts:['404','494','514','490'], ans:'494', trap:'404', trapMsg:'404 is 100 less — we only want 10 less!', hint:'Count back 10 from 504: 504 → 500 (4 back), then 6 more back.' },
+            { id:'t17', s:'num', cat:'Place Value', q:'What number is 100 more than 789?', opts:['799','889','899','689'], ans:'889', hint:'Add 1 to the hundreds digit only.' },
+            { id:'t18', s:'num', cat:'Place Value', q:'Which of these numbers is the LARGEST?', opts:['689','698','869','896'], ans:'896', hint:'Compare the hundreds digit first, then the tens digit.' },
+            { id:'t19', s:'num', cat:'Multiplication', q:'There are 7 boxes with 6 crayons in each box. How many crayons altogether?', opts:['13','36','42','48'], ans:'42', hint:'Count 7 sixes (or 6 × 7).' },
+            { id:'t20', s:'num', cat:'Multiplication', q:'A gardener plants 9 rows of 8 tulips. How many tulips are planted?', opts:['17','64','72','81'], ans:'72', hint:'10 × 8 = 80, then take away one group of 8.' },
+            { id:'t21', s:'num', cat:'Division', q:'26 apples are packed into bags of 4. How many FULL bags can be made?', opts:['5','6','7','22'], ans:'6', trap:'7', trapMsg:'7 bags would need 28 apples — we only have 26!', cue:'Rough sheet:  <code>4 × 6 = ___</code>  (how many left over?)', hint:'Find the biggest multiple of 4 that is 26 or less.' },
+            { id:'t22', s:'num', cat:'Division', q:'35 stickers are shared equally among 4 friends. How many stickers are LEFT OVER?', opts:['8','3','4','7'], ans:'3', trap:'8', trapMsg:'8 is how many each friend gets — read the question: how many are LEFT OVER?', cue:'Rough sheet:  <code>35 ÷ 4 = ___ R ___</code>', hint:'4 × 8 = 32. Subtract 32 from 35 to find the remainder.' },
+            { id:'t23', s:'num', cat:'Division', q:'48 chairs are set out in 6 equal rows. How many chairs are in each row?', opts:['6','7','8','9'], ans:'8', hint:'Think: 6 × ? = 48.' },
+            { id:'t24', s:'num', cat:'Multiplication', q:'Mia has 4 packs of 9 cards and 7 loose cards. How many cards does she have in total?', opts:['36','43','45','20'], ans:'43', trap:'36', trapMsg:'36 is Step 1 (4 × 9). Do not forget to add the 7 loose cards!', cue:'Step 1:  <code>4 × 9 = ___</code>   →   Step 2:  <code>___ + 7</code>', hint:'Multiply 4 × 9 first, then add 7.' },
+            { id:'t25', s:'num', cat:'Multiplication', q:'5 teams of 6 players arrive at a pitch. 4 players go home early. How many players stay?', opts:['30','26','34','24'], ans:'26', trap:'30', trapMsg:'30 is Step 1 (5 × 6). Now subtract the 4 players who went home!', cue:'Step 1:  <code>5 × 6 = ___</code>   →   Step 2:  <code>___ − 4</code>', hint:'Find 5 × 6 first, then take away 4.' },
+            { id:'t26', s:'num', cat:'Fractions', q:'What is 3/4 of 24?', opts:['6','12','18','20'], ans:'18', trap:'6', trapMsg:'6 is 1/4 of 24! Multiply by 3 to find 3/4.', cue:'Step 1:  <code>24 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Divide by the bottom (4), then multiply by the top (3).' },
+            { id:'t27', s:'num', cat:'Fractions', q:'What is 3/4 of 32?', opts:['8','16','24','28'], ans:'24', trap:'8', trapMsg:'8 is 1/4 of 32! Now find 3 quarters (3 × 8).', cue:'Step 1:  <code>32 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Find one quarter (32 ÷ 4), then triple it.' },
+            { id:'t28', s:'num', cat:'Fractions', q:'What is 2/5 of 25?', opts:['5','10','15','20'], ans:'10', trap:'5', trapMsg:'5 is 1/5 of 25 — multiply by 2 to get 2/5!', cue:'Step 1:  <code>25 ÷ 5 = ___</code>   →   Step 2:  <code>___ × 2</code>', hint:'Divide 25 by 5, then multiply by 2.' },
+            { id:'t29', s:'num', cat:'Fractions', q:'A pizza is cut into 8 equal slices. Sam eats 3 slices. What fraction of the pizza is LEFT?', opts:['3/8','4/8','5/8','6/8'], ans:'5/8', trap:'3/8', trapMsg:'3/8 is the part eaten — the question asks what fraction is LEFT!', cue:'Rough sheet:  <code>8/8 − 3/8 = ___</code>', hint:'A whole pizza is 8/8. Take away 3/8.' },
+            { id:'t30', s:'num', cat:'Fractions', q:'Which of these fractions is the BIGGEST?', opts:['1/2','1/4','1/8','1/10'], ans:'1/2', trap:'1/10', trapMsg:'Bigger bottom number means MORE cuts, so smaller pieces!', hint:'Half of a cake is larger than a quarter or an eighth.' },
+            { id:'t31', s:'num', cat:'Fractions', q:'Which fraction is equal to 1/2?', opts:['1/4','2/4','3/4','2/8'], ans:'2/4', hint:'Half of 4 quarters is 2 quarters.' },
+            { id:'t32', s:'num', cat:'Decimals', q:'What is 0.4 + 0.5?', opts:['0.8','0.9','9.0','0.45'], ans:'0.9', hint:'4 tenths + 5 tenths = 9 tenths.' },
+            { id:'t33', s:'num', cat:'Decimals', q:'What is 1.0 − 0.3?', opts:['0.3','0.6','0.7','1.3'], ans:'0.7', hint:'10 tenths minus 3 tenths = 7 tenths.' },
+            { id:'t34', s:'num', cat:'Patterns', q:'Find the missing number:  47 + ☐ = 112', opts:['55','65','75','159'], ans:'65', trap:'159', trapMsg:'159 is 47 + 112! Subtract 47 from 112 to find ☐.', cue:'Rough sheet:  <code>112 − 47 = ___</code>', hint:'Jump from 47 to 50 (+3), then 50 to 112 (+62).' },
+            { id:'t35', s:'num', cat:'Patterns', q:'Find the missing number:  ☐ − 38 = 64', opts:['26','92','102','112'], ans:'102', trap:'26', trapMsg:'Check: 26 − 38 cannot be 64! Add 64 + 38 instead.', cue:'Rough sheet:  <code>64 + 38 = ___</code>', hint:'Use the inverse: add 64 and 38.' },
+            { id:'t36', s:'num', cat:'Patterns', q:'What number goes in the box?  6 × 4 = 3 × ☐', opts:['6','8','12','24'], ans:'8', trap:'24', trapMsg:'24 is 6 × 4, so now solve 3 × ☐ = 24!', cue:'Step 1:  <code>6 × 4 = ___</code>   →   Step 2:  <code>___ ÷ 3</code>', hint:'Both sides must equal 24.' },
+            { id:'t37', s:'num', cat:'Patterns', q:'What comes next in this pattern?  14, 21, 28, 35, ☐', opts:['40','41','42','49'], ans:'42', hint:'Each jump adds 7.' },
+            { id:'t38', s:'num', cat:'Patterns', q:'What comes next in this pattern?  95, 86, 77, 68, ☐', opts:['57','58','59','60'], ans:'59', cue:'Rough sheet: find the gap  <code>95 − 86 = ___</code>', hint:'Subtract 9 each time.' },
+            { id:'t39', s:'num', cat:'Patterns', q:'What comes next in this pattern?  3, 6, 12, 24, ☐', opts:['30','36','42','48'], ans:'48', hint:'Each number is doubled (× 2).' },
+
+            { id:'t40', s:'meas', cat:'Money', q:'Liam buys 3 notebooks at 45c each. He pays with a €2 coin. How much change does he get?', opts:['€1.35','55c','65c','€1.55'], ans:'65c', trap:'€1.35', trapMsg:'€1.35 is Step 1 (cost of 3 notebooks). Now subtract €1.35 from €2.00!', cue:'Step 1:  <code>45c × 3 = ___</code>   →   Step 2:  <code>200c − ___</code>', hint:'3 × 45c = 135c (€1.35). Subtract 135c from 200c.' },
+            { id:'t41', s:'meas', cat:'Money', q:'Nora buys 2 pencils at 35c each and a ruler for €1.10. She pays with €2.00. How much change?', opts:['€1.80','20c','30c','55c'], ans:'20c', trap:'€1.80', trapMsg:'€1.80 is the total cost — now take €1.80 from €2.00 for the change!', cue:'Step 1:  <code>35c + 35c + 110c = ___</code>   →   Step 2:  <code>200c − ___</code>', hint:'70c + €1.10 = €1.80. Change from €2.00 is 20c.' },
+            { id:'t42', s:'meas', cat:'Money', q:'Evan buys 4 apples at 40c each and pays with a €5 note. How much change does he get?', opts:['€1.60','€3.40','€3.60','€4.60'], ans:'€3.40', trap:'€1.60', trapMsg:'€1.60 is the cost of the 4 apples — now subtract from €5.00!', cue:'Step 1:  <code>4 × 40c = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'4 × 40c = €1.60. From €1.60 to €5.00 is €3.40.' },
+            { id:'t43', s:'meas', cat:'Money', q:'A comic costs €3.45 and a sticker pack costs 85c. You pay with €5.00. How much change?', opts:['€4.30','60c','70c','80c'], ans:'70c', trap:'€4.30', trapMsg:'€4.30 is the total bill — subtract €4.30 from €5.00!', cue:'Step 1:  <code>€3.45 + €0.85 = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'€3.45 + 85c = €4.30. Then €5.00 − €4.30.' },
+            { id:'t44', s:'meas', cat:'Money', q:'Two cinema tickets cost €3.20 each. Dad pays with a €10 note. How much change?', opts:['€6.40','€3.60','€4.60','€6.80'], ans:'€3.60', trap:'€6.40', trapMsg:'€6.40 is the price of 2 tickets! Subtract €6.40 from €10.00.', cue:'Step 1:  <code>€3.20 × 2 = ___</code>   →   Step 2:  <code>€10.00 − ___</code>', hint:'Double €3.20 is €6.40. From €6.40 to €10.00 is €3.60.' },
+            { id:'t45', s:'meas', cat:'Money', q:'Three granola bars cost 75c each. You pay with €5.00. How much change do you get?', opts:['€2.25','€2.75','€3.25','€4.25'], ans:'€2.75', trap:'€2.25', trapMsg:'€2.25 is the cost of 3 bars — subtract €2.25 from €5.00!', cue:'Step 1:  <code>75c × 3 = ___</code>   →   Step 2:  <code>€5.00 − ___</code>', hint:'3 × 75c = €2.25. €5.00 − €2.25 = €2.75.' },
+            { id:'t46', s:'meas', cat:'Money', q:'A sandwich costs €2.80 and a juice costs €1.45. What is the total cost?', opts:['€3.25','€4.15','€4.25','€4.35'], ans:'€4.25', cue:'Write in columns:  <code>€2.80 + €1.45</code>', hint:'€2.80 + €1.00 = €3.80, then add 45c.' },
+            { id:'t47', s:'meas', cat:'Money', q:'How many 20c coins make €2.40?', opts:['10','11','12','14'], ans:'12', cue:'Rough sheet:  <code>5 × 20c = €1.00</code>', hint:'€2.00 needs 10 coins and 40c needs 2 more coins.' },
+            { id:'t48', s:'meas', cat:'Time', q:'A bus leaves at the time shown on this clock. The journey takes 35 minutes. What time does it arrive?', opts:['3:15','3:20','3:25','2:80'], ans:'3:20', diagram:{ type:'clock', h:2, m:45 }, cue:'Jump to the hour:  <code>2:45 + 15m = 3:00</code>  → add remaining 20m', hint:'15 mins brings 2:45 to 3:00, leaving 20 mins past 3.' },
+            { id:'t49', s:'meas', cat:'Time', q:'Maths class starts at the time shown and lasts 45 minutes. What time does it finish?', opts:['9:55','10:00','10:05','10:15'], ans:'10:05', diagram:{ type:'clock', h:9, m:20 }, cue:'Jump to the hour:  <code>9:20 + 40m = 10:00</code>  → add 5m', hint:'40 minutes after 9:20 is 10:00, plus 5 more minutes.' },
+            { id:'t50', s:'meas', cat:'Time', q:'What time is shown on this clock?', opts:['7:07','7:35','8:35','6:35'], ans:'7:35', diagram:{ type:'clock', h:7, m:35 }, hint:'Hour hand is past 7; minute hand at 7 means 7 × 5 = 35 minutes.' },
+            { id:'t51', s:'meas', cat:'Time', q:'How many minutes is it from the time on this clock until 12:15?', opts:['15 mins','20 mins','25 mins','35 mins'], ans:'25 mins', diagram:{ type:'clock', h:11, m:50 }, cue:'Rough sheet:  <code>11:50 → 12:00 (10m)</code>  →  <code>+ 15m</code>', hint:'10 minutes to 12:00, plus 15 minutes after 12:00.' },
+            { id:'t52', s:'meas', cat:'Time', q:'A cartoon starts at 3:20 and ends at 4:05. How long is the cartoon?', opts:['35 mins','40 mins','45 mins','55 mins'], ans:'45 mins', cue:'Rough sheet:  <code>3:20 → 4:00 (40m)</code>  +  <code>5m</code>', hint:'From 3:20 to 4:00 is 40 mins; add 5 more mins.' },
+            { id:'t53', s:'meas', cat:'Time', q:'Training ends at 4:15. It lasted 25 minutes. What time did training start?', opts:['3:40','3:45','3:50','4:40'], ans:'3:50', trap:'4:40', trapMsg:'Training ENDED at 4:15, so count BACKWARDS 25 minutes!', cue:'Count back:  <code>4:15 − 15m = 4:00</code>  →  <code>− 10m</code>', hint:'Go back 15 mins to 4:00, then back 10 more mins.' },
+            { id:'t54', s:'meas', cat:'Time', q:'Look at the calendar for April. What day of the week is April 18th?', opts:['Friday','Saturday','Sunday','Thursday'], ans:'Saturday', diagram:{ type:'cal', title:'April', start:2, days:30, hi:18 }, hint:'Follow the column above 18 up to the day heading.' },
+            { id:'t55', s:'meas', cat:'Time', q:'Look at the calendar for April. What date is 2 weeks after April 6th?', opts:['April 13th','April 18th','April 20th','April 21st'], ans:'April 20th', diagram:{ type:'cal', title:'April', start:2, days:30, hi:6 }, cue:'Rough sheet:  <code>2 weeks = 14 days</code>  →  <code>6 + 14</code>', hint:'Drop down 2 rows directly below the 6th.' },
+            { id:'t56', s:'meas', cat:'Time', q:'Look at the calendar for May. How many Saturdays are in May?', opts:['3','4','5','6'], ans:'5', diagram:{ type:'cal', title:'May', start:4, days:31 }, hint:'Count every number in the Sat column.' },
+            { id:'t57', s:'meas', cat:'Time', q:'Sam goes on holiday on May 9th for 10 days. What date does he return?', opts:['May 18th','May 19th','May 20th','May 21st'], ans:'May 19th', diagram:{ type:'cal', title:'May', start:4, days:31, hi:9 }, cue:'Rough sheet:  <code>9 + 10 = ___</code>', hint:'Add 10 days to May 9th.' },
+            { id:'t58', s:'meas', cat:'Measurement', q:'Write 2 metres 35 centimetres in centimetres.', opts:['55 cm','2035 cm','235 cm','352 cm'], ans:'235 cm', hint:'1 metre = 100 cm, so 2 metres = 200 cm.' },
+            { id:'t59', s:'meas', cat:'Measurement', q:'A ribbon is 1 metre long. Eva cuts off 38 cm. How much ribbon is left?', opts:['62 cm','72 cm','68 cm','52 cm'], ans:'62 cm', cue:'Rough sheet:  <code>100 cm − 38 cm</code>', hint:'1 m = 100 cm. Count on from 38 to 100.' },
+            { id:'t60', s:'meas', cat:'Measurement', q:'A bag holds 1 kg of flour. Mum uses 350 g for a cake. How much flour is left?', opts:['550 g','650 g','750 g','600 g'], ans:'650 g', cue:'Rough sheet:  <code>1000 g − 350 g</code>', hint:'1 kg = 1,000 g. Take 350 away from 1,000.' },
+            { id:'t61', s:'meas', cat:'Measurement', q:'How many grams are in 1/4 kg?', opts:['25 g','200 g','250 g','500 g'], ans:'250 g', hint:'Half of 1,000 g is 500 g; half again is 250 g.' },
+            { id:'t62', s:'meas', cat:'Measurement', q:'A jug holds 1 litre of water. You pour out 3 cups of 200 ml each. How much water is left in the jug?', opts:['600 ml','400 ml','300 ml','800 ml'], ans:'400 ml', trap:'600 ml', trapMsg:'600 ml is the amount poured out — subtract 600 ml from 1,000 ml!', cue:'Step 1:  <code>3 × 200 ml = ___</code>   →   Step 2:  <code>1000 ml − ___</code>', hint:'1 litre = 1,000 ml. Subtract 600 ml.' },
+            { id:'t63', s:'meas', cat:'Measurement', q:'How many millilitres are in 2 1/2 litres?', opts:['250 ml','2,050 ml','2,500 ml','25,000 ml'], ans:'2,500 ml', hint:'2 litres = 2,000 ml and 1/2 litre = 500 ml.' },
+            { id:'t64', s:'meas', cat:'Measurement', q:'Each small square is 1 square unit. What is the AREA of the shaded shape?', opts:['11 sq units','12 sq units','13 sq units','15 sq units'], ans:'13 sq units', diagram:{ type:'area', rows:3, cols:5, skip:[[0,4],[2,4]] }, hint:'Count the shaded squares carefully row by row.' },
+            { id:'t65', s:'meas', cat:'Measurement', q:'What is the PERIMETER (total distance around the outside) of this rectangle?', opts:['11 cm','18 cm','22 cm','28 cm'], ans:'22 cm', trap:'11 cm', trapMsg:'11 cm is only 2 sides (7 + 4)! Add all 4 sides around the rectangle.', diagram:{ type:'perim', w:7, h:4 }, cue:'Rough sheet:  <code>7 + 4 + 7 + 4 = ___</code>', hint:'Add all four sides: 7 + 4 + 7 + 4.' },
+
+            { id:'t66', s:'data', cat:'Data', q:'How many MORE pupils chose Football than Swimming?', opts:['3','10','15','25'], ans:'15', trap:'3', trapMsg:'Check the Key! 3 symbols × 5 pupils each = 15 (not 3).', diagram:{ type:'picto', title:'Favourite Sports', key:'⚽ = 5 pupils', icon:'⚽', rows:[['Football',5],['Hurling',3],['Swimming',2],['Running',4]] }, cue:'Step 1:  <code>Football = 5 × 5</code>   |   <code>Swimming = 2 × 5</code>', hint:'Multiply the difference in symbols (3) by 5 pupils.' },
+            { id:'t67', s:'data', cat:'Data', q:'How many books did Mia and Noah read ALTOGETHER?', opts:['9','12','18','20'], ans:'18', trap:'9', trapMsg:'Check the Key! Each 📘 stands for 2 books (9 × 2 = 18).', diagram:{ type:'picto', title:'Books Read This Month', key:'📘 = 2 books', icon:'📘', rows:[['Mia',6],['Jack',4],['Ella',5],['Noah',3]] }, cue:'Rough sheet:  <code>Mia = 6 × 2</code>   +   <code>Noah = 3 × 2</code>', hint:'6 + 3 = 9 icons, and each icon equals 2 books.' },
+            { id:'t68', s:'data', cat:'Data', q:'How many apples were sold on Tuesday?', opts:['5','16','20','24'], ans:'20', trap:'5', trapMsg:'Check the Key! Each 🍎 means 4 apples (5 × 4 = 20).', diagram:{ type:'picto', title:'Shop Apples Sold', key:'🍎 = 4 apples', icon:'🍎', rows:[['Mon',3],['Tue',5],['Wed',2],['Thu',4]] }, cue:'Rough sheet:  <code>5 × 4 = ___</code>', hint:'Count Tuesday icons (5) and multiply by 4.' },
+            { id:'t69', s:'data', cat:'Data', q:'How many FEWER Birds than Dogs are in the class?', opts:['4','6','8','10'], ans:'8', trap:'4', trapMsg:'4 is the number of icons — multiply by 2 because 🐾 = 2 pets!', diagram:{ type:'picto', title:'Class Pets', key:'🐾 = 2 pets', icon:'🐾', rows:[['Dogs',6],['Cats',5],['Fish',3],['Birds',2]] }, cue:'Rough sheet:  <code>Dogs = 6 × 2</code>   −   <code>Birds = 2 × 2</code>', hint:'Dogs = 12, Birds = 4. Find 12 − 4.' },
+            { id:'t70', s:'data', cat:'Data', q:'How many trees were planted IN TOTAL?', opts:['13','120','130','140'], ans:'130', trap:'13', trapMsg:'13 is the number of tree icons — each 🌳 stands for 10 trees!', diagram:{ type:'picto', title:'Trees Planted', key:'🌳 = 10 trees', icon:'🌳', rows:[['Oak',4],['Pine',6],['Birch',3]] }, cue:'Rough sheet:  <code>(4 + 6 + 3) × 10</code>', hint:'Add 4 + 6 + 3 = 13, then multiply by 10.' },
+            { id:'t71', s:'data', cat:'Data', q:'Look at the bar chart. How many MORE Sunny days were there than Rainy days?', opts:['4','6','8','18'], ans:'6', diagram:{ type:'bar', title:'Weather in June', max:14, step:2, bars:[['Sunny',12,'#f59e0b'],['Cloudy',8,'#64748b'],['Rainy',6,'#3b82f6'],['Windy',4,'#10b981']] }, hint:'Sunny = 12, Rainy = 6. Subtract 12 − 6.' },
+            { id:'t72', s:'data', cat:'Data', q:'How many pupils are in Art and Chess ALTOGETHER?', opts:['20','22','24','26'], ans:'24', diagram:{ type:'bar', title:'After-School Clubs', max:18, step:3, bars:[['Art',14,'#ec4899'],['Chess',10,'#4f46e5'],['Choir',16,'#f59e0b'],['Drama',8,'#10b981']] }, cue:'Rough sheet:  <code>Art (14) + Chess (10)</code>', hint:'Read Art (14) and Chess (10), then add them.' },
+            { id:'t73', s:'data', cat:'Data', q:'How many pupils answered this ice cream survey IN TOTAL?', opts:['36','40','42','45'], ans:'42', diagram:{ type:'bar', title:'Favourite Ice Cream', max:18, step:3, bars:[['Vanilla',9,'#f59e0b'],['Choc',15,'#78350f'],['Berry',12,'#ec4899'],['Mint',6,'#10b981']] }, cue:'Rough sheet:  <code>9 + 15 + 12 + 6</code>', hint:'Add all four bar heights: 9 + 15 + 12 + 6.' },
+            { id:'t74', s:'data', cat:'Data', q:'Which day had HALF as many library visits as Tuesday?', opts:['Monday','Wednesday','Thursday','None'], ans:'Monday', diagram:{ type:'bar', title:'Library Visits', max:20, step:4, bars:[['Mon',9,'#3b82f6'],['Tue',18,'#4f46e5'],['Wed',12,'#10b981'],['Thu',15,'#f59e0b']] }, hint:'Tuesday is 18. Half of 18 is 9.' },
+            { id:'t75', s:'data', cat:'Data', q:'What is the difference between the HIGHEST and LOWEST team scores?', opts:['6','8','9','19'], ans:'9', diagram:{ type:'bar', title:'Goals Scored', max:16, step:4, bars:[['Team A',8,'#3b82f6'],['Team B',14,'#ef4444'],['Team C',11,'#10b981'],['Team D',5,'#f59e0b']] }, cue:'Rough sheet:  <code>Highest (14) − Lowest (5)</code>', hint:'Highest is Team B (14), lowest is Team D (5).' },
+            { id:'t76', s:'data', cat:'Data', q:'Look at the traffic table. How many vehicles passed IN TOTAL?', opts:['26','28','30','32'], ans:'30', diagram:{ type:'table', title:'Vehicles Passing School', cols:['Vehicle','Count'], rows:[['Cars','14'],['Bikes','7'],['Buses','5'],['Vans','4']] }, cue:'Rough sheet:  <code>14 + 7 + 5 + 4</code>', hint:'Add 14 + 7 = 21, then + 5 = 26, then + 4.' },
+            { id:'t77', s:'data', cat:'Data', q:'There are 32 pieces of fruit in total. How many Oranges are missing from the table?', opts:['25','7','6','8'], ans:'7', trap:'25', trapMsg:'25 is Apples + Bananas + Pears! Subtract 25 from 32.', diagram:{ type:'table', title:'Fruit Basket (Total = 32)', cols:['Fruit','Count'], rows:[['Apples','11'],['Bananas','9'],['Pears','5'],['Oranges','?']] }, cue:'Step 1:  <code>11 + 9 + 5 = ___</code>   →   Step 2:  <code>32 − ___</code>', hint:'Add the three shown rows (25), then subtract from 32.' },
+            { id:'t78', s:'data', cat:'Data', q:'How many MORE children chose Pasta than Soup?', opts:['5','6','7','19'], ans:'7', diagram:{ type:'table', title:'School Lunches', cols:['Lunch','Pupils'], rows:[['Pasta','13'],['Soup','6'],['Roll','9'],['Salad','4']] }, hint:'Subtract Soup (6) from Pasta (13).' },
+            { id:'t79', s:'data', cat:'Chance', q:'A bag has 9 red marbles and 1 blue marble. Without looking, picking a RED marble is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Likely', hint:'Almost all the marbles are red, but 1 is blue so it is not certain.' },
+            { id:'t80', s:'data', cat:'Chance', q:'A bag contains 8 green marbles and no other colours. Picking a YELLOW marble is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Impossible', hint:'There are zero yellow marbles in the bag.' },
+            { id:'t81', s:'data', cat:'Chance', q:'You roll a normal 1 to 6 dice. Rolling a number LESS THAN 7 is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Certain', hint:'Every face (1, 2, 3, 4, 5, 6) is less than 7.' },
+            { id:'t82', s:'data', cat:'Chance', q:'A jar holds 1 green sweet and 11 yellow sweets. Picking a GREEN sweet is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Unlikely', hint:'Only 1 out of 12 sweets is green.' },
+            { id:'t83', s:'data', cat:'Chance', q:'Look at the spinner. Which colour is LEAST likely to win?', opts:['Blue','Red','Both equal','Impossible'], ans:'Red', diagram:{ type:'spinner' }, hint:'Count how many sections are Red (1) vs Blue (3).' },
+            { id:'t84', s:'data', cat:'Shapes', q:'How many flat faces does a CUBE have?', opts:['4','6','8','12'], ans:'6', diagram:{ type:'shape', kind:'cube' }, hint:'Think of a dice — it is numbered 1 to 6.' },
+            { id:'t85', s:'data', cat:'Shapes', q:'How many EDGES does a cube have?', opts:['6','8','10','12'], ans:'12', diagram:{ type:'shape', kind:'cube' }, hint:'4 on top, 4 on bottom, and 4 going down the sides.' },
+            { id:'t86', s:'data', cat:'Shapes', q:'How many CORNERS (vertices) does a cuboid have?', opts:['4','6','8','12'], ans:'8', diagram:{ type:'shape', kind:'cube' }, hint:'Count 4 corners on top and 4 on the bottom.' },
+            { id:'t87', s:'data', cat:'Shapes', q:'How many flat circular faces does a CYLINDER have?', opts:['1','2','3','4'], ans:'2', diagram:{ type:'shape', kind:'cyl' }, hint:'One flat circle on top and one on the bottom.' },
+            { id:'t88', s:'data', cat:'Shapes', q:'How many faces does a TRIANGULAR PRISM have in total?', opts:['3','4','5','6'], ans:'5', diagram:{ type:'shape', kind:'prism' }, hint:'2 triangular ends + 3 rectangular sides.' },
+            { id:'t89', s:'data', cat:'Shapes', q:'What type of angle is shown here?', opts:['Right angle','Smaller than right angle','Greater than right angle','Straight line'], ans:'Right angle', diagram:{ type:'angle', kind:'right' }, hint:'It matches the exact square corner of a book.' },
+            { id:'t90', s:'data', cat:'Shapes', q:'Compare this angle to a right angle. It is...', opts:['Equal to a right angle','Smaller than a right angle','Greater than a right angle','A full turn'], ans:'Smaller than a right angle', diagram:{ type:'angle', kind:'acute' }, hint:'This narrow opening is tighter than a square corner.' },
+            { id:'t91', s:'data', cat:'Shapes', q:'Compare this angle to a right angle. It is...', opts:['Equal to a right angle','Smaller than a right angle','Greater than a right angle','Zero degrees'], ans:'Greater than a right angle', diagram:{ type:'angle', kind:'obtuse' }, hint:'This wide opening is wider than a square corner.' },
+            { id:'t92', s:'data', cat:'Shapes', q:'Two straight lines that stay the exact same distance apart and never meet are called...', opts:['Parallel','Vertical','Curved','Perpendicular'], ans:'Parallel', diagram:{ type:'shape', kind:'parallel' }, hint:'Think of train tracks running side by side.' },
+            { id:'t93', s:'data', cat:'Shapes', q:'How many sides does a HEXAGON have?', opts:['5','6','7','8'], ans:'6', diagram:{ type:'shape', kind:'hex' }, hint:'Count the straight edges around the shape.' },
+            { id:'t94', s:'data', cat:'Shapes', q:'How many lines of symmetry does a rectangle (not a square) have?', opts:['1','2','4','6'], ans:'2', diagram:{ type:'shape', kind:'sym' }, hint:'You can fold it evenly vertically or horizontally, not diagonally.' }
+        ];
+
+        function readSavedPlayMode() {
+            try {
+                if (window.localStorage) {
+                    var m = String(localStorage.getItem('marioMathPlayMode') || '').trim().toLowerCase();
+                    if (m === 'test' || m === 'classic') return m;
+                }
+            } catch (e) {}
+            return 'classic';
+        }
+
+        function isTestMode() {
+            return playMode === 'test';
+        }
+
+        function applyPlayMode() {
+            var testOn = isTestMode();
+            document.documentElement.classList.toggle('mode-test', testOn);
+            document.body.classList.toggle('mode-test', testOn);
+            var lbl = document.getElementById('modeBtnLabel');
+            if (lbl) lbl.textContent = testOn ? '\uD83C\uDFAE CLASSIC' : '\uD83D\uDCDD TEST';
+            var btn = document.getElementById('modeBtn');
+            if (btn) btn.setAttribute('aria-pressed', testOn ? 'true' : 'false');
+            try { syncCompactHud(); } catch (e) {}
+        }
+
+        function togglePlayMode() {
+            playMode = isTestMode() ? 'classic' : 'test';
+            try {
+                if (window.localStorage) localStorage.setItem('marioMathPlayMode', playMode);
+            } catch (e) {}
+            applyPlayMode();
+            if (appStarted) loadNextQuestion();
+        }
+
+        function syncCompactHud() {
+            var cs = document.getElementById('cStreak');
+            var cc = document.getElementById('cCoins');
+            var cd = document.getElementById('cDaily');
+            var cdb = document.getElementById('cDailyBtn');
+            var cq = document.getElementById('cQuests');
+            if (cs) cs.textContent = String(Math.max(0, Math.floor(finiteNumber(gameState && gameState.streak) || 0)));
+            if (cc) cc.textContent = String(Math.max(0, Math.floor(finiteNumber(gameState && gameState.coins) || 0))).padStart(2, '0');
+            if (cd) {
+                var dailyN = dailyCorrectCountFor(gameState);
+                var claimed = dateClaimed(gameState);
+                cd.textContent = claimed ? 'DONE' : (Math.min(DAILY_GOAL, dailyN) + '/' + DAILY_GOAL);
+                if (cdb) cdb.classList.toggle('is-ready', !claimed && dailyN >= DAILY_GOAL);
+            }
+            if (cq) {
+                var qEl = document.getElementById('questBtnCount');
+                cq.textContent = qEl ? qEl.textContent : '0/3';
+            }
+        }
+
+        function buildClockSvg(h, m) {
+            var mAng = (m * 6 - 90) * Math.PI / 180;
+            var hAng = (((h % 12) * 30 + m * 0.5) - 90) * Math.PI / 180;
+            var mx = (60 + Math.cos(mAng) * 38).toFixed(1);
+            var my = (60 + Math.sin(mAng) * 38).toFixed(1);
+            var hx = (60 + Math.cos(hAng) * 25).toFixed(1);
+            var hy = (60 + Math.sin(hAng) * 25).toFixed(1);
+            var ticks = '';
+            var i, a, x1, y1, x2, y2, nx, ny;
+            for (i = 1; i <= 12; i++) {
+                a = (i * 30 - 90) * Math.PI / 180;
+                x1 = (60 + Math.cos(a) * 46).toFixed(1);
+                y1 = (60 + Math.sin(a) * 46).toFixed(1);
+                x2 = (60 + Math.cos(a) * 52).toFixed(1);
+                y2 = (60 + Math.sin(a) * 52).toFixed(1);
+                nx = (60 + Math.cos(a) * 38).toFixed(1);
+                ny = (64 + Math.sin(a) * 38).toFixed(1);
+                ticks += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#334155" stroke-width="2"/>';
+                ticks += '<text x="' + nx + '" y="' + ny + '" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">' + i + '</text>';
+            }
+            return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 120 120" width="118" height="118" aria-label="Analogue clock">' +
+                '<circle cx="60" cy="60" r="55" fill="#ffffff" stroke="#1e293b" stroke-width="4"/>' + ticks +
+                '<line x1="60" y1="60" x2="' + hx + '" y2="' + hy + '" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>' +
+                '<line x1="60" y1="60" x2="' + mx + '" y2="' + my + '" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>' +
+                '<circle cx="60" cy="60" r="4" fill="#0f172a"/></svg></div>';
+        }
+
+        function buildCalendarHtml(d) {
+            var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            var html = '<div class="td-head"><span>' + d.title + '</span><span class="td-key">Calendar</span></div><table class="td-table td-cal"><tr>';
+            var i, cell, dayNum = 1;
+            for (i = 0; i < 7; i++) html += '<th>' + days[i] + '</th>';
+            html += '</tr>';
+            while (dayNum <= d.days) {
+                html += '<tr>';
+                for (i = 0; i < 7; i++) {
+                    if (dayNum === 1 && i < d.start) {
+                        html += '<td></td>';
+                    } else if (dayNum <= d.days) {
+                        cell = (d.hi && dayNum === d.hi) ? ' class="is-hi"' : '';
+                        html += '<td' + cell + '>' + dayNum + '</td>';
+                        dayNum++;
+                    } else {
+                        html += '<td></td>';
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            return html;
+        }
+
+        function buildBarSvg(d) {
+            var w = 310, h = 132, padL = 32, padB = 22, padT = 12, chartH = h - padB - padT;
+            var svg = '<div class="td-head"><span>' + d.title + '</span><span class="td-key">Bar Chart</span></div><div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 ' + w + ' ' + h + '" width="310" height="132">';
+            var v, y, i, b, bw, bx, bh, by;
+            for (v = 0; v <= d.max; v += d.step) {
+                y = (padT + chartH - (v / d.max) * chartH).toFixed(1);
+                svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (w - 8) + '" y2="' + y + '" stroke="#e2e8f0" stroke-width="1"/>';
+                svg += '<text x="' + (padL - 5) + '" y="' + (Number(y) + 3.5).toFixed(1) + '" text-anchor="end" font-size="9.5" font-weight="700" fill="#475569">' + v + '</text>';
+            }
+            svg += '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (padT + chartH) + '" stroke="#334155" stroke-width="1.5"/>';
+            svg += '<line x1="' + padL + '" y1="' + (padT + chartH) + '" x2="' + (w - 8) + '" y2="' + (padT + chartH) + '" stroke="#334155" stroke-width="1.5"/>';
+            bw = Math.floor((w - padL - 28) / d.bars.length) - 12;
+            for (i = 0; i < d.bars.length; i++) {
+                b = d.bars[i];
+                bx = padL + 14 + i * (bw + 14);
+                bh = (b[1] / d.max) * chartH;
+                by = padT + chartH - bh;
+                svg += '<rect x="' + bx + '" y="' + by.toFixed(1) + '" width="' + bw + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + b[2] + '"/>';
+                svg += '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (by - 3).toFixed(1) + '" text-anchor="middle" font-size="9.5" font-weight="800" fill="#0f172a">' + b[1] + '</text>';
+                svg += '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">' + b[0] + '</text>';
+            }
+            svg += '</svg></div>';
+            return svg;
+        }
+
+        function buildGeoSvg(d) {
+            if (d.type === 'area') {
+                var sq = 22, r, c, skipMap = {}, out = '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 140 84" width="140" height="84">';
+                for (r = 0; r < (d.skip || []).length; r++) skipMap[d.skip[r][0] + ',' + d.skip[r][1]] = true;
+                for (r = 0; r < d.rows; r++) {
+                    for (c = 0; c < d.cols; c++) {
+                        var filled = !skipMap[r + ',' + c];
+                        out += '<rect x="' + (14 + c * sq) + '" y="' + (8 + r * sq) + '" width="' + sq + '" height="' + sq + '" fill="' + (filled ? '#60a5fa' : '#f1f5f9') + '" stroke="#1e293b" stroke-width="1.5"/>';
+                    }
+                }
+                return out + '</svg></div>';
+            }
+            if (d.type === 'perim') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 210 100" width="210" height="100">' +
+                    '<rect x="35" y="24" width="140" height="58" fill="#dbeafe" stroke="#1d4ed8" stroke-width="3"/>' +
+                    '<text x="105" y="17" text-anchor="middle" font-size="13" font-weight="800" fill="#0f172a">' + d.w + ' cm</text>' +
+                    '<text x="190" y="57" text-anchor="middle" font-size="13" font-weight="800" fill="#0f172a">' + d.h + ' cm</text>' +
+                    '</svg></div>';
+            }
+            if (d.type === 'spinner') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 110 110" width="106" height="106">' +
+                    '<path d="M55,55 L55,8 A47,47 0 0,1 102,55 Z" fill="#ef4444" stroke="#1e293b" stroke-width="2"/>' +
+                    '<path d="M55,55 L102,55 A47,47 0 1,1 55,8 Z" fill="#3b82f6" stroke="#1e293b" stroke-width="2"/>' +
+                    '<line x1="55" y1="8" x2="55" y2="102" stroke="#1e293b" stroke-width="2"/>' +
+                    '<line x1="8" y1="55" x2="102" y2="55" stroke="#1e293b" stroke-width="2"/>' +
+                    '<circle cx="55" cy="55" r="5" fill="#0f172a"/>' +
+                    '<text x="77" y="38" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">Red</text>' +
+                    '<text x="34" y="38" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">Blue</text>' +
+                    '<text x="34" y="80" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">Blue</text>' +
+                    '<text x="77" y="80" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">Blue</text>' +
+                    '</svg></div>';
+            }
+            if (d.type === 'angle') {
+                if (d.kind === 'right') {
+                    return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 140 92" width="136" height="90">' +
+                        '<line x1="34" y1="74" x2="114" y2="74" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>' +
+                        '<line x1="34" y1="74" x2="34" y2="14" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>' +
+                        '<rect x="34" y="56" width="18" height="18" fill="none" stroke="#e11d48" stroke-width="2.5"/></svg></div>';
+                }
+                if (d.kind === 'acute') {
+                    return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 140 92" width="136" height="90">' +
+                        '<line x1="28" y1="74" x2="114" y2="74" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>' +
+                        '<line x1="28" y1="74" x2="96" y2="20" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>' +
+                        '<path d="M58,74 A30,30 0 0,0 51,55" fill="none" stroke="#e11d48" stroke-width="3"/></svg></div>';
+                }
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 150 92" width="146" height="90">' +
+                    '<line x1="70" y1="74" x2="136" y2="74" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>' +
+                    '<line x1="70" y1="74" x2="22" y2="26" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>' +
+                    '<path d="M96,74 A26,26 0 0,0 51,56" fill="none" stroke="#e11d48" stroke-width="3"/></svg></div>';
+            }
+            if (d.kind === 'cube') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 120 96" width="116" height="92">' +
+                    '<polygon points="24,30 74,30 96,14 46,14" fill="#bfdbfe" stroke="#1e3a8a" stroke-width="2.5"/>' +
+                    '<rect x="24" y="30" width="50" height="50" fill="#93c5fd" stroke="#1e3a8a" stroke-width="2.5"/>' +
+                    '<polygon points="74,30 96,14 96,64 74,80" fill="#60a5fa" stroke="#1e3a8a" stroke-width="2.5"/></svg></div>';
+            }
+            if (d.kind === 'cyl') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 110 96" width="106" height="92">' +
+                    '<path d="M25,22 L25,74 A30,11 0 0,0 85,74 L85,22 Z" fill="#93c5fd" stroke="#1e3a8a" stroke-width="2.5"/>' +
+                    '<ellipse cx="55" cy="22" rx="30" ry="11" fill="#dbeafe" stroke="#1e3a8a" stroke-width="2.5"/></svg></div>';
+            }
+            if (d.kind === 'prism') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 130 94" width="126" height="90">' +
+                    '<polygon points="18,76 48,22 78,76" fill="#fde68a" stroke="#92400e" stroke-width="2.5"/>' +
+                    '<polygon points="48,22 92,16 116,66 78,76" fill="#fbbf24" stroke="#92400e" stroke-width="2.5"/></svg></div>';
+            }
+            if (d.kind === 'parallel') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 180 70" width="176" height="68">' +
+                    '<line x1="20" y1="22" x2="160" y2="22" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>' +
+                    '<line x1="20" y1="48" x2="160" y2="48" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/></svg></div>';
+            }
+            if (d.kind === 'hex') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 120 94" width="116" height="90">' +
+                    '<polygon points="38,14 82,14 102,47 82,80 38,80 18,47" fill="#c7d2fe" stroke="#312e81" stroke-width="3"/></svg></div>';
+            }
+            return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 150 86" width="146" height="84">' +
+                '<rect x="20" y="16" width="110" height="54" fill="#e0e7ff" stroke="#312e81" stroke-width="3"/>' +
+                '<line x1="75" y1="10" x2="75" y2="76" stroke="#e11d48" stroke-width="2" stroke-dasharray="4 3"/>' +
+                '<line x1="12" y1="43" x2="138" y2="43" stroke="#e11d48" stroke-width="2" stroke-dasharray="4 3"/></svg></div>';
+        }
+
+        function renderTestDiagram(d) {
+            var box = document.getElementById('testDiagram');
+            if (!box) return;
+            if (!d) {
+                box.hidden = true;
+                box.innerHTML = '';
+                return;
+            }
+            var html = '';
+            if (d.type === 'picto') {
+                html = '<div class="td-head"><span>' + d.title + '</span><span class="td-key">Key: ' + d.key + '</span></div>';
+                for (var i = 0; i < d.rows.length; i++) {
+                    var icons = '';
+                    for (var c = 0; c < d.rows[i][1]; c++) icons += d.icon + ' ';
+                    html += '<div class="td-picto-row"><span class="td-picto-lbl">' + d.rows[i][0] + '</span><span class="td-picto-icons">' + icons.trim() + '</span></div>';
+                }
+            } else if (d.type === 'table') {
+                html = '<div class="td-head"><span>' + d.title + '</span><span class="td-key">Table</span></div><table class="td-table"><tr><th>' + d.cols[0] + '</th><th>' + d.cols[1] + '</th></tr>';
+                for (var r = 0; r < d.rows.length; r++) {
+                    html += '<tr><td>' + d.rows[r][0] + '</td><td>' + d.rows[r][1] + '</td></tr>';
+                }
+                html += '</table>';
+            } else if (d.type === 'bar') {
+                html = buildBarSvg(d);
+            } else if (d.type === 'clock') {
+                html = buildClockSvg(d.h, d.m);
+            } else if (d.type === 'cal') {
+                html = buildCalendarHtml(d);
+            } else {
+                html = buildGeoSvg(d);
+            }
+            box.innerHTML = html;
+            box.hidden = false;
+        }
+
+        function pickTestQuestion() {
+            var qSlot = Math.max(0, Math.floor(finiteNumber(gameState && gameState.questionsAnsweredLevel) || 0)) % 10;
+            var plan = ['num','meas','data','num','meas','data','num','data','meas','num'];
+            var wantStrand = plan[qSlot] || 'num';
+            var candidates = TEST_BANK.filter(function (item) {
+                return item.s === wantStrand && recentTestIds.indexOf(item.id) === -1;
+            });
+            if (!candidates.length) {
+                candidates = TEST_BANK.filter(function (item) { return item.s === wantStrand; });
+            }
+            var item = candidates[Math.floor(Math.random() * candidates.length)] || TEST_BANK[0];
+            recentTestIds.push(item.id);
+            if (recentTestIds.length > 26) recentTestIds.shift();
+            return {
+                Question: item.q,
+                Option1: item.opts[0],
+                Option2: item.opts[1],
+                Option3: item.opts[2],
+                Option4: item.opts[3],
+                Answer: item.ans,
+                Category: item.cat,
+                Hint: item.hint || '',
+                Image: '',
+                __testItem: item
+            };
+        }
+
+        function readTestQuestion() {
+            if (!currentQ || !currentQ.Question) return;
+            var txt = plainQuestionText(currentQ.Question);
+            try {
+                if ('speechSynthesis' in window && window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
+                }
+            } catch (e) {}
+        }
+
+        function selectTestChoice(label, btnEl) {
+            if (isInputLocked) return;
+            if (btnEl.classList.contains('is-wrong')) return;
+            pendingTestChoice = label;
+            pendingTestBtn = btnEl;
+            var all = document.querySelectorAll('#answers .test-opt');
+            for (var i = 0; i < all.length; i++) {
+                all[i].classList.toggle('is-selected', all[i] === btnEl);
+            }
+            var chk = document.getElementById('testCheckBtn');
+            if (chk) chk.disabled = false;
+        }
+
+        function submitTestAnswer() {
+            if (isInputLocked || !pendingTestChoice || !pendingTestBtn) return;
+            var chk = document.getElementById('testCheckBtn');
+            if (chk) chk.disabled = true;
+            handleAnswer(pendingTestChoice, pendingTestBtn);
+        }
+
+        function readRoughClaims() {
+            try {
+                if (window.localStorage) {
+                    var raw = localStorage.getItem('marioMathRoughClaims');
+                    if (raw) return JSON.parse(raw) || {};
+                }
+            } catch (e) {}
+            return {};
+        }
+
+        function writeRoughClaim(key) {
+            try {
+                if (window.localStorage && key) {
+                    var map = readRoughClaims();
+                    map[key] = 1;
+                    localStorage.setItem('marioMathRoughClaims', JSON.stringify(map));
+                }
+            } catch (e) {}
+        }
+
+        function paintTestScorecardExtras() {
+            var recapEl = document.getElementById('testStrandRecap');
+            var bonusBtn = document.getElementById('roughBonusBtn');
+            var onTest = isTestMode();
+            if (recapEl) {
+                if (!onTest) {
+                    recapEl.hidden = true;
+                    recapEl.innerHTML = '';
+                } else {
+                    var keys = ['num', 'meas', 'data'];
+                    var html = '';
+                    for (var i = 0; i < keys.length; i++) {
+                        var k = keys[i];
+                        var pair = testRoundStats[k] || [0, 0];
+                        html += '<div class="tsr-chip"><span class="tsr-lbl">' + TEST_STRAND_META[k].short + '</span><span class="tsr-val">' + pair[0] + ' / ' + pair[1] + '</span></div>';
+                    }
+                    recapEl.innerHTML = html;
+                    recapEl.hidden = false;
+                }
+            }
+            if (bonusBtn) {
+                if (!onTest) {
+                    bonusBtn.hidden = true;
+                } else {
+                    var key = currentLevelKey() || '1-1';
+                    var claimed = !!readRoughClaims()[key];
+                    bonusBtn.hidden = false;
+                    bonusBtn.disabled = claimed;
+                    bonusBtn.classList.toggle('is-claimed', claimed);
+                    bonusBtn.textContent = claimed
+                        ? '✅ Paper Rough Sheet Checked! (+10 Coins)'
+                        : '📄 Show Paper Rough Sheet (+10 Coins)';
+                }
+            }
+        }
+
+        function claimRoughSheetBonus() {
+            var btn = document.getElementById('roughBonusBtn');
+            var key = currentLevelKey() || '1-1';
+            if (!btn || btn.disabled || readRoughClaims()[key]) return;
+            writeRoughClaim(key);
+            var before = gameState.coins;
+            gameState.coins += 10;
+            if (Math.floor(gameState.coins / 100) > Math.floor(before / 100)) {
+                try { playOneUpSound(); } catch (e) {}
+            } else {
+                try { playCoinSound(); } catch (e) {}
+            }
+            btn.disabled = true;
+            btn.classList.add('is-claimed');
+            btn.textContent = '✅ Paper Rough Sheet Checked! (+10 Coins)';
+            try { if (typeof confetti === 'function') confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
+            try { saveGame(); } catch (e) {}
+        }
+
         function loadNextQuestion() {
             if (cooldownTimer) {
                 clearInterval(cooldownTimer);
@@ -5427,7 +6372,13 @@
             }
             isInputLocked = false;
             attemptsOnCurrentQuestion = 0;
+            pendingTestChoice = null;
+            pendingTestBtn = null;
             try { hideHintOffer(); } catch (e) {}
+            var trapEl = document.getElementById('testTrapTip');
+            if (trapEl) { trapEl.hidden = true; trapEl.textContent = ''; }
+            var chkBtn = document.getElementById('testCheckBtn');
+            if (chkBtn) chkBtn.disabled = true;
             
             const btns = document.querySelectorAll('.brick-btn');
             btns.forEach(b => {
@@ -5436,7 +6387,7 @@
                 b.disabled = false;
                 b.style.background = ""; 
                 b.style.border = "4px solid black";
-                b.classList.remove('shake', 'is-wrong', 'is-correct', 'is-first-try');
+                b.classList.remove('shake', 'is-wrong', 'is-correct', 'is-first-try', 'is-selected');
             });
 
             const feedbackEl = document.getElementById('feedback');
@@ -5447,17 +6398,25 @@
                 feedbackEl.removeAttribute('data-phase');
                 feedbackEl.style.setProperty('--wait-pct', '0%');
             }
-            let pool = allQuestions;
+
+            var inTest = isTestMode();
             let picked = null;
-            try { stampSheetRows(pool); } catch (e) {}
-            try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
-            if (!picked) {
-                var spare = availableQuestions(pool);
-                var fallback = spare && spare.length ? spare : pool;
-                picked = fallback[Math.floor(Math.random() * fallback.length)];
+            if (inTest) {
+                picked = pickTestQuestion();
+            } else {
+                let pool = allQuestions;
+                try { stampSheetRows(pool); } catch (e) {}
+                try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
+                if (!picked) {
+                    var spare = availableQuestions(pool);
+                    var fallback = spare && spare.length ? spare : pool;
+                    picked = fallback[Math.floor(Math.random() * fallback.length)];
+                }
             }
             currentQ = picked;
-            try { noteQuestionShown(currentQ); } catch (e) {}
+            if (!inTest) {
+                try { noteQuestionShown(currentQ); } catch (e) {}
+            }
             
             document.getElementById('qText').innerHTML = currentQ.Question;
             const catBadge = document.getElementById('qCategoryBadge');
@@ -5467,7 +6426,30 @@
                 catBadge.textContent = catLabel;
                 catBadge.hidden = !catLabel;
             }
-            try { renderQuestionVisual(currentQ); } catch (e) {}
+            var tItem = currentQ && currentQ.__testItem ? currentQ.__testItem : null;
+            var qNumEl = document.getElementById('testQNum');
+            var strandEl = document.getElementById('testStrand');
+            var roughEl = document.getElementById('roughCue');
+            if (inTest && tItem) {
+                var partLbl = (gameState.stage % 2 === 0) ? 'PART B' : 'PART A';
+                var numNow = Math.min(10, Math.max(1, (Math.floor(finiteNumber(gameState.questionsAnsweredLevel) || 0) + 1)));
+                if (qNumEl) qNumEl.textContent = partLbl + ' · Q' + numNow + ' OF 10';
+                if (strandEl) strandEl.textContent = (TEST_STRAND_META[tItem.s] && TEST_STRAND_META[tItem.s].label) || tItem.cat;
+                try { renderTestDiagram(tItem.diagram || null); } catch (e) {}
+                if (roughEl) {
+                    if (tItem.cue) {
+                        roughEl.innerHTML = '📄 Rough Sheet: ' + tItem.cue;
+                        roughEl.hidden = false;
+                    } else {
+                        roughEl.hidden = true;
+                        roughEl.innerHTML = '';
+                    }
+                }
+            } else {
+                try { renderTestDiagram(null); } catch (e) {}
+                if (roughEl) { roughEl.hidden = true; roughEl.innerHTML = ''; }
+                try { renderQuestionVisual(currentQ); } catch (e) {}
+            }
             const qBoard = document.getElementById('questionBoard');
             if (qBoard) {
                 qBoard.classList.remove('q-enter');
@@ -5481,17 +6463,35 @@
             } else { imgEl.style.display = 'none'; }
 
             const answersDiv = document.getElementById('answers');
-            answersDiv.innerHTML = ""; 
-            const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3].sort(() => Math.random() - 0.5);
-            options.forEach(opt => {
-                var label = cellText(opt);
-                if(!label) return;
-                const btn = document.createElement('button');
-                btn.className = 'brick-btn';
-                btn.innerText = label;
-                btn.onclick = function() { handleAnswer(label, this); };
-                answersDiv.appendChild(btn);
-            });
+            answersDiv.innerHTML = "";
+            if (inTest) {
+                const rawOpts = [currentQ.Option1, currentQ.Option2, currentQ.Option3, currentQ.Option4].filter(function (v) { return !!cellText(v); });
+                const shuffled = rawOpts.slice().sort(function () { return Math.random() - 0.5; });
+                const longest = shuffled.reduce(function (m, v) { return Math.max(m, cellText(v).length); }, 0);
+                answersDiv.classList.toggle('is-stacked', longest > 14 && window.innerWidth <= 540);
+                const letters = ['A', 'B', 'C', 'D'];
+                shuffled.forEach(function (opt, idx) {
+                    var label = cellText(opt);
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'brick-btn test-opt';
+                    btn.innerHTML = '<span class="opt-letter">' + letters[idx] + '</span><span>' + label + '</span>';
+                    btn.onclick = function () { selectTestChoice(label, this); };
+                    answersDiv.appendChild(btn);
+                });
+            } else {
+                answersDiv.classList.remove('is-stacked');
+                const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3].sort(() => Math.random() - 0.5);
+                options.forEach(opt => {
+                    var label = cellText(opt);
+                    if(!label) return;
+                    const btn = document.createElement('button');
+                    btn.className = 'brick-btn';
+                    btn.innerText = label;
+                    btn.onclick = function() { handleAnswer(label, this); };
+                    answersDiv.appendChild(btn);
+                });
+            }
             try { fitQuestion(); } catch (e) {}
         }
 
@@ -5501,6 +6501,10 @@
             var hasVis = !!(qv && !qv.hidden);
             var text, size, guard;
             if (!el) return;
+            if (isTestMode()) {
+                el.style.fontSize = '';
+                return;
+            }
             text = (el.textContent || '').replace(/\s+/g, ' ').trim();
             size = window.innerWidth >= 700 ? 29 : 25;
             if (hasVis && window.innerHeight <= 820) size = Math.min(size, 23);
@@ -5528,12 +6532,21 @@
 
             const feedback = document.getElementById('feedback');
             const isCorrect = (cellText(selectedText) === cellText(currentQ.Answer));
+            var tItem = currentQ && currentQ.__testItem ? currentQ.__testItem : null;
+            var trapEl = document.getElementById('testTrapTip');
+            if (trapEl) { trapEl.hidden = true; trapEl.textContent = ''; }
 
             logAttempt(isCorrect, currentQ);
 
             if(isCorrect) {
-                try { notePractice(currentQ, true); } catch (e) {}
-                // SUCCESS LOGIC
+                if (!tItem) {
+                    try { notePractice(currentQ, true); } catch (e) {}
+                } else {
+                    if (testRoundStats[tItem.s]) {
+                        testRoundStats[tItem.s][1] += 1;
+                        if (attemptsOnCurrentQuestion === 0) testRoundStats[tItem.s][0] += 1;
+                    }
+                }
                 var superReady = false;
                 if(attemptsOnCurrentQuestion === 0) {
                     try { superReady = advanceSuperStreak(); } catch (e) { superReady = false; }
@@ -5563,8 +6576,6 @@
                 feedback.style.setProperty('--wait-pct', '0%');
                 try { celebrateCorrect(superReady); } catch (e) {}
 
-                // A level is 10 questions. Wrong taps on this same question
-                // do not count as another question.
                 if (attemptsOnCurrentQuestion === 0) gameState.correctInLevel++;
                 gameState.questionsAnsweredLevel++;
                 try { paintStagePips(); } catch (e) {}
@@ -5574,14 +6585,19 @@
                 if(gameState.questionsAnsweredLevel >= 10) { showScorecard(); } 
                 else { saveGame(); setTimeout(loadNextQuestion, 1500); }
             } else {
-                // WRONG LOGIC
                 playBonkSound();
                 attemptsOnCurrentQuestion++;
                 if (attemptsOnCurrentQuestion === 1) {
                     try { resetSuperStreak(); } catch (e) {}
-                    try { notePractice(currentQ, false); } catch (e) {}
+                    if (!tItem) {
+                        try { notePractice(currentQ, false); } catch (e) {}
+                    }
                     try { showHintOffer(); } catch (e) {}
                     try { stepQuestionVisual(true); } catch (e) {}
+                }
+                if (tItem && tItem.trap && cellText(selectedText) === cellText(tItem.trap) && tItem.trapMsg && trapEl) {
+                    trapEl.textContent = '💡 ' + tItem.trapMsg;
+                    trapEl.hidden = false;
                 }
                 
                 feedback.innerHTML = "WAIT 3 SECONDS..."; 
@@ -5595,10 +6611,15 @@
                     }
                 });
                 
+                btnElement.classList.remove('is-selected');
                 btnElement.classList.add('shake', 'is-wrong');
-                btnElement.style.background = "#555"; 
-                btnElement.style.border = "4px solid red";
-                btnElement.style.color = "#aaa";
+                if (!btnElement.classList.contains('test-opt')) {
+                    btnElement.style.background = "#555"; 
+                    btnElement.style.border = "4px solid red";
+                    btnElement.style.color = "#aaa";
+                }
+                pendingTestChoice = null;
+                pendingTestBtn = null;
 
                 document.getElementById('streakDisplay').classList.remove('on-fire');
                 try { rememberLevelMiss(currentQ); } catch (e) {}
@@ -5918,6 +6939,7 @@
             try { grantClearScore(); } catch (e) {}
             try { paintDailyFlag(); } catch (e) {}
             try { paintLevelRecap(); } catch (e) {}
+            try { paintTestScorecardExtras(); } catch (e) {}
             try { paintChest(); } catch (e) {}
 
             overlay.style.display = 'flex';
@@ -5936,6 +6958,7 @@
             document.getElementById('scorecard-overlay').style.display = 'none';
             gameState.questionsAnsweredLevel = 0; gameState.correctInLevel = 0;
             gameState.levelMisses = [];
+            testRoundStats = { num: [0, 0], meas: [0, 0], data: [0, 0] };
             levelChestLock = false;
             
             gameState.stage++;
@@ -6660,6 +7683,7 @@
             try { refreshSurpriseProgress(); } catch (e) {}
             try { paintQuestButton(); } catch (e) {}
             try { paintStretch(); } catch (e) {}
+            try { syncCompactHud(); } catch (e) {}
         }
 
         // --- DAILY SURPRISE & CHARACTER COLLECTION ---
@@ -9550,6 +10574,7 @@
                 writeCharacterBackup(peekAdopt.characters, peekAdopt.goldCharacters);
             }
             applySurpriseTestNote();
+            try { playMode = readSavedPlayMode(); applyPlayMode(); } catch (e) {}
             try { updateWorldTheme(); } catch (e) {}
             try { updateMusicUI(); } catch (e) {}
             try { applyHero(); } catch (e) {}

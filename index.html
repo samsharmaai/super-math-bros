@@ -2652,7 +2652,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-21c</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-21d</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -3584,11 +3584,13 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-21c';
+        var APP_BUILD = '2026-11-21d';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
         var pendingTestBtn = null;
+        var pinnedQuestions = { test: null, classic: null };
+        var pinnedAttempts = { test: 0, classic: 0 };
         var recentTestIds = [];
         var testRoundStats = { num: [0, 0], meas: [0, 0], data: [0, 0] };
         var logActiveDays = {};
@@ -6037,7 +6039,16 @@
         }
 
         function togglePlayMode() {
-            playMode = isTestMode() ? 'classic' : 'test';
+            if (isInputLocked) return;
+            var prevMode = isTestMode() ? 'test' : 'classic';
+            if (appStarted && currentQ) {
+                pinnedQuestions[prevMode] = currentQ;
+                pinnedAttempts[prevMode] = Math.max(0, attemptsOnCurrentQuestion || 0);
+                if (prevMode === 'test' && currentQ.__testItem && currentQ.__testItem.id) {
+                    writePinnedTestQ(currentQ.__testItem.id, pinnedAttempts.test);
+                }
+            }
+            playMode = (prevMode === 'test') ? 'classic' : 'test';
             try {
                 if (window.localStorage) localStorage.setItem('marioMathPlayMode', playMode);
             } catch (e) {}
@@ -6258,6 +6269,52 @@
             box.hidden = false;
         }
 
+        function makeTestQObj(item) {
+            return {
+                Question: item.q,
+                Option1: item.opts[0],
+                Option2: item.opts[1],
+                Option3: item.opts[2],
+                Option4: item.opts[3],
+                Answer: item.ans,
+                Category: item.cat,
+                Hint: item.hint || '',
+                Image: '',
+                __testItem: item
+            };
+        }
+
+        function readPinnedTestQ() {
+            try {
+                if (window.localStorage) {
+                    var raw = localStorage.getItem('marioMathActiveTestQ');
+                    if (!raw) return null;
+                    var parsed = JSON.parse(raw);
+                    if (!parsed || !parsed.id) return null;
+                    for (var i = 0; i < TEST_BANK.length; i++) {
+                        if (TEST_BANK[i].id === parsed.id) {
+                            return { qObj: makeTestQObj(TEST_BANK[i]), attempts: Math.max(0, Math.floor(Number(parsed.attempts) || 0)) };
+                        }
+                    }
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function writePinnedTestQ(id, attempts) {
+            try {
+                if (window.localStorage && id) {
+                    localStorage.setItem('marioMathActiveTestQ', JSON.stringify({ id: String(id), attempts: Math.max(0, Math.floor(Number(attempts) || 0)) }));
+                }
+            } catch (e) {}
+        }
+
+        function clearPinnedTestQ() {
+            try {
+                if (window.localStorage) localStorage.removeItem('marioMathActiveTestQ');
+            } catch (e) {}
+        }
+
         function pickTestQuestion() {
             var qSlot = Math.max(0, Math.floor(finiteNumber(gameState && gameState.questionsAnsweredLevel) || 0)) % 10;
             var plan = ['num','meas','data','num','meas','data','num','data','meas','num'];
@@ -6271,18 +6328,7 @@
             var item = candidates[Math.floor(Math.random() * candidates.length)] || TEST_BANK[0];
             recentTestIds.push(item.id);
             if (recentTestIds.length > 26) recentTestIds.shift();
-            return {
-                Question: item.q,
-                Option1: item.opts[0],
-                Option2: item.opts[1],
-                Option3: item.opts[2],
-                Option4: item.opts[3],
-                Answer: item.ans,
-                Category: item.cat,
-                Hint: item.hint || '',
-                Image: '',
-                __testItem: item
-            };
+            return makeTestQObj(item);
         }
 
         function readTestQuestion() {
@@ -6427,20 +6473,49 @@
 
             var inTest = isTestMode();
             let picked = null;
+            var resumed = false;
             if (inTest) {
-                picked = pickTestQuestion();
+                if (pinnedQuestions.test) {
+                    picked = pinnedQuestions.test;
+                    attemptsOnCurrentQuestion = Math.max(0, pinnedAttempts.test || 0);
+                    resumed = true;
+                } else {
+                    var storedTest = readPinnedTestQ();
+                    if (storedTest && storedTest.qObj) {
+                        picked = storedTest.qObj;
+                        pinnedQuestions.test = picked;
+                        pinnedAttempts.test = storedTest.attempts;
+                        attemptsOnCurrentQuestion = storedTest.attempts;
+                        resumed = true;
+                    } else {
+                        picked = pickTestQuestion();
+                        pinnedQuestions.test = picked;
+                        pinnedAttempts.test = 0;
+                        if (picked && picked.__testItem && picked.__testItem.id) {
+                            writePinnedTestQ(picked.__testItem.id, 0);
+                        }
+                    }
+                }
             } else {
-                let pool = allQuestions;
-                try { stampSheetRows(pool); } catch (e) {}
-                try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
-                if (!picked) {
-                    var spare = availableQuestions(pool);
-                    var fallback = spare && spare.length ? spare : pool;
-                    picked = fallback[Math.floor(Math.random() * fallback.length)];
+                if (pinnedQuestions.classic) {
+                    picked = pinnedQuestions.classic;
+                    attemptsOnCurrentQuestion = Math.max(0, pinnedAttempts.classic || 0);
+                    resumed = true;
+                } else {
+                    let pool = allQuestions;
+                    try { stampSheetRows(pool); } catch (e) {}
+                    try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
+                    if (!picked) {
+                        var spare = availableQuestions(pool);
+                        var fallback = spare && spare.length ? spare : pool;
+                        picked = fallback[Math.floor(Math.random() * fallback.length)];
+                    }
+                    pinnedQuestions.classic = picked;
+                    pinnedAttempts.classic = 0;
                 }
             }
             currentQ = picked;
-            if (!inTest) {
+            if (!inTest && !resumed) {
                 try { noteQuestionShown(currentQ); } catch (e) {}
             }
             
@@ -6565,6 +6640,10 @@
             logAttempt(isCorrect, currentQ);
 
             if(isCorrect) {
+                var solvedMode = tItem ? 'test' : 'classic';
+                pinnedQuestions[solvedMode] = null;
+                pinnedAttempts[solvedMode] = 0;
+                if (tItem) clearPinnedTestQ();
                 if (!tItem) {
                     try { notePractice(currentQ, true); } catch (e) {}
                 } else {
@@ -6613,6 +6692,9 @@
             } else {
                 playBonkSound();
                 attemptsOnCurrentQuestion++;
+                var missedMode = tItem ? 'test' : 'classic';
+                pinnedAttempts[missedMode] = attemptsOnCurrentQuestion;
+                if (tItem && tItem.id) writePinnedTestQ(tItem.id, attemptsOnCurrentQuestion);
                 if (attemptsOnCurrentQuestion === 1) {
                     try { resetSuperStreak(); } catch (e) {}
                     if (!tItem) {

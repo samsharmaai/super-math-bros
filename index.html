@@ -2631,7 +2631,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-21a</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-21b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -3563,7 +3563,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-21a';
+        var APP_BUILD = '2026-11-21b';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -4041,7 +4041,7 @@
         }
 
         function logAttempt(isCorrect, questionData) {
-            var email, payload, hinted;
+            var email, payload, hinted, tItem;
             if (!db || !questionData || currentUserEmail === "guest") return;
             try {
                 email = (auth && auth.currentUser && auth.currentUser.email) ? auth.currentUser.email : "";
@@ -4050,6 +4050,7 @@
             // True only when the hint was opened before this attempt.
             // The earlier attempt is never updated.
             hinted = hintRevealed === true;
+            tItem = questionData.__testItem || null;
             payload = {
                 user: email,
                 timestamp: new Date(),
@@ -4059,8 +4060,12 @@
                 world: gameState.world
             };
             if (hinted) payload.hintUsed = true;
+            if (tItem) {
+                payload.mode = "test";
+                if (tItem.s) payload.strand = tItem.s;
+            }
             db.collection("math_logs").add(payload).catch(function (err) {
-                if (!hinted || !logWriteRejected(err)) {
+                if ((!hinted && !tItem) || !logWriteRejected(err)) {
                     console.error("Answer log failed", err);
                     return;
                 }

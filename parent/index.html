@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Math Stats — Parent Dashboard</title>
+    <link rel="icon" href="favicon.png" type="image/png" sizes="64x64">
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f4f6f9">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --bg: #f4f6f9;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --ink: #0f172a;
+            --ink-2: #334155;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --accent: #4f46e5;
+            --accent-soft: #eef2ff;
+            --accent-ink: #3730a3;
+            --good: #059669;
+            --good-soft: #ecfdf5;
+            --warn: #d97706;
+            --warn-soft: #fffbeb;
+            --bad: #dc2626;
+            --bad-soft: #fef2f2;
+            --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+            --radius: 16px;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.45; }
+        body { min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 24px); }
+        button, input, select { font-family: inherit; }
+        .num { font-variant-numeric: tabular-nums; }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(244, 246, 249, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .brand { min-width: 0; }
+        .brand h1 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .brand-sub {
+            margin: 2px 0 0;
+            font-size: 0.74rem;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .icon-btn {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--ink-2);
+            border-radius: 11px;
+            min-height: 38px;
+            min-width: 38px;
+            padding: 0 11px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            text-decoration: none;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+        }
+        .icon-btn:hover { background: var(--surface-soft); border-color: var(--border-strong); }
+        .icon-btn:active { transform: scale(0.97); }
+        .icon-btn[hidden] { display: none !important; }
+
+        .shell { max-width: 960px; margin: 0 auto; padding: 14px 14px 40px; }
+
+        .alert-bar {
+            background: var(--bad-soft);
+            color: var(--bad);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .alert-bar[hidden] { display: none !important; }
+
+        .login-wrap {
+            max-width: 380px;
+            margin: 36px auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 26px 22px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .login-wrap h2 { margin: 0 0 6px; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
+        .login-wrap p { margin: 0 0 16px; font-size: 0.86rem; color: var(--muted); }
+        .login-form { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+        .field-lbl { font-size: 0.76rem; font-weight: 700; color: var(--ink-2); margin-bottom: -4px; }
+        .text-input {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.94rem;
+            color: var(--ink);
+            background: var(--surface-soft);
+            outline: none;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .text-input:focus { border-color: var(--accent); background: var(--surface); }
+        .primary-btn {
+            min-height: 46px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+            transition: background 0.15s, transform 0.1s;
+        }
+        .primary-btn:hover { background: #4338ca; }
+        .primary-btn:active { transform: scale(0.98); }
+
+        #dashboard-section { display: none; }
+
+        .mode-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            background: #e6ebf2;
+            padding: 4px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+        }
+        .mode-pill {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--ink-2);
+            border-radius: 11px;
+            min-height: 42px;
+            padding: 6px 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+            transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+        }
+        .mode-pill.active {
+            background: var(--surface);
+            color: var(--accent);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+        }
+        .pill-count {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: rgba(15, 23, 42, 0.08);
+            color: var(--ink-2);
+        }
+        .mode-pill.active .pill-count { background: var(--accent-soft); color: var(--accent-ink); }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .range-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .chip-btn {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--ink-2);
+            border-radius: 999px;
+            min-height: 34px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.14s;
+        }
+        .chip-btn.active { background: var(--ink); color: #ffffff; border-color: var(--ink); }
+        .fresh-stamp { font-size: 0.74rem; color: var(--muted); }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .tab-btn {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            border-radius: 12px;
+            min-height: 42px;
+            padding: 6px 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: var(--accent-soft);
+            color: var(--accent-ink);
+            border-color: #c7d2fe;
+        }
+
+        .view-container { display: none; }
+        .view-container.active { display: block; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+        }
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            margin: 0;
+            font-size: 0.94rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: var(--ink);
+        }
+        .card-meta { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+
+        .readiness-grid {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .ring-wrap {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            flex-shrink: 0;
+        }
+        .ring-svg { width: 96px; height: 96px; transform: rotate(-90deg); }
+        .ring-track { fill: none; stroke: #e2e8f0; stroke-width: 9; }
+        .ring-fill { fill: none; stroke: var(--accent); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+        .ring-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .ring-pct { font-size: 1.32rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+        .ring-lbl { font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-top: 2px; }
+
+        .readiness-info { flex: 1; min-width: 0; }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+        .tone-good { background: var(--good-soft); color: var(--good); }
+        .tone-warn { background: var(--warn-soft); color: var(--warn); }
+        .tone-bad { background: var(--bad-soft); color: var(--bad); }
+        .tone-muted { background: #f1f5f9; color: var(--muted); }
+        .readiness-copy { margin: 0 0 10px; font-size: 0.84rem; color: var(--ink-2); }
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .mini-stat {
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 7px 8px;
+        }
+        .mini-stat span { display: block; font-size: 0.66rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+        .mini-stat b { display: block; font-size: 0.96rem; font-weight: 800; color: var(--ink); margin-top: 2px; }
+
+        .compare-strip {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .compare-box {
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.15s;
+        }
+        .compare-box:hover { border-color: var(--accent); }
+        .compare-box-top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+        .compare-name { font-size: 0.76rem; font-weight: 800; color: var(--ink-2); }
+        .compare-pct { font-size: 1.05rem; font-weight: 800; }
+        .compare-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+        .strand-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 9px;
+        }
+        .strand-card {
+            appearance: none;
+            width: 100%;
+            text-align: left;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 12px 13px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .strand-card:hover { border-color: #a5b4fc; background: #ffffff; }
+        .strand-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+        .strand-name { font-size: 0.88rem; font-weight: 800; color: var(--ink); }
+        .strand-pct { font-size: 0.96rem; font-weight: 800; }
+        .bar-track { width: 100%; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 999px; transition: width 0.45s ease; }
+        .strand-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 0.74rem;
+            color: var(--muted);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 13px 14px;
+            box-shadow: var(--shadow);
+        }
+        .kpi-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+        .kpi-val { font-size: 1.32rem; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .kpi-sub { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+
+        .band-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 7px;
+            margin-top: 10px;
+        }
+        .band-box {
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 8px 6px;
+            text-align: center;
+        }
+        .band-box span { display: block; font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+        .band-box b { display: block; font-size: 1.05rem; font-weight: 800; margin: 2px 0; }
+        .band-box small { display: block; font-size: 0.7rem; color: var(--ink-2); font-weight: 600; }
+        .txt-good { color: var(--good); }
+        .txt-warn { color: var(--warn); }
+        .txt-bad { color: var(--bad); }
+        .txt-muted { color: var(--muted); }
+
+        .focus-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+        .focus-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 11px;
+            border-radius: 11px;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .focus-item:hover { border-color: #cbd5e1; }
+        .focus-left { min-width: 0; }
+        .focus-name { font-size: 0.85rem; font-weight: 800; color: var(--ink); }
+        .focus-note { font-size: 0.74rem; color: var(--muted); }
+
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .toolbar-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 150px;
+            min-height: 40px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: var(--surface);
+            color: var(--ink);
+            font-size: 0.86rem;
+            outline: none;
+        }
+        .search-input:focus { border-color: var(--accent); }
+        .select-input {
+            min-height: 40px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: var(--surface);
+            color: var(--ink);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .filter-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 11px;
+            background: var(--accent-soft);
+            color: var(--accent-ink);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .filter-banner[hidden] { display: none !important; }
+        .clear-chip {
+            border: none;
+            background: #ffffff;
+            color: var(--accent-ink);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .list-stack { display: flex; flex-direction: column; gap: 9px; }
+        .topic-row {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 13px 14px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.1s;
+        }
+        .topic-row:hover { border-color: #a5b4fc; }
+        .topic-row:active { transform: scale(0.99); }
+        .topic-row.is-empty { opacity: 0.78; cursor: default; }
+        .topic-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+        .topic-title-wrap { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-width: 0; }
+        .topic-name { font-size: 0.92rem; font-weight: 800; color: var(--ink); }
+        .topic-score { font-size: 1.04rem; font-weight: 800; flex-shrink: 0; }
+        .topic-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 7px;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+        }
+        .tag-test { background: #e0e7ff; color: #312e81; }
+        .tag-classic { background: #f1f5f9; color: #475569; }
+        .tag-mixed { background: #fef3c7; color: #92400e; }
+        .tag-strand { background: #f8fafc; color: #475569; border: 1px solid var(--border); }
+        .tag-hint { background: #fef3c7; color: #92400e; }
+
+        .q-row {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 13px 14px;
+            box-shadow: var(--shadow);
+        }
+        .q-text { font-size: 0.9rem; font-weight: 700; color: var(--ink); line-height: 1.4; margin-bottom: 8px; }
+        .q-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+        .q-metrics {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 8px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 0.76rem;
+            color: var(--ink-2);
+        }
+
+        .session-row {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 13px 14px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .session-row:hover { border-color: #a5b4fc; }
+        .session-left { min-width: 0; flex: 1; }
+        .session-date { font-size: 0.9rem; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+        .session-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+        .session-right { text-align: right; flex-shrink: 0; }
+        .session-acc { font-size: 1.1rem; font-weight: 800; line-height: 1.1; }
+        .session-sub { font-size: 0.7rem; font-weight: 700; color: var(--muted); margin-top: 2px; }
+
+        .empty-state {
+            background: var(--surface);
+            border: 1px dashed var(--border-strong);
+            border-radius: 16px;
+            padding: 28px 18px;
+            text-align: center;
+            color: var(--muted);
+        }
+        .empty-state h3 { margin: 0 0 6px; font-size: 0.96rem; color: var(--ink); }
+        .empty-state p { margin: 0; font-size: 0.84rem; }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.52);
+            backdrop-filter: blur(3px);
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+        }
+        .modal-backdrop.open { display: flex; }
+        .modal-sheet {
+            width: 100%;
+            max-width: 680px;
+            max-height: 86vh;
+            background: var(--surface);
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.22);
+        }
+        .modal-head {
+            padding: 15px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .modal-head h2 { margin: 0; font-size: 0.98rem; font-weight: 800; }
+        .modal-sub { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+        .modal-close {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--surface-soft);
+            color: var(--ink);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .modal-body {
+            padding: 12px 16px 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tl-item {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: var(--surface-soft);
+        }
+        .tl-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+        .tl-q { font-size: 0.85rem; font-weight: 700; color: var(--ink); line-height: 1.38; }
+        .tl-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; font-size: 0.72rem; color: var(--muted); }
+
+        @media (min-width: 700px) {
+            .shell { padding: 18px 20px 48px; }
+            .strand-grid { grid-template-columns: repeat(3, 1fr); }
+            .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+            .toolbar { flex-direction: row; align-items: center; justify-content: space-between; }
+            .modal-backdrop { align-items: center; padding: 20px; }
+            .modal-sheet { border-radius: 20px; max-height: 82vh; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <h1>Parent Dashboard</h1>
+                <p id="dash-status" class="brand-sub">Build 2026-11-21b</p>
+            </div>
+            <div class="top-actions">
+                <button type="button" id="refreshBtn" class="icon-btn" onclick="generateReport()" hidden aria-label="Refresh">↻</button>
+                <a class="icon-btn" href="../index.html" target="_blank" rel="noopener">🎮 Game</a>
+                <button type="button" id="logoutBtn" class="icon-btn" onclick="logout()" hidden>Sign out</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="shell">
+        <div id="report-error" class="alert-bar" hidden></div>
+
+        <section id="login-section" class="login-wrap">
+            <h2>Parent Sign In</h2>
+            <p id="login-checking">Checking session...</p>
+            <form id="manual-login" class="login-form" style="display:none;" onsubmit="event.preventDefault(); loginAndFetch();">
+                <label class="field-lbl" for="email">Email</label>
+                <input class="text-input" type="email" id="email" placeholder="Email" value="mario@math.com" autocomplete="username">
+                <label class="field-lbl" for="password">Password</label>
+                <input class="text-input" type="password" id="password" placeholder="Password" autocomplete="current-password">
+                <button type="submit" class="primary-btn">Sign In</button>
+                <p id="error-msg" style="color:#dc2626; font-size:0.82rem; font-weight:600; margin:4px 0 0;"></p>
+            </form>
+        </section>
+
+        <section id="dashboard-section">
+            <div class="mode-bar" role="tablist" aria-label="Game Mode">
+                <button type="button" class="mode-pill" data-mode="test" onclick="setModeFilter('test')">📝 Test Mode <span class="pill-count num" id="cnt-test">0</span></button>
+                <button type="button" class="mode-pill" data-mode="classic" onclick="setModeFilter('classic')">🎮 Classic <span class="pill-count num" id="cnt-classic">0</span></button>
+                <button type="button" class="mode-pill" data-mode="all" onclick="setModeFilter('all')">All <span class="pill-count num" id="cnt-all">0</span></button>
+            </div>
+
+            <div class="controls-row">
+                <div class="range-chips">
+                    <button type="button" class="chip-btn active" data-range="all" onclick="setRangeFilter('all')">All Time</button>
+                    <button type="button" class="chip-btn" data-range="7d" onclick="setRangeFilter('7d')">7 Days</button>
+                    <button type="button" class="chip-btn" data-range="today" onclick="setRangeFilter('today')">Today</button>
+                </div>
+                <span id="fresh-stamp" class="fresh-stamp"></span>
+            </div>
+
+            <nav class="tabs" aria-label="Dashboard Sections">
+                <button type="button" class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+                <button type="button" class="tab-btn" data-tab="topics" onclick="switchTab('topics')">Topics</button>
+                <button type="button" class="tab-btn" data-tab="questions" onclick="switchTab('questions')">Questions</button>
+                <button type="button" class="tab-btn" data-tab="sessions" onclick="switchTab('sessions')">Sessions</button>
+            </nav>
+
+            <div id="view-overview" class="view-container active">
+                <div class="card" id="readiness-card"></div>
+                <div class="card" id="strands-card">
+                    <div class="card-head">
+                        <h2 class="card-title">Test Mode Strands</h2>
+                        <span class="card-meta" id="strands-meta">Tap a strand to inspect topics</span>
+                    </div>
+                    <div class="strand-grid" id="strand-grid"></div>
+                </div>
+                <div class="kpi-grid" id="kpi-grid"></div>
+                <div class="card" id="practice-card">
+                    <div class="card-head">
+                        <h2 class="card-title">Focus Next</h2>
+                        <span class="card-meta" id="practice-meta"></span>
+                    </div>
+                    <p id="weak-line" style="margin:0 0 10px; font-size:0.86rem; color:var(--ink-2);"></p>
+                    <ul class="focus-list" id="focus-list"></ul>
+                    <div class="band-grid" id="band-row"></div>
+                </div>
+            </div>
+
+            <div id="view-topics" class="view-container">
+                <div class="toolbar">
+                    <div class="toolbar-row" id="strand-filter-row">
+                        <button type="button" class="chip-btn active" data-strand="all" onclick="setStrandFilter('all')">All Strands</button>
+                        <button type="button" class="chip-btn" data-strand="num" onclick="setStrandFilter('num')">Number</button>
+                        <button type="button" class="chip-btn" data-strand="meas" onclick="setStrandFilter('meas')">Measures</button>
+                        <button type="button" class="chip-btn" data-strand="data" onclick="setStrandFilter('data')">Shape &amp; Data</button>
+                    </div>
+                    <select id="topic-sort" class="select-input" onchange="renderTopicsView()">
+                        <option value="weak">Sort: Weakest First</option>
+                        <option value="volume">Sort: Most Practiced</option>
+                        <option value="name">Sort: A–Z</option>
+                    </select>
+                </div>
+                <div class="list-stack" id="topics-list"></div>
+            </div>
+
+            <div id="view-questions" class="view-container">
+                <div class="toolbar">
+                    <div class="toolbar-row">
+                        <button type="button" class="chip-btn active" data-qfilter="all" onclick="setQFilter('all')">All</button>
+                        <button type="button" class="chip-btn" data-qfilter="missed" onclick="setQFilter('missed')">Missed</button>
+                        <button type="button" class="chip-btn" data-qfilter="hint" onclick="setQFilter('hint')">Hint Used</button>
+                    </div>
+                    <div class="toolbar-row" style="flex:1;">
+                        <input id="q-search" class="search-input" type="search" placeholder="Search questions..." oninput="renderQuestionsView()">
+                        <select id="q-sort" class="select-input" onchange="renderQuestionsView()">
+                            <option value="wrong">Most Missed</option>
+                            <option value="acc">Lowest %</option>
+                            <option value="total">Most Seen</option>
+                            <option value="recent">Newest</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="q-topic-banner" class="filter-banner" hidden>
+                    <span id="q-topic-label"></span>
+                    <button type="button" class="clear-chip" onclick="clearTopicFilter()">Show All</button>
+                </div>
+                <div class="list-stack" id="questions-list" style="margin-top:8px;"></div>
+            </div>
+
+            <div id="view-sessions" class="view-container">
+                <div class="list-stack" id="sessions-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="session-detail-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+        <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-head">
+                <div>
+                    <h2 id="modal-title">Session Details</h2>
+                    <div id="modal-sub" class="modal-sub"></div>
+                </div>
+                <button type="button" class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
+            </div>
+            <div id="session-detail-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        var DASH_BUILD = '2026-11-21b';
+        var TEST_META = {"lookup":{"a school library has 403 books. during the week, 168 books are borrowed. how many books are left?":["num","Subtraction"],"a baker makes 500 buns and sells 247 by lunchtime. how many buns are left?":["num","Subtraction"],"what is 604 − 279?":["num","Subtraction"],"a farmer collected 702 eggs and packed 356 into cartons. how many eggs are still loose?":["num","Subtraction"],"805 people came to a match. 468 left early. how many stayed?":["num","Subtraction"],"what is 310 − 146?":["num","Subtraction"],"one bus carries 386 fans and a train carries 259 fans. how many fans altogether?":["num","Addition"],"what is 478 + 365?":["num","Addition"],"a school raised €294 on monday and €438 on tuesday. how much did they raise in total?":["num","Addition"],"what is 567 + 286?":["num","Addition"],"what is the value of the digit 4 in the number 748?":["num","Place Value"],"what is the value of the digit 6 in the number 609?":["num","Place Value"],"round 468 to the nearest 10.":["num","Place Value"],"round 649 to the nearest 100.":["num","Place Value"],"round 752 to the nearest 100.":["num","Place Value"],"what number is 10 less than 504?":["num","Place Value"],"what number is 100 more than 789?":["num","Place Value"],"which of these numbers is the largest?":["num","Place Value"],"there are 7 boxes with 6 crayons in each box. how many crayons altogether?":["num","Multiplication"],"a gardener plants 9 rows of 8 tulips. how many tulips are planted?":["num","Multiplication"],"26 apples are packed into bags of 4. how many full bags can be made?":["num","Division"],"35 stickers are shared equally among 4 friends. how many stickers are left over?":["num","Division"],"48 chairs are set out in 6 equal rows. how many chairs are in each row?":["num","Division"],"mia has 4 packs of 9 cards and 7 loose cards. how many cards does she have in total?":["num","Multiplication"],"5 teams of 6 players arrive at a pitch. 4 players go home early. how many players stay?":["num","Multiplication"],"what is 3/4 of 24?":["num","Fractions"],"what is 3/4 of 32?":["num","Fractions"],"what is 2/5 of 25?":["num","Fractions"],"a pizza is cut into 8 equal slices. sam eats 3 slices. what fraction of the pizza is left?":["num","Fractions"],"which of these fractions is the biggest?":["num","Fractions"],"which fraction is equal to 1/2?":["num","Fractions"],"what is 0.4 + 0.5?":["num","Decimals"],"what is 1.0 − 0.3?":["num","Decimals"],"find the missing number: 47 + ☐ = 112":["num","Patterns"],"find the missing number: ☐ − 38 = 64":["num","Patterns"],"what number goes in the box? 6 × 4 = 3 × ☐":["num","Patterns"],"what comes next in this pattern? 14, 21, 28, 35, ☐":["num","Patterns"],"what comes next in this pattern? 95, 86, 77, 68, ☐":["num","Patterns"],"what comes next in this pattern? 3, 6, 12, 24, ☐":["num","Patterns"],"liam buys 3 notebooks at 45c each. he pays with a €2 coin. how much change does he get?":["meas","Money"],"nora buys 2 pencils at 35c each and a ruler for €1.10. she pays with €2.00. how much change?":["meas","Money"],"evan buys 4 apples at 40c each and pays with a €5 note. how much change does he get?":["meas","Money"],"a comic costs €3.45 and a sticker pack costs 85c. you pay with €5.00. how much change?":["meas","Money"],"two cinema tickets cost €3.20 each. dad pays with a €10 note. how much change?":["meas","Money"],"three granola bars cost 75c each. you pay with €5.00. how much change do you get?":["meas","Money"],"a sandwich costs €2.80 and a juice costs €1.45. what is the total cost?":["meas","Money"],"how many 20c coins make €2.40?":["meas","Money"],"a bus leaves at the time shown on this clock. the journey takes 35 minutes. what time does it arrive?":["meas","Time"],"maths class starts at the time shown and lasts 45 minutes. what time does it finish?":["meas","Time"],"what time is shown on this clock?":["meas","Time"],"how many minutes is it from the time on this clock until 12:15?":["meas","Time"],"a cartoon starts at 3:20 and ends at 4:05. how long is the cartoon?":["meas","Time"],"training ends at 4:15. it lasted 25 minutes. what time did training start?":["meas","Time"],"look at the calendar for april. what day of the week is april 18th?":["meas","Time"],"look at the calendar for april. what date is 2 weeks after april 6th?":["meas","Time"],"look at the calendar for may. how many saturdays are in may?":["meas","Time"],"sam goes on holiday on may 9th for 10 days. what date does he return?":["meas","Time"],"write 2 metres 35 centimetres in centimetres.":["meas","Measurement"],"a ribbon is 1 metre long. eva cuts off 38 cm. how much ribbon is left?":["meas","Measurement"],"a bag holds 1 kg of flour. mum uses 350 g for a cake. how much flour is left?":["meas","Measurement"],"how many grams are in 1/4 kg?":["meas","Measurement"],"a jug holds 1 litre of water. you pour out 3 cups of 200 ml each. how much water is left in the jug?":["meas","Measurement"],"how many millilitres are in 2 1/2 litres?":["meas","Measurement"],"each small square is 1 square unit. what is the area of the shaded shape?":["meas","Measurement"],"what is the perimeter (total distance around the outside) of this rectangle?":["meas","Measurement"],"how many more pupils chose football than swimming?":["data","Data"],"how many books did mia and noah read altogether?":["data","Data"],"how many apples were sold on tuesday?":["data","Data"],"how many fewer birds than dogs are in the class?":["data","Data"],"how many trees were planted in total?":["data","Data"],"look at the bar chart. how many more sunny days were there than rainy days?":["data","Data"],"how many pupils are in art and chess altogether?":["data","Data"],"how many pupils answered this ice cream survey in total?":["data","Data"],"which day had half as many library visits as tuesday?":["data","Data"],"what is the difference between the highest and lowest team scores?":["data","Data"],"look at the traffic table. how many vehicles passed in total?":["data","Data"],"there are 32 pieces of fruit in total. how many oranges are missing from the table?":["data","Data"],"how many more children chose pasta than soup?":["data","Data"],"a bag has 9 red marbles and 1 blue marble. without looking, picking a red marble is...":["data","Chance"],"a bag contains 8 green marbles and no other colours. picking a yellow marble is...":["data","Chance"],"you roll a normal 1 to 6 dice. rolling a number less than 7 is...":["data","Chance"],"a jar holds 1 green sweet and 11 yellow sweets. picking a green sweet is...":["data","Chance"],"look at the spinner. which colour is least likely to win?":["data","Chance"],"how many flat faces does a cube have?":["data","Shapes"],"how many edges does a cube have?":["data","Shapes"],"how many corners (vertices) does a cuboid have?":["data","Shapes"],"how many flat circular faces does a cylinder have?":["data","Shapes"],"how many faces does a triangular prism have in total?":["data","Shapes"],"what type of angle is shown here?":["data","Shapes"],"compare this angle to a right angle. it is...":["data","Shapes"],"two straight lines that stay the exact same distance apart and never meet are called...":["data","Shapes"],"how many sides does a hexagon have?":["data","Shapes"],"how many lines of symmetry does a rectangle (not a square) have?":["data","Shapes"]},"topicBank":{"Subtraction":{"s":"num","count":6},"Addition":{"s":"num","count":4},"Place Value":{"s":"num","count":8},"Multiplication":{"s":"num","count":4},"Division":{"s":"num","count":3},"Fractions":{"s":"num","count":6},"Decimals":{"s":"num","count":2},"Patterns":{"s":"num","count":6},"Money":{"s":"meas","count":8},"Time":{"s":"meas","count":10},"Measurement":{"s":"meas","count":8},"Data":{"s":"data","count":13},"Chance":{"s":"data","count":5},"Shapes":{"s":"data","count":11}},"total":94};
+        var STRAND_INFO = {
+            num: { key: 'num', label: 'Number & Algebra', bank: 39, cats: ['Addition', 'Subtraction', 'Place Value', 'Multiplication', 'Division', 'Fractions', 'Decimals', 'Patterns'] },
+            meas: { key: 'meas', label: 'Measures', bank: 26, cats: ['Money', 'Time', 'Measurement'] },
+            data: { key: 'data', label: 'Shape & Data', bank: 29, cats: ['Data', 'Chance', 'Shapes'] }
+        };
+        var CAT_TO_STRAND = {};
+        Object.keys(STRAND_INFO).forEach(function (k) {
+            STRAND_INFO[k].cats.forEach(function (c) { CAT_TO_STRAND[c.toLowerCase()] = k; });
+        });
+
+        var firebaseConfig = { apiKey: "AIzaSyC3aHdoyrVWmOwnM5cEn3mueyEzG_QdBN0", authDomain: "super-math-tracker.firebaseapp.com", projectId: "super-math-tracker", storageBucket: "super-math-tracker.firebasestorage.app" };
+        var db, auth;
+        var allLogs = [];
+        var activeMode = 'auto';
+        var activeRange = 'all';
+        var activeTab = 'overview';
+        var activeStrand = 'all';
+        var activeQFilter = 'all';
+        var activeTopicFilter = '';
+        var derived = { logs: [], items: [], categories: [], questions: [], sessions: [], strands: {}, testSummary: null, classicSummary: null };
+
+        function esc(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function cleanQText(q) {
+            return String(q == null ? '' : q)
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/&times;/gi, '×').replace(/&#215;/g, '×')
+                .replace(/&divide;/gi, '÷').replace(/&#247;/g, '÷')
+                .replace(/&minus;/gi, '−')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function normQKey(q) {
+            return cleanQText(q).toLowerCase();
+        }
+
+        function difficultyOf(correct, total) {
+            var acc;
+            if (!total || total < 4) return 'New';
+            acc = correct / total;
+            if (acc >= 0.8) return 'Easy';
+            if (acc <= 0.55) return 'Hard';
+            return 'Medium';
+        }
+
+        function toneForPct(pct) {
+            if (pct == null) return 'muted';
+            if (pct >= 80) return 'good';
+            if (pct >= 65) return 'warn';
+            return 'bad';
+        }
+
+        function colorForPct(pct) {
+            if (pct == null) return '#94a3b8';
+            if (pct >= 80) return '#059669';
+            if (pct >= 65) return '#d97706';
+            return '#dc2626';
+        }
+
+        function isSheetTopic(name) {
+            var lower = String(name || '').trim().toLowerCase();
+            return lower && lower !== 'fun' && lower !== 'offline' && lower !== 'general';
+        }
+
+        function plainTimesFactText(question) {
+            var q = normQKey(question);
+            if (!q) return false;
+            if (q.indexOf('divid') !== -1 || q.indexOf('÷') !== -1 || q.indexOf('/') !== -1) return false;
+            q = q.replace(/[?.!]+$/g, '').trim();
+            if (/^(what is\s+)?\d+\s*[x×*]\s*\d+$/.test(q)) return true;
+            if (/^(what is\s+)?\d+\s*[x×*]\s*\?\s*=\s*\d+$/.test(q)) return true;
+            if (/^\d+\s+times\s+\d+(\s+is)?$/.test(q)) return true;
+            return false;
+        }
+
+        function labelForLog(question, category) {
+            var name = String(category == null ? '' : category).trim();
+            if (!name) name = 'General';
+            if (plainTimesFactText(question) && name.toLowerCase() === 'division') return 'Multiplication';
+            return name;
+        }
+
+        function asDate(value) {
+            var parsed;
+            if (!value) return null;
+            if (typeof value.toDate === 'function') {
+                try { return value.toDate(); } catch (e) { return null; }
+            }
+            if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
+            parsed = new Date(value);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function classifyLog(raw) {
+            var qClean = cleanQText(raw.question);
+            var qKey = qClean.toLowerCase();
+            var matched = TEST_META.lookup[qKey] || null;
+            var isTest = (raw.mode === 'test') || !!matched;
+            var strand = '';
+            var cat = labelForLog(raw.question, raw.category);
+            if (isTest) {
+                if (raw.strand && STRAND_INFO[raw.strand]) strand = raw.strand;
+                else if (matched) strand = matched[0];
+                else strand = CAT_TO_STRAND[cat.toLowerCase()] || 'num';
+                if (matched && (!raw.category || raw.category === 'General')) cat = matched[1];
+            }
+            return {
+                user: String(raw.user || '').trim().toLowerCase(),
+                question: qClean || 'Unknown',
+                qKey: qKey,
+                category: cat,
+                result: raw.result === 'Correct' ? 'Correct' : 'Wrong',
+                isCorrect: raw.result === 'Correct',
+                hintUsed: raw.hintUsed === true,
+                world: raw.world || 1,
+                mode: isTest ? 'test' : 'classic',
+                strand: strand,
+                sessionId: raw.sessionId || '',
+                timestamp: asDate(raw.timestamp)
+            };
+        }
+
+        function filterByRange(logs) {
+            var now = new Date();
+            var startMs = 0;
+            if (activeRange === 'today') {
+                startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            } else if (activeRange === '7d') {
+                startMs = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+            } else {
+                return logs.slice();
+            }
+            return logs.filter(function (l) { return l.timestamp.getTime() >= startMs; });
+        }
+
+        function groupQuestionInstances(logsDesc) {
+            var asc = logsDesc.slice().sort(function (a, b) { return a.timestamp - b.timestamp; });
+            var items = [];
+            var i, log, prev;
+            for (i = 0; i < asc.length; i++) {
+                log = asc[i];
+                prev = items.length ? items[items.length - 1] : null;
+                if (prev && prev.qKey === log.qKey && prev.mode === log.mode && !prev.resolved && (log.timestamp - prev.lastTs) <= 180000) {
+                    prev.attempts.push(log);
+                    prev.lastTs = log.timestamp;
+                    if (log.hintUsed) prev.hintUsed = true;
+                    if (log.isCorrect) prev.resolved = true;
+                } else {
+                    items.push({
+                        qKey: log.qKey,
+                        question: log.question,
+                        category: log.category,
+                        mode: log.mode,
+                        strand: log.strand,
+                        firstTs: log.timestamp,
+                        lastTs: log.timestamp,
+                        firstTryCorrect: log.isCorrect,
+                        resolved: log.isCorrect,
+                        hintUsed: log.hintUsed,
+                        attempts: [log]
+                    });
+                }
+            }
+            return items;
+        }
+
+        function summarizeLogs(logs) {
+            var items = groupQuestionInstances(logs);
+            var firstCorrect = 0, rawCorrect = 0, hints = 0;
+            var uniqueSet = {};
+            items.forEach(function (it) {
+                if (it.firstTryCorrect) firstCorrect++;
+                if (it.hintUsed) hints++;
+                uniqueSet[it.qKey] = true;
+            });
+            logs.forEach(function (l) { if (l.isCorrect) rawCorrect++; });
+            return {
+                attempts: logs.length,
+                questions: items.length,
+                uniqueCount: Object.keys(uniqueSet).length,
+                firstCorrect: firstCorrect,
+                firstPct: items.length ? Math.round((firstCorrect / items.length) * 100) : null,
+                rawPct: logs.length ? Math.round((rawCorrect / logs.length) * 100) : null,
+                hints: hints,
+                items: items
+            };
+        }
+
+        function buildSessions(logsDesc) {
+            var asc = logsDesc.slice().sort(function (a, b) { return a.timestamp - b.timestamp; });
+            var sessions = [];
+            var cur = null;
+            var i, log, gap, sameExplicit;
+            for (i = 0; i < asc.length; i++) {
+                log = asc[i];
+                gap = cur ? (log.timestamp - cur.endTime) : Infinity;
+                sameExplicit = cur && cur.sessionId && log.sessionId && cur.sessionId === log.sessionId;
+                if (!cur || (!sameExplicit && gap > 20 * 60 * 1000)) {
+                    cur = { sessionId: log.sessionId || '', logs: [], startTime: log.timestamp, endTime: log.timestamp, testCount: 0, classicCount: 0 };
+                    sessions.push(cur);
+                }
+                cur.logs.push(log);
+                if (log.timestamp > cur.endTime) cur.endTime = log.timestamp;
+                if (log.mode === 'test') cur.testCount++; else cur.classicCount++;
+            }
+            sessions.forEach(function (s) {
+                var sum = summarizeLogs(s.logs);
+                s.questions = sum.questions;
+                s.firstCorrect = sum.firstCorrect;
+                s.firstPct = sum.firstPct;
+                s.attempts = s.logs.length;
+                s.hints = sum.hints;
+                s.items = sum.items;
+                s.durationMin = Math.max(1, Math.round((s.endTime - s.startTime) / 60000));
+                if (s.testCount && s.classicCount) s.mode = 'mixed';
+                else if (s.testCount) s.mode = 'test';
+                else s.mode = 'classic';
+            });
+            sessions.sort(function (a, b) { return b.startTime - a.startTime; });
+            return sessions;
+        }
+
+        function recompute() {
+            var ranged = filterByRange(allLogs);
+            var testLogs = ranged.filter(function (l) { return l.mode === 'test'; });
+            var classicLogs = ranged.filter(function (l) { return l.mode === 'classic'; });
+            if (activeMode === 'auto') {
+                activeMode = testLogs.length > 0 ? 'test' : 'all';
+            }
+
+            document.getElementById('cnt-test').textContent = testLogs.length;
+            document.getElementById('cnt-classic').textContent = classicLogs.length;
+            document.getElementById('cnt-all').textContent = ranged.length;
+            document.querySelectorAll('.mode-pill').forEach(function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-mode') === activeMode);
+            });
+
+            var scoped = activeMode === 'test' ? testLogs : (activeMode === 'classic' ? classicLogs : ranged);
+            var scopedSummary = summarizeLogs(scoped);
+            var testSummary = summarizeLogs(testLogs);
+            var classicSummary = summarizeLogs(classicLogs);
+
+            var catMap = {};
+            scopedSummary.items.forEach(function (it) {
+                var key = it.category;
+                if (!catMap[key]) {
+                    catMap[key] = {
+                        name: key,
+                        strand: it.strand || CAT_TO_STRAND[key.toLowerCase()] || '',
+                        questions: 0,
+                        firstCorrect: 0,
+                        attempts: 0,
+                        wrongAttempts: 0,
+                        hints: 0,
+                        uniqueKeys: {},
+                        testCount: 0,
+                        classicCount: 0,
+                        bankCount: TEST_META.topicBank[key] ? TEST_META.topicBank[key].count : 0
+                    };
+                }
+                var c = catMap[key];
+                c.questions++;
+                if (it.firstTryCorrect) c.firstCorrect++;
+                c.attempts += it.attempts.length;
+                c.wrongAttempts += it.attempts.filter(function (a) { return !a.isCorrect; }).length;
+                if (it.hintUsed) c.hints++;
+                c.uniqueKeys[it.qKey] = true;
+                if (it.mode === 'test') c.testCount++; else c.classicCount++;
+            });
+
+            var categories = Object.keys(catMap).map(function (k) {
+                var c = catMap[k];
+                var pct = c.questions ? Math.round((c.firstCorrect / c.questions) * 100) : null;
+                return {
+                    name: c.name,
+                    strand: c.strand,
+                    questions: c.questions,
+                    firstCorrect: c.firstCorrect,
+                    attempts: c.attempts,
+                    wrongAttempts: c.wrongAttempts,
+                    hints: c.hints,
+                    uniqueCount: Object.keys(c.uniqueKeys).length,
+                    bankCount: c.bankCount,
+                    testCount: c.testCount,
+                    classicCount: c.classicCount,
+                    pct: pct,
+                    calibre: difficultyOf(c.firstCorrect, c.questions)
+                };
+            });
+
+            var qMap = {};
+            scopedSummary.items.forEach(function (it) {
+                var key = it.mode + '|' + it.qKey;
+                if (!qMap[key]) {
+                    qMap[key] = {
+                        question: it.question,
+                        category: it.category,
+                        mode: it.mode,
+                        strand: it.strand,
+                        seen: 0,
+                        firstCorrect: 0,
+                        wrong: 0,
+                        hints: 0,
+                        lastTs: it.lastTs
+                    };
+                }
+                var q = qMap[key];
+                q.seen++;
+                if (it.firstTryCorrect) q.firstCorrect++;
+                q.wrong += it.attempts.filter(function (a) { return !a.isCorrect; }).length;
+                if (it.hintUsed) q.hints++;
+                if (it.lastTs > q.lastTs) q.lastTs = it.lastTs;
+            });
+            var questions = Object.keys(qMap).map(function (k) {
+                var q = qMap[k];
+                q.pct = q.seen ? Math.round((q.firstCorrect / q.seen) * 100) : 0;
+                q.calibre = difficultyOf(q.firstCorrect, q.seen);
+                return q;
+            });
+
+            var strands = {};
+            Object.keys(STRAND_INFO).forEach(function (sk) {
+                var info = STRAND_INFO[sk];
+                var sItems = testSummary.items.filter(function (it) { return it.strand === sk; });
+                var fc = 0, uniq = {};
+                sItems.forEach(function (it) {
+                    if (it.firstTryCorrect) fc++;
+                    uniq[it.qKey] = true;
+                });
+                strands[sk] = {
+                    key: sk,
+                    label: info.label,
+                    bank: info.bank,
+                    questions: sItems.length,
+                    firstCorrect: fc,
+                    uniqueCount: Object.keys(uniq).length,
+                    pct: sItems.length ? Math.round((fc / sItems.length) * 100) : null
+                };
+            });
+
+            derived = {
+                logs: scoped,
+                summary: scopedSummary,
+                testSummary: testSummary,
+                classicSummary: classicSummary,
+                categories: categories,
+                questions: questions,
+                sessions: buildSessions(scoped),
+                strands: strands
+            };
+
+            renderAll();
+        }
+
+        function formatRelDate(d) {
+            var now = new Date();
+            var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            var yestStart = todayStart - 86400000;
+            var t = d.getTime();
+            var timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (t >= todayStart) return 'Today, ' + timeStr;
+            if (t >= yestStart) return 'Yesterday, ' + timeStr;
+            return d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ', ' + timeStr;
+        }
+
+        function renderAll() {
+            var stampEl = document.getElementById('fresh-stamp');
+            if (derived.logs.length) {
+                stampEl.textContent = 'Latest: ' + formatRelDate(derived.logs[0].timestamp);
+            } else {
+                stampEl.textContent = 'No logs in window';
+            }
+            renderOverview();
+            renderTopicsView();
+            renderQuestionsView();
+            renderSessionsView();
+        }
+
+        function readinessLabel(pct, count) {
+            if (!count || pct == null) return { text: 'Not Started Yet', tone: 'muted', copy: 'Switch to 📝 TEST in the game to run a 10-question mock round with paper rough work.' };
+            if (count < 10) return { text: 'Early Sample (' + count + ' Qs)', tone: 'warn', copy: 'Complete at least one full 10-question round for a solid readiness picture.' };
+            if (pct >= 80) return { text: 'Test Ready', tone: 'good', copy: 'Strong first-try accuracy across mock questions. Keep brushing up any untouched topics.' };
+            if (pct >= 65) return { text: 'Building Steadily', tone: 'warn', copy: 'Good foundation. Focus rough-sheet working on the weakest 1–2 topics below.' };
+            return { text: 'Needs Paper Practice', tone: 'bad', copy: 'Walk through the missed multi-step questions below together on a blank rough sheet.' };
+        }
+
+        function renderOverview() {
+            var card = document.getElementById('readiness-card');
+            var s = derived.summary;
+            var pct = s.firstPct;
+            var radius = 38;
+            var circ = 2 * Math.PI * radius;
+            var offset = pct == null ? circ : circ * (1 - pct / 100);
+            var ringColor = colorForPct(pct);
+            var status = activeMode === 'test'
+                ? readinessLabel(pct, s.questions)
+                : (s.questions ? { text: (pct >= 80 ? 'Strong Accuracy' : (pct >= 65 ? 'Steady Progress' : 'Review Weak Topics')), tone: toneForPct(pct), copy: 'First-try score counts whether each question was solved cleanly on the very first attempt.' }
+                    : { text: 'No Answers Yet', tone: 'muted', copy: 'No answers match the current filter window.' });
+
+            var headTitle = activeMode === 'test' ? 'Mock Test Readiness' : (activeMode === 'classic' ? 'Classic Mode Snapshot' : 'Combined Performance');
+            var coverageVal = activeMode === 'test' ? (s.uniqueCount + '/' + TEST_META.total) : String(s.uniqueCount);
+            var coverageLbl = activeMode === 'test' ? 'Bank Seen' : 'Unique Qs';
+
+            var compareHtml = '';
+            if (activeMode === 'all') {
+                var ts = derived.testSummary;
+                var cs = derived.classicSummary;
+                compareHtml = '<div class="compare-strip">' +
+                    '<button type="button" class="compare-box" onclick="setModeFilter(\'test\')">' +
+                        '<div class="compare-box-top"><span class="compare-name">📝 Test Mode</span><span class="compare-pct num txt-' + toneForPct(ts.firstPct) + '">' + (ts.firstPct == null ? '—' : ts.firstPct + '%') + '</span></div>' +
+                        '<div class="compare-sub num">' + ts.questions + ' Qs · ' + ts.uniqueCount + '/' + TEST_META.total + ' bank</div>' +
+                    '</button>' +
+                    '<button type="button" class="compare-box" onclick="setModeFilter(\'classic\')">' +
+                        '<div class="compare-box-top"><span class="compare-name">🎮 Classic</span><span class="compare-pct num txt-' + toneForPct(cs.firstPct) + '">' + (cs.firstPct == null ? '—' : cs.firstPct + '%') + '</span></div>' +
+                        '<div class="compare-sub num">' + cs.questions + ' Qs · ' + cs.attempts + ' tries</div>' +
+                    '</button>' +
+                '</div>';
+            }
+
+            card.innerHTML =
+                '<div class="card-head"><h2 class="card-title">' + headTitle + '</h2><span class="card-meta num">' + (s.rawPct == null ? '' : 'Raw tries: ' + s.rawPct + '%') + '</span></div>' +
+                '<div class="readiness-grid">' +
+                    '<div class="ring-wrap">' +
+                        '<svg class="ring-svg" viewBox="0 0 96 96">' +
+                            '<circle class="ring-track" cx="48" cy="48" r="' + radius + '"></circle>' +
+                            '<circle class="ring-fill" cx="48" cy="48" r="' + radius + '" stroke-dasharray="' + circ.toFixed(1) + '" stroke-dashoffset="' + offset.toFixed(1) + '" style="stroke:' + ringColor + ';"></circle>' +
+                        '</svg>' +
+                        '<div class="ring-center"><span class="ring-pct num">' + (pct == null ? '—' : pct + '%') + '</span><span class="ring-lbl">First Try</span></div>' +
+                    '</div>' +
+                    '<div class="readiness-info">' +
+                        '<span class="status-badge tone-' + status.tone + '">' + esc(status.text) + '</span>' +
+                        '<p class="readiness-copy">' + esc(status.copy) + '</p>' +
+                        '<div class="mini-stats">' +
+                            '<div class="mini-stat"><span>Questions</span><b class="num">' + s.questions + '</b></div>' +
+                            '<div class="mini-stat"><span>' + coverageLbl + '</span><b class="num">' + coverageVal + '</b></div>' +
+                            '<div class="mini-stat"><span>Hints</span><b class="num">' + s.hints + '</b></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' + compareHtml;
+
+            var strandsCard = document.getElementById('strands-card');
+            if (activeMode === 'classic') {
+                strandsCard.style.display = 'none';
+            } else {
+                strandsCard.style.display = 'block';
+                var sg = document.getElementById('strand-grid');
+                sg.innerHTML = ['num', 'meas', 'data'].map(function (sk) {
+                    var st = derived.strands[sk];
+                    var tone = toneForPct(st.pct);
+                    var barW = st.pct == null ? 0 : st.pct;
+                    return '<button type="button" class="strand-card" onclick="openStrandTopics(\'' + sk + '\')">' +
+                        '<div class="strand-top"><span class="strand-name">' + esc(st.label) + '</span><span class="strand-pct num txt-' + tone + '">' + (st.pct == null ? '—' : st.pct + '%') + '</span></div>' +
+                        '<div class="bar-track"><div class="bar-fill" style="width:' + barW + '%; background:' + colorForPct(st.pct) + ';"></div></div>' +
+                        '<div class="strand-foot"><span class="num">' + st.firstCorrect + '/' + st.questions + ' first-try</span><span class="num">' + st.uniqueCount + '/' + st.bank + ' bank</span></div>' +
+                    '</button>';
+                }).join('');
+            }
+
+            var avgMin = derived.sessions.length
+                ? Math.round(derived.sessions.reduce(function (a, x) { return a + x.durationMin; }, 0) / derived.sessions.length)
+                : 0;
+            var qualified = derived.categories.filter(function (c) { return isSheetTopic(c.name) && c.questions >= 2; });
+            qualified.sort(function (a, b) { return b.pct - a.pct || b.questions - a.questions; });
+            var strongest = qualified.length ? qualified[0] : null;
+            var retryCount = Math.max(0, s.attempts - s.questions);
+
+            document.getElementById('kpi-grid').innerHTML =
+                '<div class="kpi-card"><div class="kpi-lbl">Sessions</div><div class="kpi-val num">' + derived.sessions.length + '</div><div class="kpi-sub num">Avg ' + avgMin + ' min</div></div>' +
+                '<div class="kpi-card"><div class="kpi-lbl">Strongest Topic</div><div class="kpi-val">' + (strongest ? esc(strongest.name) : '—') + '</div><div class="kpi-sub num">' + (strongest ? strongest.pct + '% (' + strongest.questions + ' Qs)' : 'Need 2+ Qs') + '</div></div>' +
+                '<div class="kpi-card"><div class="kpi-lbl">First-Try Wins</div><div class="kpi-val num">' + s.firstCorrect + '</div><div class="kpi-sub num">of ' + s.questions + ' questions</div></div>' +
+                '<div class="kpi-card"><div class="kpi-lbl">Extra Retries</div><div class="kpi-val num">' + retryCount + '</div><div class="kpi-sub num">' + s.hints + ' hint' + (s.hints === 1 ? '' : 's') + ' opened</div></div>';
+
+            renderPracticeCard();
+        }
+
+        function renderPracticeCard() {
+            var weakLine = document.getElementById('weak-line');
+            var focusList = document.getElementById('focus-list');
+            var bandRow = document.getElementById('band-row');
+            var metaEl = document.getElementById('practice-meta');
+
+            var ranked = derived.categories.filter(function (c) {
+                return isSheetTopic(c.name) && c.questions >= 2;
+            }).sort(function (a, b) {
+                return a.pct - b.pct || b.wrongAttempts - a.wrongAttempts;
+            });
+
+            var needs = ranked.filter(function (c) { return c.pct < 75; });
+            var untouched = [];
+            if (activeMode === 'test') {
+                var seenSet = {};
+                derived.categories.forEach(function (c) { seenSet[c.name] = true; });
+                Object.keys(TEST_META.topicBank).forEach(function (cat) {
+                    if (!seenSet[cat]) untouched.push(cat);
+                });
+            }
+
+            if (!derived.categories.length) {
+                weakLine.textContent = activeMode === 'test'
+                    ? 'Once he finishes a Test Mode round, weak topics and blind spots will surface here automatically.'
+                    : 'No answers in this view yet.';
+                metaEl.textContent = '';
+            } else if (needs.length) {
+                weakLine.textContent = 'Prioritise these topics with a rough sheet before the next round:';
+                metaEl.textContent = needs.length + ' below 75%';
+            } else if (untouched.length) {
+                weakLine.textContent = 'All practiced topics are at 75%+. Untried Test Mode topics remaining: ' + untouched.slice(0, 5).join(', ') + (untouched.length > 5 ? '…' : '') + '.';
+                metaEl.textContent = untouched.length + ' untried';
+            } else if (ranked.length) {
+                weakLine.textContent = 'Every topic is above 75%. Lightest score is ' + ranked[0].name + ' at ' + ranked[0].pct + '%.';
+                metaEl.textContent = 'All strong';
+            } else {
+                weakLine.textContent = 'A few more answers will pinpoint which topics need extra practice.';
+                metaEl.textContent = '';
+            }
+
+            var focusItems = needs.length ? needs.slice(0, 3) : ranked.slice(0, 2);
+            focusList.innerHTML = focusItems.map(function (c) {
+                return '<li class="focus-item" onclick="drillTopic(\'' + esc(c.name).replace(/'/g, '\\\'') + '\')">' +
+                    '<div class="focus-left">' +
+                        '<div class="focus-name">' + esc(c.name) + '</div>' +
+                        '<div class="focus-note num">' + c.firstCorrect + '/' + c.questions + ' first-try · ' + c.wrongAttempts + ' wrong' + (c.hints ? ' · ' + c.hints + ' hint' + (c.hints === 1 ? '' : 's') : '') + '</div>' +
+                    '</div>' +
+                    '<span class="status-badge tone-' + toneForPct(c.pct) + ' num">' + c.pct + '%</span>' +
+                '</li>';
+            }).join('');
+
+            var bands = { Hard: [], Medium: [], Easy: [], New: [] };
+            derived.questions.forEach(function (q) {
+                if (!bands[q.calibre]) bands[q.calibre] = [];
+                bands[q.calibre].push(q);
+            });
+            bandRow.innerHTML = ['Hard', 'Medium', 'Easy', 'New'].map(function (name) {
+                var list = bands[name] || [];
+                var fc = 0, tot = 0;
+                list.forEach(function (q) { fc += q.firstCorrect; tot += q.seen; });
+                var bp = tot ? Math.round((fc / tot) * 100) + '%' : '—';
+                var tone = name === 'Hard' ? 'bad' : (name === 'Medium' ? 'warn' : (name === 'Easy' ? 'good' : 'muted'));
+                return '<div class="band-box"><span>' + name + '</span><b class="num txt-' + tone + '">' + list.length + '</b><small class="num">' + bp + '</small></div>';
+            }).join('');
+        }
+
+        function renderTopicsView() {
+            var strandRow = document.getElementById('strand-filter-row');
+            strandRow.style.display = activeMode === 'classic' ? 'none' : 'flex';
+            var sortBy = document.getElementById('topic-sort').value;
+
+            var rows = derived.categories.slice();
+            if (activeMode === 'test') {
+                var present = {};
+                rows.forEach(function (r) { present[r.name] = true; });
+                Object.keys(TEST_META.topicBank).forEach(function (cat) {
+                    if (!present[cat]) {
+                        rows.push({
+                            name: cat,
+                            strand: TEST_META.topicBank[cat].s,
+                            questions: 0,
+                            firstCorrect: 0,
+                            attempts: 0,
+                            wrongAttempts: 0,
+                            hints: 0,
+                            uniqueCount: 0,
+                            bankCount: TEST_META.topicBank[cat].count,
+                            testCount: 0,
+                            classicCount: 0,
+                            pct: null,
+                            calibre: 'Untried'
+                        });
+                    }
+                });
+            }
+
+            if (activeMode !== 'classic' && activeStrand !== 'all') {
+                rows = rows.filter(function (r) { return r.strand === activeStrand; });
+            }
+
+            rows.sort(function (a, b) {
+                if (sortBy === 'name') return a.name.localeCompare(b.name);
+                if (sortBy === 'volume') return b.questions - a.questions || (a.pct == null ? 1 : -1);
+                if (a.pct == null && b.pct == null) return a.name.localeCompare(b.name);
+                if (a.pct == null) return 1;
+                if (b.pct == null) return -1;
+                return a.pct - b.pct || b.questions - a.questions;
+            });
+
+            var container = document.getElementById('topics-list');
+            if (!rows.length) {
+                container.innerHTML = '<div class="empty-state"><h3>No Topics Yet</h3><p>Answers in this mode will appear grouped by topic here.</p></div>';
+                return;
+            }
+
+            container.innerHTML = rows.map(function (r) {
+                var empty = r.questions === 0;
+                var strandLabel = r.strand && STRAND_INFO[r.strand] ? STRAND_INFO[r.strand].label : '';
+                var bankText = (activeMode === 'test' && r.bankCount) ? (r.uniqueCount + '/' + r.bankCount + ' bank') : '';
+                var modeTags = '';
+                if (activeMode === 'all') {
+                    if (r.testCount) modeTags += '<span class="tag tag-test num">Test ' + r.testCount + '</span>';
+                    if (r.classicCount) modeTags += '<span class="tag tag-classic num">Classic ' + r.classicCount + '</span>';
+                }
+                return '<div class="topic-row' + (empty ? ' is-empty' : '') + '"' + (empty ? '' : ' onclick="drillTopic(\'' + esc(r.name).replace(/'/g, '\\\'') + '\')"') + '>' +
+                    '<div class="topic-head">' +
+                        '<div class="topic-title-wrap">' +
+                            '<span class="topic-name">' + esc(r.name) + '</span>' +
+                            (strandLabel && activeMode !== 'classic' ? '<span class="tag tag-strand">' + esc(strandLabel) + '</span>' : '') +
+                            modeTags +
+                        '</div>' +
+                        '<span class="topic-score num txt-' + toneForPct(r.pct) + '">' + (empty ? '—' : r.pct + '%') + '</span>' +
+                    '</div>' +
+                    '<div class="bar-track"><div class="bar-fill" style="width:' + (empty ? 0 : r.pct) + '%; background:' + colorForPct(r.pct) + ';"></div></div>' +
+                    '<div class="topic-meta">' +
+                        '<span class="num">' + (empty ? 'Not tried yet' : (r.firstCorrect + '/' + r.questions + ' first-try · ' + r.wrongAttempts + ' wrong' + (r.hints ? ' · ' + r.hints + ' hint' + (r.hints === 1 ? '' : 's') : ''))) + '</span>' +
+                        '<span class="num">' + (bankText ? bankText : esc(r.calibre)) + '</span>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        function renderQuestionsView() {
+            var qSearch = (document.getElementById('q-search').value || '').trim().toLowerCase();
+            var qSort = document.getElementById('q-sort').value;
+            var banner = document.getElementById('q-topic-banner');
+            if (activeTopicFilter) {
+                banner.hidden = false;
+                document.getElementById('q-topic-label').textContent = 'Topic: ' + activeTopicFilter;
+            } else {
+                banner.hidden = true;
+            }
+
+            var list = derived.questions.filter(function (q) {
+                if (activeTopicFilter && q.category !== activeTopicFilter) return false;
+                if (activeQFilter === 'missed' && q.wrong === 0) return false;
+                if (activeQFilter === 'hint' && q.hints === 0) return false;
+                if (qSearch && q.question.toLowerCase().indexOf(qSearch) === -1 && q.category.toLowerCase().indexOf(qSearch) === -1) return false;
+                return true;
+            });
+
+            list.sort(function (a, b) {
+                if (qSort === 'acc') return a.pct - b.pct || b.wrong - a.wrong;
+                if (qSort === 'total') return b.seen - a.seen;
+                if (qSort === 'recent') return b.lastTs - a.lastTs;
+                return b.wrong - a.wrong || a.pct - b.pct;
+            });
+
+            var container = document.getElementById('questions-list');
+            if (!list.length) {
+                container.innerHTML = '<div class="empty-state"><h3>No Matching Questions</h3><p>Try clearing a filter or switching modes above.</p></div>';
+                return;
+            }
+
+            container.innerHTML = list.slice(0, 120).map(function (q) {
+                var strandLabel = q.strand && STRAND_INFO[q.strand] ? STRAND_INFO[q.strand].label : '';
+                return '<div class="q-row">' +
+                    '<div class="q-text">' + esc(q.question) + '</div>' +
+                    '<div class="q-tags">' +
+                        '<span class="tag ' + (q.mode === 'test' ? 'tag-test' : 'tag-classic') + '">' + (q.mode === 'test' ? 'Test Mode' : 'Classic') + '</span>' +
+                        '<span class="tag tag-strand">' + esc(q.category) + '</span>' +
+                        (strandLabel ? '<span class="tag tag-strand">' + esc(strandLabel) + '</span>' : '') +
+                        (q.hints ? '<span class="tag tag-hint num">💡 ' + q.hints + ' hint' + (q.hints > 1 ? 's' : '') + '</span>' : '') +
+                    '</div>' +
+                    '<div class="q-metrics">' +
+                        '<span class="num">First-try: <b>' + q.firstCorrect + '/' + q.seen + '</b> · Wrong: <b class="' + (q.wrong ? 'txt-bad' : '') + '">' + q.wrong + '</b></span>' +
+                        '<span class="num txt-' + toneForPct(q.pct) + '" style="font-weight:800;">' + q.pct + '%</span>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        function renderSessionsView() {
+            var container = document.getElementById('sessions-list');
+            if (!derived.sessions.length) {
+                container.innerHTML = '<div class="empty-state"><h3>No Sessions Yet</h3><p>Completed play sessions will appear here grouped automatically.</p></div>';
+                return;
+            }
+            container.innerHTML = derived.sessions.map(function (s, idx) {
+                var modeTag = s.mode === 'test' ? '<span class="tag tag-test">📝 Test Mode</span>'
+                    : (s.mode === 'mixed' ? '<span class="tag tag-mixed">Mixed</span>' : '<span class="tag tag-classic">🎮 Classic</span>');
+                return '<div class="session-row" onclick="viewSessionDetails(' + idx + ')">' +
+                    '<div class="session-left">' +
+                        '<div class="session-date">' + esc(formatRelDate(s.startTime)) + '</div>' +
+                        '<div class="session-meta">' + modeTag + '<span class="num">' + s.questions + ' Qs · ' + s.durationMin + ' min' + (s.hints ? ' · 💡 ' + s.hints : '') + '</span></div>' +
+                    '</div>' +
+                    '<div class="session-right">' +
+                        '<div class="session-acc num txt-' + toneForPct(s.firstPct) + '">' + (s.firstPct == null ? '—' : s.firstPct + '%') + '</div>' +
+                        '<div class="session-sub num">' + s.firstCorrect + '/' + s.questions + ' 1st try ›</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        function viewSessionDetails(idx) {
+            var s = derived.sessions[idx];
+            if (!s) return;
+            document.getElementById('modal-title').textContent = formatRelDate(s.startTime);
+            document.getElementById('modal-sub').textContent = s.firstCorrect + '/' + s.questions + ' first-try (' + (s.firstPct == null ? '—' : s.firstPct + '%') + ') · ' + s.durationMin + ' min';
+            var body = document.getElementById('session-detail-body');
+            body.innerHTML = s.items.map(function (it, i) {
+                var tries = it.attempts.length;
+                var badge = it.firstTryCorrect
+                    ? '<span class="status-badge tone-good" style="margin:0;">✓ First Try</span>'
+                    : (it.resolved
+                        ? '<span class="status-badge tone-warn" style="margin:0;">↺ Retry (' + tries + ')</span>'
+                        : '<span class="status-badge tone-bad" style="margin:0;">✗ Missed</span>');
+                return '<div class="tl-item">' +
+                    '<div class="tl-top"><span class="num" style="font-size:0.74rem; font-weight:800; color:var(--muted);">Q' + (i + 1) + ' · ' + it.firstTs.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>' + badge + '</div>' +
+                    '<div class="tl-q">' + esc(it.question) + '</div>' +
+                    '<div class="tl-meta">' +
+                        '<span class="tag ' + (it.mode === 'test' ? 'tag-test' : 'tag-classic') + '">' + (it.mode === 'test' ? 'Test' : 'Classic') + '</span>' +
+                        '<span class="tag tag-strand">' + esc(it.category) + '</span>' +
+                        (it.hintUsed ? '<span class="tag tag-hint">💡 Hint Opened</span>' : '') +
+                    '</div>' +
+                '</div>';
+            }).join('');
+            document.getElementById('session-detail-modal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('session-detail-modal').classList.remove('open');
+        }
+
+        function setModeFilter(mode) {
+            activeMode = mode;
+            activeTopicFilter = '';
+            if (mode === 'classic') activeStrand = 'all';
+            recompute();
+        }
+
+        function setRangeFilter(range) {
+            activeRange = range;
+            document.querySelectorAll('.range-chips .chip-btn').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-range') === range);
+            });
+            recompute();
+        }
+
+        function setStrandFilter(strand) {
+            activeStrand = strand;
+            document.querySelectorAll('#strand-filter-row .chip-btn').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-strand') === strand);
+            });
+            renderTopicsView();
+        }
+
+        function openStrandTopics(strand) {
+            if (activeMode === 'classic') activeMode = 'test';
+            activeStrand = strand;
+            document.querySelectorAll('#strand-filter-row .chip-btn').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-strand') === strand);
+            });
+            recompute();
+            switchTab('topics');
+        }
+
+        function drillTopic(topicName) {
+            activeTopicFilter = topicName;
+            switchTab('questions');
+            renderQuestionsView();
+        }
+
+        function clearTopicFilter() {
+            activeTopicFilter = '';
+            renderQuestionsView();
+        }
+
+        function setQFilter(f) {
+            activeQFilter = f;
+            document.querySelectorAll('#view-questions [data-qfilter]').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-qfilter') === f);
+            });
+            renderQuestionsView();
+        }
+
+        function switchTab(tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-tab') === tabName);
+            });
+            document.querySelectorAll('.view-container').forEach(function (el) {
+                el.classList.toggle('active', el.id === 'view-' + tabName);
+            });
+        }
+
+        async function fetchLogs() {
+            try {
+                return await db.collection('math_logs').orderBy('timestamp', 'desc').get();
+            } catch (err) {
+                var code = err && err.code ? String(err.code) : '';
+                var msg = err && err.message ? String(err.message) : '';
+                if (code === 'failed-precondition' || msg.indexOf('index') !== -1) {
+                    return await db.collection('math_logs').get();
+                }
+                throw err;
+            }
+        }
+
+        async function generateReport() {
+            var errorEl = document.getElementById('report-error');
+            errorEl.hidden = true;
+            errorEl.textContent = '';
+            if (!auth || !auth.currentUser) {
+                errorEl.textContent = 'Sign in before the answer log can be read.';
+                errorEl.hidden = false;
+                return;
+            }
+            var email = String(auth.currentUser.email || '').trim().toLowerCase();
+            document.getElementById('dash-status').textContent = (auth.currentUser.email || 'Signed in') + ' · Loading…';
+            var snapshot;
+            try {
+                snapshot = await fetchLogs();
+            } catch (err) {
+                errorEl.textContent = 'Could not read the answer log: ' + (err && err.message ? err.message : 'unknown error');
+                errorEl.hidden = false;
+                return;
+            }
+            allLogs = snapshot.docs.map(function (doc) {
+                return classifyLog(doc.data() || {});
+            }).filter(function (row) {
+                return row.user === email && row.timestamp;
+            });
+            allLogs.sort(function (a, b) { return b.timestamp - a.timestamp; });
+
+            document.getElementById('dash-status').textContent = (auth.currentUser.email || '') + ' · ' + DASH_BUILD;
+            recompute();
+        }
+
+        function loginAndFetch() {
+            var email = document.getElementById('email').value;
+            var pass = document.getElementById('password').value;
+            document.getElementById('error-msg').textContent = '';
+            auth.signInWithEmailAndPassword(email, pass).catch(function (error) {
+                document.getElementById('error-msg').textContent = error.message;
+            });
+        }
+
+        function logout() {
+            auth.signOut().then(function () { location.reload(); });
+        }
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            auth.onAuthStateChanged(function (user) {
+                if (user) {
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('dashboard-section').style.display = 'block';
+                    document.getElementById('refreshBtn').hidden = false;
+                    document.getElementById('logoutBtn').hidden = false;
+                    generateReport();
+                } else {
+                    document.getElementById('dashboard-section').style.display = 'none';
+                    document.getElementById('login-section').style.display = 'block';
+                    document.getElementById('login-checking').style.display = 'none';
+                    document.getElementById('manual-login').style.display = 'flex';
+                    document.getElementById('refreshBtn').hidden = true;
+                    document.getElementById('logoutBtn').hidden = true;
+                    document.getElementById('dash-status').textContent = 'Build ' + DASH_BUILD;
+                }
+            });
+        } catch (e) { console.error('Firebase Error', e); }
+    </script>
+</body>
+</html>

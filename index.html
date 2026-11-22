@@ -2718,7 +2718,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-22c</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-22d</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -3651,7 +3651,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-22c';
+        var APP_BUILD = '2026-11-22d';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -8136,12 +8136,17 @@
         var scWidget = null;
         var scWidgetReady = false;
         var scLoadedTrack = '';
+        var scGen = 0;
         var scApiRequested = false;
         var scFallbackTimer = null;
         var scUsingFallback = false;
 
         function isScTrack(trackId) {
             return !!SC_TRACKS[trackId];
+        }
+
+        function buildScPlayerUrl(cfg) {
+            return 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(cfg.url) + '&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&color=' + encodeURIComponent(cfg.color);
         }
 
         function setScDockState(mini, label, borderColor) {
@@ -8163,6 +8168,22 @@
             setScDockState(nextMini);
         }
 
+        function clearScWidget() {
+            if (scWidget) {
+                try { scWidget.pause(); } catch (e) {}
+                if (window.SC && window.SC.Widget && window.SC.Widget.Events) {
+                    var ev = window.SC.Widget.Events;
+                    try { scWidget.unbind(ev.READY); } catch (e) {}
+                    try { scWidget.unbind(ev.PLAY); } catch (e) {}
+                    try { scWidget.unbind(ev.PAUSE); } catch (e) {}
+                    try { scWidget.unbind(ev.FINISH); } catch (e) {}
+                    try { scWidget.unbind(ev.ERROR); } catch (e) {}
+                }
+            }
+            scWidget = null;
+            scWidgetReady = false;
+        }
+
         function fallbackCloudToChip() {
             if (scFallbackTimer) { clearTimeout(scFallbackTimer); scFallbackTimer = null; }
             scUsingFallback = true;
@@ -8173,27 +8194,26 @@
             }
         }
 
-        function bindScWidget() {
+        function bindScWidget(gen) {
             var frame = document.getElementById('scSonicFrame');
             if (!frame || !window.SC || !window.SC.Widget) return;
+            if (gen !== scGen) return;
             if (scWidget) return;
+            var myGen = gen;
             try {
                 scWidget = window.SC.Widget(frame);
                 scWidget.bind(window.SC.Widget.Events.READY, function () {
+                    if (myGen !== scGen) return;
                     scWidgetReady = true;
                     scUsingFallback = false;
                     if (scFallbackTimer) { clearTimeout(scFallbackTimer); scFallbackTimer = null; }
                     try { scWidget.setVolume(85); } catch (e) {}
-                    if (isScTrack(musicMode) && !musicPausedForCard) {
-                        var want = SC_TRACKS[musicMode];
-                        if (scLoadedTrack !== musicMode) {
-                            loadScTrackInWidget(musicMode);
-                        } else {
-                            try { scWidget.play(); } catch (e) {}
-                        }
+                    if (isScTrack(musicMode) && !musicPausedForCard && scLoadedTrack === musicMode) {
+                        try { scWidget.play(); } catch (e) {}
                     }
                 });
                 scWidget.bind(window.SC.Widget.Events.PLAY, function () {
+                    if (myGen !== scGen) return;
                     if (scFallbackTimer) { clearTimeout(scFallbackTimer); scFallbackTimer = null; }
                     scUsingFallback = false;
                     stopChipMusic();
@@ -8201,45 +8221,21 @@
                     setScDockState(true, cfg ? cfg.label : '\uD83C\uDFB5 Playing', cfg ? cfg.border : '');
                 });
                 scWidget.bind(window.SC.Widget.Events.PAUSE, function () {
+                    if (myGen !== scGen) return;
                     if (isScTrack(musicMode) && !musicPausedForCard) {
                         var cfg = SC_TRACKS[musicMode];
                         setScDockState(false, (cfg ? cfg.label : '\uD83C\uDFB5 Music') + ' \u00B7 Tap \u25B6', cfg ? cfg.border : '');
                     }
                 });
                 scWidget.bind(window.SC.Widget.Events.FINISH, function () {
+                    if (myGen !== scGen) return;
                     if (isScTrack(musicMode) && !musicPausedForCard && scWidget) {
                         try { scWidget.seekTo(0); scWidget.play(); } catch (e) {}
                     }
                 });
                 scWidget.bind(window.SC.Widget.Events.ERROR, function () {
+                    if (myGen !== scGen) return;
                     fallbackCloudToChip();
-                });
-            } catch (e) {
-                fallbackCloudToChip();
-            }
-        }
-
-        function loadScTrackInWidget(trackId) {
-            var cfg = SC_TRACKS[trackId];
-            if (!cfg || !scWidget) return;
-            scLoadedTrack = trackId;
-            setScDockState(false, cfg.label + ' \u00B7 Tap \u25B6', cfg.border);
-            try {
-                scWidget.load(cfg.url, {
-                    auto_play: true,
-                    hide_related: true,
-                    show_comments: false,
-                    show_user: false,
-                    show_reposts: false,
-                    show_teaser: false,
-                    visual: false,
-                    color: cfg.color,
-                    callback: function () {
-                        try { scWidget.setVolume(85); } catch (e) {}
-                        if (musicMode === trackId && !musicPausedForCard) {
-                            try { scWidget.play(); } catch (e) {}
-                        }
-                    }
                 });
             } catch (e) {
                 fallbackCloudToChip();
@@ -8255,43 +8251,38 @@
             dock.hidden = false;
             setScDockState(false, cfg.label + ' \u00B7 Tap \u25B6', cfg.border);
             var existingFrame = document.getElementById('scSonicFrame');
-            if (!existingFrame) {
-                var iframe = document.createElement('iframe');
-                iframe.id = 'scSonicFrame';
-                iframe.className = 'sc-dock-frame';
-                iframe.allow = 'autoplay';
-                iframe.scrolling = 'no';
-                iframe.frameBorder = 'no';
-                iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(cfg.url) + '&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&color=' + encodeURIComponent(cfg.color);
-                scLoadedTrack = trackId;
-                host.appendChild(iframe);
-            } else if (scWidget && scWidgetReady) {
-                if (scLoadedTrack !== trackId) {
-                    loadScTrackInWidget(trackId);
-                } else {
-                    try { scWidget.play(); } catch (e) {}
-                }
-            } else if (scLoadedTrack !== trackId) {
-                scLoadedTrack = trackId;
-                existingFrame.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(cfg.url) + '&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&color=' + encodeURIComponent(cfg.color);
+            if (existingFrame && scLoadedTrack === trackId && scWidget && scWidgetReady) {
+                try { scWidget.play(); } catch (e) {}
+                return;
             }
+            scGen += 1;
+            var myGen = scGen;
+            clearScWidget();
+            host.innerHTML = '';
+            var iframe = document.createElement('iframe');
+            iframe.id = 'scSonicFrame';
+            iframe.className = 'sc-dock-frame';
+            iframe.allow = 'autoplay; encrypted-media';
+            iframe.scrolling = 'no';
+            iframe.frameBorder = 'no';
+            iframe.src = buildScPlayerUrl(cfg);
+            scLoadedTrack = trackId;
+            host.appendChild(iframe);
             if (window.SC && window.SC.Widget) {
-                bindScWidget();
+                bindScWidget(myGen);
             } else if (!scApiRequested) {
                 scApiRequested = true;
                 var s = document.createElement('script');
                 s.src = 'https://w.soundcloud.com/player/api.js';
                 s.async = true;
-                s.onload = function () { bindScWidget(); };
+                s.onload = function () { bindScWidget(scGen); };
                 s.onerror = function () { fallbackCloudToChip(); };
                 document.head.appendChild(s);
             }
             if (scFallbackTimer) clearTimeout(scFallbackTimer);
-            if (!scWidgetReady) {
-                scFallbackTimer = setTimeout(function () {
-                    if (!scWidgetReady && isScTrack(musicMode)) fallbackCloudToChip();
-                }, 9000);
-            }
+            scFallbackTimer = setTimeout(function () {
+                if (myGen === scGen && !scWidgetReady && isScTrack(musicMode)) fallbackCloudToChip();
+            }, 9000);
         }
 
         function stopCloudTrack(keepDock) {

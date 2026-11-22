@@ -2718,7 +2718,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-22b</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-22c</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -2778,10 +2778,10 @@
                 <button type="button" id="musicBtn" class="music-btn" onclick="toggleMusicMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Music selector"><span id="musicBtnLabel">🎵 OFF</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
                 <div id="musicMenu" class="ctrl-menu" role="menu" hidden>
                     <button type="button" class="ctrl-opt is-active" data-track="off" role="menuitemradio" onclick="selectMusicTrack('off')"><span>🔇 Music: Off</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
-                    <button type="button" class="ctrl-opt" data-track="diwali" role="menuitemradio" onclick="selectMusicTrack('diwali')"><span>🪔 Diwali Melodies</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-track="diwali" role="menuitemradio" onclick="selectMusicTrack('diwali')"><span>🪔 Diwali: Festival Music</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="mario" role="menuitemradio" onclick="selectMusicTrack('mario')"><span>🍄 Super Mario</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="sonic" role="menuitemradio" onclick="selectMusicTrack('sonic')"><span>💨 Sonic: Palmtree Panic</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
-                    <button type="button" class="ctrl-opt" data-track="xmas" role="menuitemradio" onclick="selectMusicTrack('xmas')"><span>🎄 Festive Jingle</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-track="xmas" role="menuitemradio" onclick="selectMusicTrack('xmas')"><span>🎄 Christmas: Jingle Bells</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                 </div>
             </div>
         </div>
@@ -3651,7 +3651,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-22b';
+        var APP_BUILD = '2026-11-22c';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -8128,18 +8128,30 @@
             }
         }
 
-        var SONIC_SC_TRACK = 'https://soundcloud.com/korey-kery/sonic-cd-02-palmtree-panic';
+        var SC_TRACKS = {
+            diwali: { url: 'https://soundcloud.com/shuvo-ghosh-750404745/diwali-festival-music-instrumental-ncv-no-copyright-vibes', label: '\uD83E\uDE94 Diwali Festival', color: '#f59e0b', border: '#fbbf24' },
+            sonic: { url: 'https://soundcloud.com/korey-kery/sonic-cd-02-palmtree-panic', label: '\uD83D\uDCA8 Palmtree Panic', color: '#2563eb', border: '#60a5fa' },
+            xmas: { url: 'https://soundcloud.com/childhoodtv/jingle-bells-instrumental', label: '\uD83C\uDF84 Jingle Bells', color: '#dc2626', border: '#f87171' }
+        };
         var scWidget = null;
         var scWidgetReady = false;
+        var scLoadedTrack = '';
         var scApiRequested = false;
         var scFallbackTimer = null;
         var scUsingFallback = false;
 
-        function setScDockState(mini, label) {
+        function isScTrack(trackId) {
+            return !!SC_TRACKS[trackId];
+        }
+
+        function setScDockState(mini, label, borderColor) {
             var dock = document.getElementById('scMusicDock');
             var lbl = document.getElementById('scDockLabel');
             var caret = document.getElementById('scDockCaret');
-            if (dock) dock.classList.toggle('is-mini', !!mini);
+            if (dock) {
+                dock.classList.toggle('is-mini', !!mini);
+                if (borderColor) dock.style.borderColor = borderColor;
+            }
             if (lbl && label) lbl.textContent = label;
             if (caret) caret.textContent = mini ? '\u25B4' : '\u25BE';
         }
@@ -8151,13 +8163,13 @@
             setScDockState(nextMini);
         }
 
-        function fallbackSonicToChip() {
+        function fallbackCloudToChip() {
             if (scFallbackTimer) { clearTimeout(scFallbackTimer); scFallbackTimer = null; }
             scUsingFallback = true;
             var dock = document.getElementById('scMusicDock');
             if (dock) dock.hidden = true;
-            if (musicMode === 'sonic' && !musicPausedForCard) {
-                startChipMusic('sonic');
+            if (isScTrack(musicMode) && !musicPausedForCard) {
+                startChipMusic(musicMode);
             }
         }
 
@@ -8172,74 +8184,117 @@
                     scUsingFallback = false;
                     if (scFallbackTimer) { clearTimeout(scFallbackTimer); scFallbackTimer = null; }
                     try { scWidget.setVolume(85); } catch (e) {}
-                    if (musicMode === 'sonic' && !musicPausedForCard) {
-                        try { scWidget.play(); } catch (e) {}
+                    if (isScTrack(musicMode) && !musicPausedForCard) {
+                        var want = SC_TRACKS[musicMode];
+                        if (scLoadedTrack !== musicMode) {
+                            loadScTrackInWidget(musicMode);
+                        } else {
+                            try { scWidget.play(); } catch (e) {}
+                        }
                     }
                 });
                 scWidget.bind(window.SC.Widget.Events.PLAY, function () {
                     if (scFallbackTimer) { clearTimeout(scFallbackTimer); scFallbackTimer = null; }
                     scUsingFallback = false;
                     stopChipMusic();
-                    setScDockState(true, '\uD83D\uDCA8 Palmtree Panic');
+                    var cfg = SC_TRACKS[musicMode] || SC_TRACKS[scLoadedTrack];
+                    setScDockState(true, cfg ? cfg.label : '\uD83C\uDFB5 Playing', cfg ? cfg.border : '');
                 });
                 scWidget.bind(window.SC.Widget.Events.PAUSE, function () {
-                    if (musicMode === 'sonic' && !musicPausedForCard) {
-                        setScDockState(false, '\uD83D\uDCA8 Palmtree Panic \u00B7 Tap \u25B6');
+                    if (isScTrack(musicMode) && !musicPausedForCard) {
+                        var cfg = SC_TRACKS[musicMode];
+                        setScDockState(false, (cfg ? cfg.label : '\uD83C\uDFB5 Music') + ' \u00B7 Tap \u25B6', cfg ? cfg.border : '');
                     }
                 });
                 scWidget.bind(window.SC.Widget.Events.FINISH, function () {
-                    if (musicMode === 'sonic' && !musicPausedForCard && scWidget) {
+                    if (isScTrack(musicMode) && !musicPausedForCard && scWidget) {
                         try { scWidget.seekTo(0); scWidget.play(); } catch (e) {}
                     }
                 });
                 scWidget.bind(window.SC.Widget.Events.ERROR, function () {
-                    fallbackSonicToChip();
+                    fallbackCloudToChip();
                 });
             } catch (e) {
-                fallbackSonicToChip();
+                fallbackCloudToChip();
             }
         }
 
-        function startSonicCloud() {
+        function loadScTrackInWidget(trackId) {
+            var cfg = SC_TRACKS[trackId];
+            if (!cfg || !scWidget) return;
+            scLoadedTrack = trackId;
+            setScDockState(false, cfg.label + ' \u00B7 Tap \u25B6', cfg.border);
+            try {
+                scWidget.load(cfg.url, {
+                    auto_play: true,
+                    hide_related: true,
+                    show_comments: false,
+                    show_user: false,
+                    show_reposts: false,
+                    show_teaser: false,
+                    visual: false,
+                    color: cfg.color,
+                    callback: function () {
+                        try { scWidget.setVolume(85); } catch (e) {}
+                        if (musicMode === trackId && !musicPausedForCard) {
+                            try { scWidget.play(); } catch (e) {}
+                        }
+                    }
+                });
+            } catch (e) {
+                fallbackCloudToChip();
+            }
+        }
+
+        function startCloudTrack(trackId) {
+            var cfg = SC_TRACKS[trackId];
             var dock = document.getElementById('scMusicDock');
             var host = document.getElementById('scFrameHost');
-            if (!dock || !host) { startChipMusic('sonic'); return; }
+            if (!cfg || !dock || !host) { startChipMusic(trackId); return; }
             scUsingFallback = false;
             dock.hidden = false;
-            if (!document.getElementById('scSonicFrame')) {
+            setScDockState(false, cfg.label + ' \u00B7 Tap \u25B6', cfg.border);
+            var existingFrame = document.getElementById('scSonicFrame');
+            if (!existingFrame) {
                 var iframe = document.createElement('iframe');
                 iframe.id = 'scSonicFrame';
                 iframe.className = 'sc-dock-frame';
                 iframe.allow = 'autoplay';
                 iframe.scrolling = 'no';
                 iframe.frameBorder = 'no';
-                iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(SONIC_SC_TRACK) + '&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&color=%232563eb';
+                iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(cfg.url) + '&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&color=' + encodeURIComponent(cfg.color);
+                scLoadedTrack = trackId;
                 host.appendChild(iframe);
-                setScDockState(false, '\uD83D\uDCA8 Palmtree Panic \u00B7 Tap \u25B6');
+            } else if (scWidget && scWidgetReady) {
+                if (scLoadedTrack !== trackId) {
+                    loadScTrackInWidget(trackId);
+                } else {
+                    try { scWidget.play(); } catch (e) {}
+                }
+            } else if (scLoadedTrack !== trackId) {
+                scLoadedTrack = trackId;
+                existingFrame.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(cfg.url) + '&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&color=' + encodeURIComponent(cfg.color);
             }
             if (window.SC && window.SC.Widget) {
                 bindScWidget();
-                if (scWidget && scWidgetReady) {
-                    try { scWidget.play(); } catch (e) {}
-                }
             } else if (!scApiRequested) {
                 scApiRequested = true;
                 var s = document.createElement('script');
                 s.src = 'https://w.soundcloud.com/player/api.js';
                 s.async = true;
                 s.onload = function () { bindScWidget(); };
-                s.onerror = function () { fallbackSonicToChip(); };
+                s.onerror = function () { fallbackCloudToChip(); };
                 document.head.appendChild(s);
             }
             if (scFallbackTimer) clearTimeout(scFallbackTimer);
             if (!scWidgetReady) {
                 scFallbackTimer = setTimeout(function () {
-                    if (!scWidgetReady && musicMode === 'sonic') fallbackSonicToChip();
+                    if (!scWidgetReady && isScTrack(musicMode)) fallbackCloudToChip();
                 }, 9000);
             }
         }
 
-        function stopSonicCloud(keepDock) {
+        function stopCloudTrack(keepDock) {
             if (scFallbackTimer) { clearTimeout(scFallbackTimer); scFallbackTimer = null; }
             if (scWidget && scWidgetReady) {
                 try { scWidget.pause(); } catch (e) {}
@@ -8254,7 +8309,7 @@
             musicMode = trackId;
             musicPausedForCard = false;
             stopChipMusic();
-            if (trackId !== 'sonic') stopSonicCloud(false);
+            if (!isScTrack(trackId)) stopCloudTrack(false);
             if (bgm && !bgm.paused) {
                 try { bgm.pause(); } catch (e) {}
             }
@@ -8268,10 +8323,8 @@
                     try { bgm.currentTime = 0; } catch (e) {}
                     bgm.play().catch(function () {});
                 }
-            } else if (trackId === 'sonic') {
-                startSonicCloud();
-            } else if (trackId === 'xmas' || trackId === 'diwali') {
-                startChipMusic(trackId);
+            } else if (isScTrack(trackId)) {
+                startCloudTrack(trackId);
             }
             updateMusicUI();
             closeTopMenus();
@@ -8301,7 +8354,7 @@
                 try { bgm.pause(); } catch (e) {}
             }
             stopChipMusic();
-            if (musicMode === 'sonic') stopSonicCloud(true);
+            if (isScTrack(musicMode)) stopCloudTrack(true);
         }
 
         function resumeMusicAfterOverlay() {
@@ -8310,15 +8363,13 @@
             musicPausedForCard = false;
             if (musicMode === 'mario') {
                 if (bgm) bgm.play().catch(function () {});
-            } else if (musicMode === 'sonic') {
-                if (scUsingFallback) startChipMusic('sonic');
+            } else if (isScTrack(musicMode)) {
+                if (scUsingFallback) startChipMusic(musicMode);
                 else if (scWidget && scWidgetReady) {
                     try { scWidget.play(); } catch (e) {}
                 } else {
-                    startSonicCloud();
+                    startCloudTrack(musicMode);
                 }
-            } else if (musicMode === 'xmas' || musicMode === 'diwali') {
-                startChipMusic(musicMode);
             }
         }
 

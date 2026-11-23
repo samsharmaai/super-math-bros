@@ -1088,11 +1088,34 @@
             border-radius: 7px;
             background: #fde047;
             color: #451a03;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 900;
             line-height: 1.15;
             box-shadow: 0 2px 0 rgba(120, 53, 15, 0.55);
-            animation: col-pop 0.22s ease;
+            animation: col-badge-pop 0.32s cubic-bezier(0.22, 1, 0.36, 1) var(--cdelay, 0.08s) both;
+        }
+        .col-carry-slot {
+            min-width: 24px;
+            height: 20px;
+            padding: 0 4px;
+            border-radius: 7px;
+            border: 1.5px dashed rgba(125, 211, 252, 0.55);
+            background: transparent;
+            color: rgba(186, 230, 253, 0.72);
+            font-family: Verdana, sans-serif;
+            font-size: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        body.mode-test .col-carry-slot {
+            border-color: #93c5fd;
+            color: #3b82f6;
+        }
+        @keyframes col-badge-pop {
+            0% { opacity: 0; transform: translateY(6px) scale(0.45); }
+            65% { opacity: 1; transform: translateY(-2px) scale(1.14); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
         .col-num {
             position: relative;
@@ -1100,8 +1123,32 @@
             font-weight: 900;
             line-height: 1.15;
             font-variant-numeric: tabular-nums;
-            padding: 1px 4px;
-            border-radius: 7px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background: transparent;
+            color: inherit;
+            font-family: inherit;
+        }
+        button.col-num.is-tappable {
+            cursor: pointer;
+            touch-action: manipulation;
+            border-color: rgba(125, 211, 252, 0.45);
+            background: rgba(56, 189, 248, 0.12);
+            transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+        }
+        button.col-num.is-tappable:hover {
+            border-color: #fde047;
+            background: rgba(253, 224, 71, 0.18);
+        }
+        button.col-num.is-tappable:active { transform: scale(0.92); }
+        body.mode-test button.col-num.is-tappable {
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+        body.mode-test button.col-num.is-tappable:hover {
+            border-color: #f59e0b;
+            background: #fef3c7;
         }
         .col-op {
             font-size: 22px;
@@ -1109,35 +1156,54 @@
             color: #38bdf8;
         }
         body.mode-test .col-op { color: #2563eb; }
-        .col-num.is-crossed { opacity: 0.44; }
+        .col-num.is-crossed {
+            opacity: 0.48;
+            border-color: transparent !important;
+            background: transparent !important;
+        }
         .col-num.is-crossed::after {
             content: '';
             position: absolute;
-            left: 1px;
-            right: 1px;
+            left: 2px;
+            right: 2px;
             top: 50%;
-            height: 3px;
+            height: 3.5px;
             background: #f87171;
             border-radius: 2px;
+            transform-origin: left center;
             transform: rotate(-28deg);
+            animation: col-slash-draw 0.24s ease-out var(--cdelay, 0s) both;
         }
         body.mode-test .col-num.is-crossed::after { background: #dc2626; }
+        @keyframes col-slash-draw {
+            from { transform: rotate(-28deg) scaleX(0); opacity: 0.4; }
+            to { transform: rotate(-28deg) scaleX(1); opacity: 1; }
+        }
         .col-num.is-borrowed {
             color: #fde047;
-            background: rgba(253, 224, 71, 0.14);
+            background: rgba(253, 224, 71, 0.16);
+            border-color: rgba(253, 224, 71, 0.55);
         }
         body.mode-test .col-num.is-borrowed {
             color: #b45309;
             background: #fef3c7;
+            border-color: #f59e0b;
         }
         .col-carry-one {
-            font-size: 14px;
+            display: inline-block;
+            font-size: 15px;
             font-weight: 900;
             color: #fde047;
             vertical-align: top;
             margin-right: 1px;
+            animation: col-glide-one 0.36s cubic-bezier(0.22, 1, 0.36, 1) var(--cdelay, 0.14s) both;
         }
         body.mode-test .col-carry-one { color: #d97706; }
+        @keyframes col-glide-one {
+            0% { opacity: 0; transform: translate(-34px, -12px) scale(1.25); }
+            70% { opacity: 1; transform: translate(2px, 1px) scale(1.06); }
+            100% { opacity: 1; transform: translate(0, 0) scale(1); }
+        }
         .col-rule {
             grid-column: 1 / -1;
             width: 100%;
@@ -3066,7 +3132,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-23a</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-23b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4061,7 +4127,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-23a';
+        var APP_BUILD = '2026-11-23b';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -6527,6 +6593,95 @@
             }
         }
 
+        function computeLiveSubState(d, targetMap) {
+            var work = d.origTop.slice();
+            var crossed = [];
+            var borrowedTo = [];
+            var acrossZero = false;
+            var i, j, k;
+            for (i = 0; i < d.cols; i++) {
+                crossed.push(false);
+                borrowedTo.push(false);
+            }
+            for (i = d.cols - 1; i >= 1; i--) {
+                if (!targetMap[i]) continue;
+                j = i - 1;
+                while (j >= 0 && work[j] === 0) j--;
+                if (j >= 0) {
+                    work[j] -= 1;
+                    crossed[j] = true;
+                    for (k = j + 1; k < i; k++) {
+                        work[k] = 9;
+                        crossed[k] = true;
+                        acrossZero = true;
+                    }
+                    work[i] += 10;
+                    borrowedTo[i] = true;
+                }
+            }
+            return { work: work, crossed: crossed, borrowedTo: borrowedTo, acrossZero: acrossZero };
+        }
+
+        function playBorrowChime() {
+            try {
+                playTone(587, 'triangle', 0.06, 0);
+                playTone(880, 'triangle', 0.085, 0.08);
+            } catch (e) {}
+        }
+
+        function tapColumnDigit(colIdx) {
+            if (!activeColPad || activeColPad.data.op !== '-') return;
+            var d = activeColPad.data;
+            if (colIdx < 0 || colIdx >= d.cols - 1) return;
+            activeColPad.note = '';
+            var cur = computeLiveSubState(d, activeColPad.manualBorrows);
+            var target = colIdx + 1;
+            if (target < d.cols && d.origTop[target] === 0 && !activeColPad.manualBorrows[target]) {
+                while (target < d.cols - 1 && cur.work[target] >= d.bot[target] && d.origTop[target] === 0) target++;
+            }
+            if (activeColPad.manualBorrows[target]) {
+                delete activeColPad.manualBorrows[target];
+                playVisualTapTone();
+                renderColumnPad();
+                return;
+            }
+            var liveTarget = -1;
+            if (target < d.cols && cur.work[target] < d.bot[target]) {
+                liveTarget = target;
+            } else {
+                for (var t = d.cols - 1; t >= colIdx + 1; t--) {
+                    if (!activeColPad.manualBorrows[t] && cur.work[t] < d.bot[t]) {
+                        liveTarget = t;
+                        break;
+                    }
+                }
+            }
+            if (liveTarget === -1) {
+                playVisualTapTone();
+                activeColPad.note = 'No borrow needed there \u2014 the top digit is already big enough!';
+                renderColumnPad();
+                return;
+            }
+            activeColPad.manualBorrows[liveTarget] = true;
+            playBorrowChime();
+            renderColumnPad();
+        }
+
+        function tapColumnCarry(colIdx) {
+            if (!activeColPad || activeColPad.data.op !== '+') return;
+            var d = activeColPad.data;
+            if (colIdx < 0 || colIdx >= d.cols - 1) return;
+            activeColPad.note = '';
+            if (activeColPad.manualCarries[colIdx]) {
+                delete activeColPad.manualCarries[colIdx];
+                playVisualTapTone();
+            } else {
+                activeColPad.manualCarries[colIdx] = true;
+                playBorrowChime();
+            }
+            renderColumnPad();
+        }
+
         function renderColumnPad() {
             var wrap = document.getElementById('colPadWrap');
             var stackBtn = document.getElementById('colStackBtn');
@@ -6554,7 +6709,8 @@
                 if (stage === 0) {
                     powerBtn.className = 'col-pad-btn is-power';
                     powerBtn.disabled = false;
-                    if (d.op === '-' && d.needsRegroup) powerBtn.textContent = '\u26A1 Show Borrow';
+                    if (allManualBorrowsDone() && maxStage >= 2) powerBtn.textContent = '\u26A1 Next Step \u25B6';
+                    else if (d.op === '-' && d.needsRegroup) powerBtn.textContent = '\u26A1 Show Borrow';
                     else if (d.op === '+' && d.needsRegroup) powerBtn.textContent = '\u26A1 Show Carry';
                     else powerBtn.textContent = '\u26A1 Show Steps';
                 } else if (stage < maxStage) {
@@ -6573,24 +6729,53 @@
                 return;
             }
             card.hidden = false;
-            var showRegroup = stage >= 1 && d.needsRegroup;
+            var i;
+            var subTargets = {};
+            if (d.op === '-') {
+                if (stage >= 1) {
+                    for (i = 0; i < d.cols; i++) {
+                        if (d.borrowedTo[i]) subTargets[i] = true;
+                    }
+                } else {
+                    for (var tk in activeColPad.manualBorrows) {
+                        if (activeColPad.manualBorrows[tk]) subTargets[tk] = true;
+                    }
+                }
+            }
+            var liveSub = d.op === '-' ? computeLiveSubState(d, subTargets) : null;
+            var hasAnySubBorrow = !!(liveSub && liveSub.crossed.some(Boolean));
+            var hasAnyAddCarry = false;
+            if (d.op === '+') {
+                if (stage >= 1 && d.needsRegroup) hasAnyAddCarry = true;
+                else {
+                    for (var ck in activeColPad.manualCarries) {
+                        if (activeColPad.manualCarries[ck]) hasAnyAddCarry = true;
+                    }
+                }
+            }
+            var showRegRow = (d.op === '-' && hasAnySubBorrow) || (d.op === '+' && (d.cols > 1));
             var solvedCols = stage >= 2 ? Math.min(d.cols - 1, stage - 1) : 0;
             var activeCol = d.cols - 1 - solvedCols;
             var colNames = { Th: 'Thousands', H: 'Hundreds', T: 'Tens', U: 'Units' };
             var html = '<div class="col-grid" style="--cols:' + d.cols + '">';
-            var i;
             html += '<span></span>';
             for (i = 0; i < d.cols; i++) {
                 html += '<span class="col-hdr">' + d.headers[i] + '</span>';
             }
-            if (showRegroup) {
+            if (showRegRow) {
                 html += '<span></span>';
                 for (i = 0; i < d.cols; i++) {
                     var badge = '';
-                    if (d.op === '-' && d.crossed[i]) {
-                        badge = '<span class="col-reg-badge">' + d.work[i] + '</span>';
-                    } else if (d.op === '+' && d.carryIn[i] > 0) {
-                        badge = '<span class="col-reg-badge">+' + d.carryIn[i] + '</span>';
+                    if (d.op === '-' && liveSub && liveSub.crossed[i]) {
+                        badge = '<span class="col-reg-badge" style="--cdelay:' + (0.08 + i * 0.1).toFixed(2) + 's">' + liveSub.work[i] + '</span>';
+                    } else if (d.op === '+' && i < d.cols - 1) {
+                        var carryOn = (stage >= 1 && d.carryIn[i] > 0) || !!activeColPad.manualCarries[i];
+                        if (carryOn) {
+                            var cVal = (stage >= 1 && d.carryIn[i] > 0) ? d.carryIn[i] : 1;
+                            badge = '<button type="button" class="col-reg-badge" style="border:0;cursor:pointer" onclick="tapColumnCarry(' + i + ')" aria-label="Toggle carry">+' + cVal + '</button>';
+                        } else if (stage === 0) {
+                            badge = '<button type="button" class="col-carry-slot" onclick="tapColumnCarry(' + i + ')" aria-label="Mark carry in ' + d.headers[i] + '">+1</button>';
+                        }
                     }
                     html += '<span class="col-reg-cell">' + badge + '</span>';
                 }
@@ -6599,15 +6784,21 @@
             for (i = 0; i < d.cols; i++) {
                 var topCls = 'col-num';
                 var topInner = String(d.origTop[i]);
-                if (showRegroup && d.op === '-') {
-                    if (d.crossed[i]) {
+                var canTap = d.op === '-' && i < d.cols - 1 && stage === 0;
+                if (d.op === '-' && liveSub) {
+                    if (liveSub.crossed[i]) {
                         topCls += ' is-crossed';
-                    } else if (d.borrowedTo[i]) {
+                    } else if (liveSub.borrowedTo[i]) {
                         topCls += ' is-borrowed';
-                        topInner = '<sup class="col-carry-one">1</sup>' + d.origTop[i];
+                        topInner = '<sup class="col-carry-one" style="--cdelay:' + (0.14 + (liveSub.acrossZero ? 0.14 : 0)).toFixed(2) + 's">1</sup>' + d.origTop[i];
                     }
                 }
-                html += '<span class="' + topCls + '">' + topInner + '</span>';
+                if (canTap) {
+                    topCls += ' is-tappable';
+                    html += '<button type="button" class="' + topCls + '" style="--cdelay:' + (i * 0.1).toFixed(2) + 's" onclick="tapColumnDigit(' + i + ')" aria-label="Borrow from ' + d.headers[i] + ' digit ' + d.origTop[i] + '">' + topInner + '</button>';
+                } else {
+                    html += '<span class="' + topCls + '" style="--cdelay:' + (i * 0.1).toFixed(2) + 's">' + topInner + '</span>';
+                }
             }
             html += '<span class="col-op">' + (d.op === '-' ? '\u2212' : '+') + '</span>';
             for (i = 0; i < d.cols; i++) {
@@ -6617,15 +6808,30 @@
             html += '<span></span>';
             for (i = 0; i < d.cols; i++) {
                 var isSolved = i >= d.cols - solvedCols;
-                var isAct = stage >= 1 && i === activeCol;
+                var isAct = (stage >= 1 || hasAnySubBorrow || hasAnyAddCarry) && i === activeCol;
                 var aCls = 'col-ans' + (isSolved ? ' is-solved' : (isAct ? ' is-active-col' : ''));
                 html += '<span class="' + aCls + '">' + (isSolved ? d.res[i] : '?') + '</span>';
             }
             html += '</div>';
 
             var cap = '';
-            if (stage === 0) {
-                cap = 'Line up ' + d.headers.join(' | ') + ' \u2014 start on the right (<b>Units</b>)!';
+            if (activeColPad.note) {
+                cap = activeColPad.note;
+            } else if (stage === 0) {
+                if (d.op === '-' && hasAnySubBorrow && liveSub) {
+                    var mParts = [];
+                    for (i = 0; i < d.cols; i++) {
+                        if (liveSub.crossed[i] || liveSub.borrowedTo[i]) mParts.push('<b>' + d.origTop[i] + ' \u2192 ' + liveSub.work[i] + '</b>');
+                    }
+                    var mIntro = liveSub.acrossZero ? 'Borrowed across 0: ' : (mParts.length > 2 ? 'Renamed: ' : 'Borrowed! ');
+                    cap = mIntro + mParts.join(mParts.length === 2 ? ' and ' : ', ') + '. Now do <b>' + liveSub.work[d.cols - 1] + ' \u2212 ' + d.bot[d.cols - 1] + ' = ?</b>';
+                } else if (d.op === '-') {
+                    cap = 'Start on <b>Units</b> \u2014 tap a top digit to borrow 1 ten!';
+                } else if (hasAnyAddCarry) {
+                    cap = 'Carry marked! Add right to left (<b>Units</b> first).';
+                } else {
+                    cap = 'Add from <b>Units</b> \u2014 tap <b>+1</b> above a column if you carry!';
+                }
             } else if (stage === 1) {
                 if (d.op === '-') {
                     if (d.acrossZero) {
@@ -6683,7 +6889,10 @@
                 data: computeColumnSteps(parsed.op, parsed.a, parsed.b),
                 open: false,
                 unlocked: !!alreadyMissed,
-                stage: 0
+                stage: 0,
+                manualBorrows: {},
+                manualCarries: {},
+                note: ''
             };
             renderColumnPad();
         }
@@ -6691,6 +6900,7 @@
         function toggleColumnPad() {
             if (!activeColPad) return;
             playVisualTapTone();
+            activeColPad.note = '';
             activeColPad.open = !activeColPad.open;
             renderColumnPad();
         }
@@ -6701,14 +6911,29 @@
             renderColumnPad();
         }
 
+        function allManualBorrowsDone() {
+            if (!activeColPad || activeColPad.data.op !== '-' || !activeColPad.data.needsRegroup) return false;
+            var d = activeColPad.data;
+            for (var i = 0; i < d.cols; i++) {
+                if (d.borrowedTo[i] && !activeColPad.manualBorrows[i]) return false;
+            }
+            return true;
+        }
+
         function stepColumnBlueprint() {
             if (!activeColPad || !activeColPad.unlocked) return;
             var maxStage = Math.max(1, activeColPad.data.cols);
             if (activeColPad.stage >= maxStage) return;
-            playVisualTapTone();
+            activeColPad.note = '';
             activeColPad.open = true;
-            activeColPad.stage += 1;
+            if (activeColPad.stage === 0 && allManualBorrowsDone() && maxStage >= 2) {
+                activeColPad.stage = 2;
+            } else {
+                activeColPad.stage += 1;
+            }
             hintRevealed = true;
+            if (activeColPad.stage === 1 && activeColPad.data.needsRegroup) playBorrowChime();
+            else playVisualTapTone();
             renderColumnPad();
         }
 

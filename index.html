@@ -966,6 +966,241 @@
         }
         .qv-cap b { color: #fde047; }
         .qv-svg { display: block; max-height: 54px; width: auto; overflow: visible; }
+        .col-pad-wrap {
+            width: 100%;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            font-family: Verdana, sans-serif;
+        }
+        .col-pad-wrap[hidden] { display: none !important; }
+        .col-pad-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .col-pad-btn {
+            min-height: 34px;
+            padding: 6px 13px;
+            border-radius: 999px;
+            border: 2px solid #7dd3fc;
+            background: rgba(14, 48, 116, 0.94);
+            color: #e0f2fe;
+            font-family: Verdana, sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.1;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+            touch-action: manipulation;
+            transition: transform 0.12s ease, filter 0.12s ease;
+        }
+        .col-pad-btn:active:not(:disabled) { transform: translateY(2px); }
+        .col-pad-btn[hidden] { display: none !important; }
+        .col-pad-btn.is-power {
+            border-color: #fde047;
+            background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+            color: #451a03;
+            box-shadow: 0 3px 0 #78350f, 0 0 12px rgba(253, 224, 71, 0.45);
+            animation: col-pop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .col-pad-btn.is-done {
+            border-color: #86efac;
+            background: rgba(21, 128, 61, 0.92);
+            color: #f0fdf4;
+            box-shadow: 0 2px 0 rgba(5, 46, 22, 0.5);
+            cursor: default;
+        }
+        body.mode-test .col-pad-btn {
+            background: #eff6ff;
+            border-color: #60a5fa;
+            color: #1e3a8a;
+            box-shadow: 0 2px 0 rgba(30, 58, 138, 0.15);
+        }
+        body.mode-test .col-pad-btn.is-power {
+            background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+            border-color: #b45309;
+            color: #451a03;
+            box-shadow: 0 2px 0 rgba(180, 83, 9, 0.28);
+        }
+        body.mode-test .col-pad-btn.is-done {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #14532d;
+            box-shadow: none;
+        }
+        .col-pad-card {
+            width: min(310px, 98%);
+            box-sizing: border-box;
+            padding: 9px 12px 10px;
+            border-radius: 14px;
+            border: 2px solid rgba(125, 211, 252, 0.65);
+            background: rgba(5, 18, 54, 0.94);
+            color: #ffffff;
+            box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.32);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            animation: col-pop 0.16s ease;
+        }
+        .col-pad-card[hidden] { display: none !important; }
+        body.mode-test .col-pad-card {
+            background: #f8fafc;
+            border-color: #93c5fd;
+            color: #0f172a;
+            box-shadow: inset 0 1px 0 #ffffff, 0 3px 8px rgba(15, 23, 42, 0.08);
+        }
+        @keyframes col-pop {
+            from { opacity: 0; transform: translateY(-3px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .col-grid {
+            display: grid;
+            grid-template-columns: 28px repeat(var(--cols, 2), 46px);
+            padding-right: 14px;
+            align-items: center;
+            justify-items: center;
+            row-gap: 2px;
+        }
+        .col-hdr {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: #7dd3fc;
+            text-transform: uppercase;
+            padding-bottom: 1px;
+        }
+        body.mode-test .col-hdr { color: #2563eb; }
+        .col-reg-cell {
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .col-reg-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 7px;
+            background: #fde047;
+            color: #451a03;
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1.15;
+            box-shadow: 0 2px 0 rgba(120, 53, 15, 0.55);
+            animation: col-pop 0.22s ease;
+        }
+        .col-num {
+            position: relative;
+            font-size: 24px;
+            font-weight: 900;
+            line-height: 1.15;
+            font-variant-numeric: tabular-nums;
+            padding: 1px 4px;
+            border-radius: 7px;
+        }
+        .col-op {
+            font-size: 22px;
+            font-weight: 900;
+            color: #38bdf8;
+        }
+        body.mode-test .col-op { color: #2563eb; }
+        .col-num.is-crossed { opacity: 0.44; }
+        .col-num.is-crossed::after {
+            content: '';
+            position: absolute;
+            left: 1px;
+            right: 1px;
+            top: 50%;
+            height: 3px;
+            background: #f87171;
+            border-radius: 2px;
+            transform: rotate(-28deg);
+        }
+        body.mode-test .col-num.is-crossed::after { background: #dc2626; }
+        .col-num.is-borrowed {
+            color: #fde047;
+            background: rgba(253, 224, 71, 0.14);
+        }
+        body.mode-test .col-num.is-borrowed {
+            color: #b45309;
+            background: #fef3c7;
+        }
+        .col-carry-one {
+            font-size: 14px;
+            font-weight: 900;
+            color: #fde047;
+            vertical-align: top;
+            margin-right: 1px;
+        }
+        body.mode-test .col-carry-one { color: #d97706; }
+        .col-rule {
+            grid-column: 1 / -1;
+            width: 100%;
+            height: 3px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.88);
+            margin: 2px 0 3px;
+        }
+        body.mode-test .col-rule { background: #0f172a; }
+        .col-ans {
+            min-width: 34px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 21px;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            color: rgba(224, 242, 254, 0.65);
+            border: 2px dashed rgba(125, 211, 252, 0.42);
+        }
+        body.mode-test .col-ans {
+            color: #64748b;
+            border-color: #cbd5e1;
+        }
+        .col-ans.is-active-col {
+            color: #fde047;
+            border: 2px solid #fde047;
+            background: rgba(253, 224, 71, 0.14);
+        }
+        body.mode-test .col-ans.is-active-col {
+            color: #b45309;
+            border-color: #f59e0b;
+            background: #fef3c7;
+        }
+        .col-ans.is-solved {
+            color: #86efac;
+            border: 2px solid #22c55e;
+            background: rgba(34, 197, 94, 0.18);
+            animation: col-pop 0.22s ease;
+        }
+        body.mode-test .col-ans.is-solved {
+            color: #15803d;
+            border-color: #22c55e;
+            background: #dcfce7;
+        }
+        .col-cap {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #e0f2fe;
+            text-align: center;
+        }
+        .col-cap b { color: #fde047; }
+        body.mode-test .col-cap { color: #334155; }
+        body.mode-test .col-cap b { color: #1d4ed8; }
+        @media (max-width: 430px) {
+            .col-grid { grid-template-columns: 24px repeat(var(--cols, 2), 40px); }
+            .col-num { font-size: 21px; }
+            .col-ans { min-width: 30px; height: 27px; font-size: 19px; }
+            .col-cap { font-size: 11px; }
+        }
         #loading-container { width: min(440px, 84%); display: none; flex-direction: column; align-items: center; margin-top: 10px; }
         .progress-shell { width: 100%; height: 20px; background: #000; border: 2px solid white; border-radius: 10px; overflow: hidden; }
         .progress-fill { width: 100%; height: 100%; background: repeating-linear-gradient(45deg, #ffde00, #ffde00 10px, #ff9d00 10px, #ff9d00 20px); animation: barberpole 1s linear infinite; }
@@ -2831,7 +3066,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-22e</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-23a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -2980,6 +3215,13 @@
             <div id="qVisual" class="q-visual" hidden></div>
             <div id="testDiagram" class="test-diagram" hidden></div>
             <div id="roughCue" class="rough-cue" hidden></div>
+            <div id="colPadWrap" class="col-pad-wrap" hidden>
+                <div class="col-pad-bar">
+                    <button type="button" id="colStackBtn" class="col-pad-btn" onclick="toggleColumnPad()" aria-expanded="false" aria-controls="colPadCard">📝 Stack It</button>
+                    <button type="button" id="colPowerBtn" class="col-pad-btn is-power" onclick="stepColumnBlueprint()" hidden>⚡ Show Borrow</button>
+                </div>
+                <div id="colPadCard" class="col-pad-card" hidden></div>
+            </div>
         </div>
         <div id="loading-container">
             <div style="font-size: 0.6em; margin-bottom:5px;">DOWNLOADING CURRICULUM...</div>
@@ -3819,7 +4061,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-22e';
+        var APP_BUILD = '2026-11-23a';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -6148,6 +6390,328 @@
             }
         }
 
+        var activeColPad = null;
+
+        function parseColumnProblem(question) {
+            if (!question) return null;
+            var cat = String(question.Category || (question.__testItem && question.__testItem.cat) || '').toLowerCase();
+            if (cat.indexOf('fun') !== -1) return null;
+            var rawQ = String(question.Question || '').trim();
+            if (!rawQ) return null;
+            if (/[+\-\u2212\u2013]\s*\?/.test(rawQ) || /\?\s*[+\-\u2212\u2013]/.test(rawQ)) return null;
+            var ansRaw = String(question.Answer || '').trim();
+            var ansClean = ansRaw.replace(/[\u20AC,\s]/g, '');
+            if (!/^\d+$/.test(ansClean)) return null;
+            var ansNum = parseInt(ansClean, 10);
+            var rawCue = (question.__testItem && question.__testItem.cue) ? String(question.__testItem.cue).replace(/<[^>]+>/g, ' ') : '';
+            var cand = null;
+            var m = rawCue.match(/(\d{2,4})\s*([+\-\u2212\u2013])\s*(\d{1,4})/);
+            if (m) {
+                cand = { a: parseInt(m[1], 10), op: m[2] === '+' ? '+' : '-', b: parseInt(m[3], 10) };
+            }
+            if (!cand) {
+                m = rawQ.replace(/[\u20AC,]/g, '').match(/(\d{1,4})\s*([+\-\u2212\u2013])\s*(\d{1,4})/);
+                if (m) {
+                    cand = { a: parseInt(m[1], 10), op: m[2] === '+' ? '+' : '-', b: parseInt(m[3], 10) };
+                }
+            }
+            if (!cand) {
+                var nums = (rawQ.replace(/[\u20AC,]/g, '').match(/\b\d{2,4}\b/g) || []).map(function (s) { return parseInt(s, 10); });
+                if (nums.length === 2) {
+                    var n1 = nums[0], n2 = nums[1];
+                    if (n1 > n2 && n1 - n2 === ansNum) cand = { a: n1, op: '-', b: n2 };
+                    else if (n2 > n1 && n2 - n1 === ansNum) cand = { a: n2, op: '-', b: n1 };
+                    else if (n1 + n2 === ansNum) cand = { a: n1, op: '+', b: n2 };
+                }
+            }
+            if (!cand) return null;
+            var a = cand.a, b = cand.b, op = cand.op;
+            if (a < 15 || b < 6 || a > 9999 || b > 9999) return null;
+            if (a < 20 && b < 10) return null;
+            if (op === '-' && (a <= b || a - b !== ansNum)) return null;
+            if (op === '+' && a + b !== ansNum) return null;
+            return { a: a, b: b, op: op, ans: ansNum };
+        }
+
+        function computeColumnSteps(op, a, b) {
+            var aStr = String(a);
+            var bStr = String(b);
+            var cols = Math.max(aStr.length, bStr.length);
+            var hdrPool = ['Th', 'H', 'T', 'U'];
+            var headers = hdrPool.slice(hdrPool.length - cols);
+            var origTop = [];
+            var bot = [];
+            var botBlank = [];
+            var i, j, k;
+            for (i = 0; i < cols; i++) {
+                var ai = i - (cols - aStr.length);
+                var bi = i - (cols - bStr.length);
+                origTop.push(ai >= 0 ? parseInt(aStr.charAt(ai), 10) : 0);
+                bot.push(bi >= 0 ? parseInt(bStr.charAt(bi), 10) : 0);
+                botBlank.push(bi < 0);
+            }
+            var res = new Array(cols);
+            var crossed = new Array(cols);
+            var borrowedTo = new Array(cols);
+            var work = origTop.slice();
+            var carryIn = new Array(cols);
+            var needsRegroup = false;
+            var acrossZero = false;
+            for (i = 0; i < cols; i++) {
+                crossed[i] = false;
+                borrowedTo[i] = false;
+                carryIn[i] = 0;
+            }
+            if (op === '-') {
+                for (i = cols - 1; i >= 0; i--) {
+                    if (work[i] < bot[i]) {
+                        needsRegroup = true;
+                        j = i - 1;
+                        while (j >= 0 && work[j] === 0) j--;
+                        if (j >= 0) {
+                            work[j] -= 1;
+                            crossed[j] = true;
+                            for (k = j + 1; k < i; k++) {
+                                work[k] = 9;
+                                crossed[k] = true;
+                                acrossZero = true;
+                            }
+                            work[i] += 10;
+                            borrowedTo[i] = true;
+                        }
+                    }
+                    res[i] = work[i] - bot[i];
+                }
+            } else {
+                var carry = 0;
+                for (i = cols - 1; i >= 0; i--) {
+                    carryIn[i] = carry;
+                    var sum = origTop[i] + bot[i] + carry;
+                    if (i > 0 && sum >= 10) {
+                        needsRegroup = true;
+                        res[i] = sum % 10;
+                        carry = Math.floor(sum / 10);
+                    } else {
+                        res[i] = sum;
+                        carry = 0;
+                    }
+                }
+            }
+            return {
+                op: op,
+                a: a,
+                b: b,
+                cols: cols,
+                headers: headers,
+                origTop: origTop,
+                bot: bot,
+                botBlank: botBlank,
+                work: work,
+                crossed: crossed,
+                borrowedTo: borrowedTo,
+                carryIn: carryIn,
+                res: res,
+                needsRegroup: needsRegroup,
+                acrossZero: acrossZero
+            };
+        }
+
+        function syncColPadCompanionVisibility(padOpen) {
+            var qVis = document.getElementById('qVisual');
+            var roughEl = document.getElementById('roughCue');
+            if (qVis && activeVisualState && activeVisualState.spec && !isTestMode()) {
+                qVis.hidden = !!padOpen;
+            }
+            if (roughEl && isTestMode() && currentQ && currentQ.__testItem && currentQ.__testItem.cue) {
+                roughEl.hidden = !!padOpen;
+            }
+        }
+
+        function renderColumnPad() {
+            var wrap = document.getElementById('colPadWrap');
+            var stackBtn = document.getElementById('colStackBtn');
+            var powerBtn = document.getElementById('colPowerBtn');
+            var card = document.getElementById('colPadCard');
+            if (!wrap || !stackBtn || !powerBtn || !card) return;
+            if (!activeColPad) {
+                wrap.hidden = true;
+                card.hidden = true;
+                card.innerHTML = '';
+                return;
+            }
+            var d = activeColPad.data;
+            var open = !!activeColPad.open;
+            var unlocked = !!activeColPad.unlocked;
+            var stage = activeColPad.stage;
+            var maxStage = Math.max(1, d.cols);
+            wrap.hidden = false;
+            stackBtn.textContent = open ? '\uD83D\uDCDD Hide Stack' : '\uD83D\uDCDD Stack It';
+            stackBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (!unlocked) {
+                powerBtn.hidden = true;
+            } else {
+                powerBtn.hidden = false;
+                if (stage === 0) {
+                    powerBtn.className = 'col-pad-btn is-power';
+                    powerBtn.disabled = false;
+                    if (d.op === '-' && d.needsRegroup) powerBtn.textContent = '\u26A1 Show Borrow';
+                    else if (d.op === '+' && d.needsRegroup) powerBtn.textContent = '\u26A1 Show Carry';
+                    else powerBtn.textContent = '\u26A1 Show Steps';
+                } else if (stage < maxStage) {
+                    powerBtn.className = 'col-pad-btn is-power';
+                    powerBtn.disabled = false;
+                    powerBtn.textContent = '\u26A1 Next Step \u25B6';
+                } else {
+                    powerBtn.className = 'col-pad-btn is-done';
+                    powerBtn.disabled = true;
+                    powerBtn.textContent = '\u2713 Your Turn!';
+                }
+            }
+            syncColPadCompanionVisibility(open);
+            if (!open) {
+                card.hidden = true;
+                return;
+            }
+            card.hidden = false;
+            var showRegroup = stage >= 1 && d.needsRegroup;
+            var solvedCols = stage >= 2 ? Math.min(d.cols - 1, stage - 1) : 0;
+            var activeCol = d.cols - 1 - solvedCols;
+            var colNames = { Th: 'Thousands', H: 'Hundreds', T: 'Tens', U: 'Units' };
+            var html = '<div class="col-grid" style="--cols:' + d.cols + '">';
+            var i;
+            html += '<span></span>';
+            for (i = 0; i < d.cols; i++) {
+                html += '<span class="col-hdr">' + d.headers[i] + '</span>';
+            }
+            if (showRegroup) {
+                html += '<span></span>';
+                for (i = 0; i < d.cols; i++) {
+                    var badge = '';
+                    if (d.op === '-' && d.crossed[i]) {
+                        badge = '<span class="col-reg-badge">' + d.work[i] + '</span>';
+                    } else if (d.op === '+' && d.carryIn[i] > 0) {
+                        badge = '<span class="col-reg-badge">+' + d.carryIn[i] + '</span>';
+                    }
+                    html += '<span class="col-reg-cell">' + badge + '</span>';
+                }
+            }
+            html += '<span></span>';
+            for (i = 0; i < d.cols; i++) {
+                var topCls = 'col-num';
+                var topInner = String(d.origTop[i]);
+                if (showRegroup && d.op === '-') {
+                    if (d.crossed[i]) {
+                        topCls += ' is-crossed';
+                    } else if (d.borrowedTo[i]) {
+                        topCls += ' is-borrowed';
+                        topInner = '<sup class="col-carry-one">1</sup>' + d.origTop[i];
+                    }
+                }
+                html += '<span class="' + topCls + '">' + topInner + '</span>';
+            }
+            html += '<span class="col-op">' + (d.op === '-' ? '\u2212' : '+') + '</span>';
+            for (i = 0; i < d.cols; i++) {
+                html += '<span class="col-num">' + (d.botBlank[i] ? '' : d.bot[i]) + '</span>';
+            }
+            html += '<span class="col-rule"></span>';
+            html += '<span></span>';
+            for (i = 0; i < d.cols; i++) {
+                var isSolved = i >= d.cols - solvedCols;
+                var isAct = stage >= 1 && i === activeCol;
+                var aCls = 'col-ans' + (isSolved ? ' is-solved' : (isAct ? ' is-active-col' : ''));
+                html += '<span class="' + aCls + '">' + (isSolved ? d.res[i] : '?') + '</span>';
+            }
+            html += '</div>';
+
+            var cap = '';
+            if (stage === 0) {
+                cap = 'Line up ' + d.headers.join(' | ') + ' \u2014 start on the right (<b>Units</b>)!';
+            } else if (stage === 1) {
+                if (d.op === '-') {
+                    if (d.acrossZero) {
+                        var chain = [];
+                        for (i = 0; i < d.cols; i++) {
+                            if (d.crossed[i] || d.borrowedTo[i]) chain.push('<b>' + d.origTop[i] + ' \u2192 ' + d.work[i] + '</b>');
+                        }
+                        cap = 'Borrow across 0: ' + chain.join(', ') + '. Start on the right: <b>' + d.work[d.cols - 1] + ' \u2212 ' + d.bot[d.cols - 1] + ' = ?</b>';
+                    } else if (d.needsRegroup) {
+                        var parts = [];
+                        for (i = 0; i < d.cols; i++) {
+                            if (d.crossed[i] || d.borrowedTo[i]) parts.push('<b>' + d.origTop[i] + ' \u2192 ' + d.work[i] + '</b>');
+                        }
+                        var regIntro = parts.length > 2 ? ('Rename: ' + parts.join(', ')) : ('Borrow 1 ten: ' + parts.join(' and '));
+                        cap = regIntro + '. Start on the right: <b>' + d.work[d.cols - 1] + ' \u2212 ' + d.bot[d.cols - 1] + ' = ?</b>';
+                    } else {
+                        cap = 'No borrowing needed! Start on the right: <b>' + d.origTop[d.cols - 1] + ' \u2212 ' + d.bot[d.cols - 1] + ' = ?</b>';
+                    }
+                } else {
+                    if (d.needsRegroup) {
+                        cap = 'Watch the glowing <b>+1</b> carry! Start on the right: <b>' + d.origTop[d.cols - 1] + ' + ' + d.bot[d.cols - 1] + '</b>.';
+                    } else {
+                        cap = 'No carrying needed! Start on the right: <b>' + d.origTop[d.cols - 1] + ' + ' + d.bot[d.cols - 1] + ' = ?</b>';
+                    }
+                }
+            } else {
+                var doneIdx = d.cols - solvedCols;
+                var doneName = colNames[d.headers[doneIdx]] || d.headers[doneIdx];
+                var nextName = colNames[d.headers[activeCol]] || d.headers[activeCol];
+                var nextLabel = activeCol === 0 ? 'Now finish ' + nextName : 'Next ' + nextName;
+                if (d.op === '-') {
+                    cap = doneName + ': <b>' + d.work[doneIdx] + ' \u2212 ' + d.bot[doneIdx] + ' = ' + d.res[doneIdx] + '</b>. ' +
+                        nextLabel + ': <b>' + d.work[activeCol] + ' \u2212 ' + d.bot[activeCol] + ' = ?</b>';
+                } else {
+                    var doneExpr = (d.carryIn[doneIdx] ? d.carryIn[doneIdx] + ' + ' : '') + d.origTop[doneIdx] + ' + ' + d.bot[doneIdx];
+                    var doneTotal = d.origTop[doneIdx] + d.bot[doneIdx] + d.carryIn[doneIdx];
+                    var doneNote = doneTotal >= 10 ? (doneExpr + ' = ' + doneTotal + '</b> (write <b>' + d.res[doneIdx] + '</b>, carry <b>+1</b>)') : (doneExpr + ' = ' + d.res[doneIdx] + '</b>');
+                    var nextExpr = (d.carryIn[activeCol] ? d.carryIn[activeCol] + ' + ' : '') + d.origTop[activeCol] + ' + ' + d.bot[activeCol];
+                    cap = doneName + ': <b>' + doneNote + '. ' + nextLabel + ': <b>' + nextExpr + ' = ?</b>';
+                }
+            }
+            html += '<div class="col-cap">' + cap + '</div>';
+            card.innerHTML = html;
+        }
+
+        function setupColumnPad(question, alreadyMissed) {
+            var parsed = null;
+            try { parsed = parseColumnProblem(question); } catch (e) { parsed = null; }
+            if (!parsed) {
+                activeColPad = null;
+                renderColumnPad();
+                return;
+            }
+            activeColPad = {
+                data: computeColumnSteps(parsed.op, parsed.a, parsed.b),
+                open: false,
+                unlocked: !!alreadyMissed,
+                stage: 0
+            };
+            renderColumnPad();
+        }
+
+        function toggleColumnPad() {
+            if (!activeColPad) return;
+            playVisualTapTone();
+            activeColPad.open = !activeColPad.open;
+            renderColumnPad();
+        }
+
+        function unlockColumnBlueprint() {
+            if (!activeColPad) return;
+            activeColPad.unlocked = true;
+            renderColumnPad();
+        }
+
+        function stepColumnBlueprint() {
+            if (!activeColPad || !activeColPad.unlocked) return;
+            var maxStage = Math.max(1, activeColPad.data.cols);
+            if (activeColPad.stage >= maxStage) return;
+            playVisualTapTone();
+            activeColPad.open = true;
+            activeColPad.stage += 1;
+            hintRevealed = true;
+            renderColumnPad();
+        }
+
         var TEST_STRAND_META = {
             num: { label: 'Number & Algebra', short: 'Number' },
             meas: { label: 'Measures', short: 'Measures' },
@@ -7291,6 +7855,7 @@
                 if (roughEl) { roughEl.hidden = true; roughEl.innerHTML = ''; }
                 try { renderQuestionVisual(currentQ); } catch (e) {}
             }
+            try { setupColumnPad(currentQ, attemptsOnCurrentQuestion >= 1); } catch (e) {}
             const qBoard = document.getElementById('questionBoard');
             if (qBoard) {
                 qBoard.classList.remove('q-enter');
@@ -7442,6 +8007,7 @@
                         try { notePractice(currentQ, false); } catch (e) {}
                     }
                     try { showHintOffer(); } catch (e) {}
+                    try { unlockColumnBlueprint(); } catch (e) {}
                     try { stepQuestionVisual(true); } catch (e) {}
                 }
                 if (tItem && tItem.trap && cellText(selectedText) === cellText(tItem.trap) && tItem.trapMsg && trapEl) {

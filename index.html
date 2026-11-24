@@ -1261,6 +1261,57 @@
         .col-cap b { color: #fde047; }
         body.mode-test .col-cap { color: #334155; }
         body.mode-test .col-cap b { color: #1d4ed8; }
+        .col-num.has-dec, .col-ans.has-dec { position: relative; }
+        .col-num.has-dec::after, .col-ans.has-dec::after {
+            content: '.';
+            position: absolute;
+            right: -6px;
+            bottom: 0;
+            font-weight: 900;
+            color: #fde047;
+        }
+        body.mode-test .col-num.has-dec::after, body.mode-test .col-ans.has-dec::after { color: #e11d48; }
+        .ih-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin: 4px 0 8px; }
+        .ih-box {
+            min-width: 46px; padding: 8px 10px; border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.45); background: rgba(255,255,255,0.12);
+            color: #fff; font-family: Verdana, sans-serif; font-weight: 800; font-size: 15px;
+            cursor: pointer; transition: transform 0.12s, background 0.12s, border-color 0.12s;
+            display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .ih-box:active { transform: scale(0.95); }
+        .ih-box.is-lit { background: #f59e0b; border-color: #fef08a; color: #1e1b4b; box-shadow: 0 3px 0 #b45309; }
+        .ih-box.is-rem { border-style: dashed; border-color: #fda4af; background: rgba(244,63,94,0.22); cursor: default; }
+        .ih-box small { font-size: 10px; font-weight: 700; opacity: 0.85; }
+        body.mode-test .ih-box { border-color: #94a3b8; background: #f1f5f9; color: #0f172a; }
+        body.mode-test .ih-box.is-lit { background: #fef08a; border-color: #d97706; color: #78350f; }
+        body.mode-test .ih-box.is-rem { border-color: #e11d48; background: #ffe4e6; color: #9f1239; }
+        .ih-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 6px; }
+        .ih-act-btn {
+            border: 2px solid #93c5fd; border-radius: 999px; background: #1d4ed8; color: #fff;
+            font-family: Verdana, sans-serif; font-weight: 800; font-size: 12px; padding: 5px 12px;
+            cursor: pointer; touch-action: manipulation;
+        }
+        .ih-act-btn:disabled { opacity: 0.45; cursor: default; }
+        .ih-act-btn:active:not(:disabled) { transform: scale(0.96); }
+        body.mode-test .ih-act-btn { background: #2563eb; border-color: #1d4ed8; }
+        .ih-hops { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 8px; }
+        .ih-node {
+            padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.16);
+            border: 2px solid rgba(255,255,255,0.4); color: #fff; font-weight: 800; font-size: 13px;
+            font-family: Verdana, sans-serif;
+        }
+        .ih-node.is-mid { background: #f59e0b; border-color: #fef08a; color: #1e1b4b; }
+        .ih-arc {
+            padding: 4px 9px; border-radius: 999px; border: 2px dashed #93c5fd;
+            background: rgba(59,130,246,0.22); color: #e0f2fe; font-weight: 800; font-size: 12px;
+            cursor: pointer; font-family: Verdana, sans-serif;
+        }
+        .ih-arc.is-lit { border-style: solid; background: #10b981; border-color: #a7f3d0; color: #fff; }
+        body.mode-test .ih-node { background: #f1f5f9; border-color: #94a3b8; color: #0f172a; }
+        body.mode-test .ih-node.is-mid { background: #fef08a; border-color: #d97706; color: #78350f; }
+        body.mode-test .ih-arc { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+        body.mode-test .ih-arc.is-lit { background: #059669; border-color: #047857; color: #fff; }
         @media (max-width: 430px) {
             .col-grid { grid-template-columns: 24px repeat(var(--cols, 2), 40px); }
             .col-num { font-size: 21px; }
@@ -3141,7 +3192,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-24b</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-24c</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4136,7 +4187,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-24b';
+        var APP_BUILD = '2026-11-24c';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -6475,6 +6526,15 @@
             if (!rawQ) return null;
             if (/[+\-\u2212\u2013]\s*\?/.test(rawQ) || /\?\s*[+\-\u2212\u2013]/.test(rawQ)) return null;
             var ansRaw = String(question.Answer || '').trim();
+            var dm = rawQ.match(/(\d+\.\d)\s*([+\-\u2212\u2013])\s*(\d+\.\d)/);
+            if (dm && /^\d+\.\d$/.test(ansRaw)) {
+                var da = Math.round(parseFloat(dm[1]) * 10);
+                var db = Math.round(parseFloat(dm[3]) * 10);
+                var dop = dm[2] === '+' ? '+' : '-';
+                var dans = Math.round(parseFloat(ansRaw) * 10);
+                if (dop === '-' && da > db && da - db === dans) return { a: da, b: db, op: '-', ans: dans, isDecimal: true };
+                if (dop === '+' && da + db === dans) return { a: da, b: db, op: '+', ans: dans, isDecimal: true };
+            }
             var ansClean = ansRaw.replace(/[\u20AC,\s]/g, '');
             if (!/^\d+$/.test(ansClean)) return null;
             var ansNum = parseInt(ansClean, 10);
@@ -6505,14 +6565,82 @@
             if (a < 20 && b < 10) return null;
             if (op === '-' && (a <= b || a - b !== ansNum)) return null;
             if (op === '+' && a + b !== ansNum) return null;
-            return { a: a, b: b, op: op, ans: ansNum };
+            return { a: a, b: b, op: op, ans: ansNum, isDecimal: false };
         }
 
-        function computeColumnSteps(op, a, b) {
-            var aStr = String(a);
-            var bStr = String(b);
+        function parseInteractiveHelper(question) {
+            if (!question) return null;
+            var cat = String(question.Category || (question.__testItem && question.__testItem.cat) || '').toLowerCase();
+            if (cat.indexOf('fun') !== -1) return null;
+            var rawQ = String(question.Question || '').trim();
+            if (!rawQ) return null;
+            var fm = rawQ.match(/(?:what is|find)\s+(\d+)\s*\/\s*(\d+)\s+of\s+(\d+)/i);
+            if (fm) {
+                var num = parseInt(fm[1], 10), den = parseInt(fm[2], 10), whole = parseInt(fm[3], 10);
+                if (den >= 2 && den <= 10 && num >= 1 && num < den && whole >= den && whole % den === 0) {
+                    return { kind: 'frac', num: num, den: den, whole: whole, unit: whole / den };
+                }
+            }
+            var dm = rawQ.match(/(\d+)\s*\u00f7\s*(\d+)/);
+            if (dm) {
+                var tot = parseInt(dm[1], 10), div = parseInt(dm[2], 10);
+                if (div >= 2 && div <= 9 && tot > div && tot <= 99) {
+                    return { kind: 'divrem', total: tot, d: div, full: Math.floor(tot / div), rem: tot % div };
+                }
+            }
+            if (cat.indexOf('division') !== -1 || /left over|full bags|full boxes|shared equally/i.test(rawQ)) {
+                var wNums = (rawQ.match(/\b\d+\b/g) || []).map(function (s) { return parseInt(s, 10); });
+                if (wNums.length === 2 && wNums[0] > wNums[1] && wNums[1] >= 2 && wNums[1] <= 9 && wNums[0] <= 99) {
+                    return { kind: 'divrem', total: wNums[0], d: wNums[1], full: Math.floor(wNums[0] / wNums[1]), rem: wNums[0] % wNums[1] };
+                }
+            }
+            var diag = question.__testItem && question.__testItem.diagram ? question.__testItem.diagram : null;
+            function fmtT(h, m) {
+                var hh = ((h - 1) % 12 + 12) % 12 + 1;
+                return hh + ':' + (m < 10 ? '0' + m : m);
+            }
+            if (diag && diag.type === 'clock') {
+                var addM = rawQ.match(/(?:takes|lasts)\s+(\d+)\s+minutes/i);
+                if (addM) {
+                    var dur = parseInt(addM[1], 10);
+                    var toHr = (60 - diag.m) % 60;
+                    if (toHr > 0 && dur > toHr && dur < 60) {
+                        var midH = (diag.h % 12) + 1;
+                        return { kind: 'timejump', dir: 'fwd', start: fmtT(diag.h, diag.m), mid: fmtT(midH, 0), hop1: toHr, hop2: dur - toHr, totalDur: dur };
+                    }
+                }
+                var untilM = rawQ.match(/until\s+(\d{1,2}):(\d{2})/i);
+                if (untilM) {
+                    var uh = parseInt(untilM[1], 10), um = parseInt(untilM[2], 10);
+                    var toH2 = (60 - diag.m) % 60;
+                    if (toH2 > 0 && um > 0 && ((diag.h % 12) + 1) === (uh % 12 || 12)) {
+                        return { kind: 'timejump', dir: 'dur', start: fmtT(diag.h, diag.m), mid: fmtT(uh, 0), end: fmtT(uh, um), hop1: toH2, hop2: um };
+                    }
+                }
+            }
+            var spanM = rawQ.match(/starts at\s+(\d{1,2}):(\d{2})\s+and ends at\s+(\d{1,2}):(\d{2})/i);
+            if (spanM) {
+                var sh = parseInt(spanM[1], 10), sm = parseInt(spanM[2], 10), eh = parseInt(spanM[3], 10), em = parseInt(spanM[4], 10);
+                var sToH = (60 - sm) % 60;
+                if (sToH > 0 && em > 0 && ((sh % 12) + 1) === (eh % 12 || 12)) {
+                    return { kind: 'timejump', dir: 'dur', start: fmtT(sh, sm), mid: fmtT(eh, 0), end: fmtT(eh, em), hop1: sToH, hop2: em };
+                }
+            }
+            var backM = rawQ.match(/ends at\s+(\d{1,2}):(\d{2})\.\s*It lasted\s+(\d+)\s+minutes/i);
+            if (backM) {
+                var bh = parseInt(backM[1], 10), bm = parseInt(backM[2], 10), bdur = parseInt(backM[3], 10);
+                if (bm > 0 && bdur > bm && bdur < 60) {
+                    return { kind: 'timejump', dir: 'back', start: fmtT(bh, bm), mid: fmtT(bh, 0), hop1: bm, hop2: bdur - bm, totalDur: bdur };
+                }
+            }
+            return null;
+        }
+
+        function computeColumnSteps(op, a, b, isDecimal) {
+            var aStr = isDecimal ? String(a).padStart(2, '0') : String(a);
+            var bStr = isDecimal ? String(b).padStart(2, '0') : String(b);
             var cols = Math.max(aStr.length, bStr.length);
-            var hdrPool = ['Th', 'H', 'T', 'U'];
+            var hdrPool = isDecimal ? ['H', 'T', 'U', 't'] : ['Th', 'H', 'T', 'U'];
             var headers = hdrPool.slice(hdrPool.length - cols);
             var origTop = [];
             var bot = [];
@@ -6576,6 +6704,7 @@
                 op: op,
                 a: a,
                 b: b,
+                isDecimal: !!isDecimal,
                 cols: cols,
                 headers: headers,
                 origTop: origTop,
@@ -6691,6 +6820,143 @@
             renderColumnPad();
         }
 
+        function tapFracSplit() {
+            if (!activeColPad || activeColPad.kind !== 'frac') return;
+            activeColPad.fracSplit = true;
+            playBorrowChime();
+            renderColumnPad();
+        }
+
+        function tapFracBox(idx) {
+            if (!activeColPad || activeColPad.kind !== 'frac') return;
+            if (!activeColPad.fracSplit) {
+                activeColPad.fracSplit = true;
+                playBorrowChime();
+                renderColumnPad();
+                return;
+            }
+            if (activeColPad.fracPicked[idx]) {
+                delete activeColPad.fracPicked[idx];
+                playVisualTapTone();
+            } else {
+                activeColPad.fracPicked[idx] = true;
+                playBorrowChime();
+            }
+            renderColumnPad();
+        }
+
+        function tapDivRound(mode) {
+            if (!activeColPad || activeColPad.kind !== 'divrem') return;
+            var h = activeColPad.helper;
+            if (mode === 'reset') {
+                activeColPad.divRounds = 0;
+                playVisualTapTone();
+            } else if (mode === 'all') {
+                activeColPad.divRounds = h.full;
+                playBorrowChime();
+            } else if (activeColPad.divRounds < h.full) {
+                activeColPad.divRounds += 1;
+                playBorrowChime();
+            }
+            renderColumnPad();
+        }
+
+        function tapTimeHop(hopNum) {
+            if (!activeColPad || activeColPad.kind !== 'timejump') return;
+            if (hopNum === 1) {
+                activeColPad.timeHops = Math.max(activeColPad.timeHops, 1);
+                playBorrowChime();
+            } else if (hopNum === 2) {
+                activeColPad.timeHops = 2;
+                playBorrowChime();
+            }
+            renderColumnPad();
+        }
+
+        function renderInteractivePadCard(card) {
+            var h = activeColPad.helper;
+            var stage = activeColPad.stage;
+            var html = '';
+            var i;
+            if (activeColPad.kind === 'frac') {
+                var splitOn = activeColPad.fracSplit || stage >= 1;
+                var litMap = {};
+                if (stage >= 2) {
+                    for (i = 0; i < h.num; i++) litMap[i] = true;
+                } else {
+                    litMap = activeColPad.fracPicked || {};
+                }
+                var litCount = 0;
+                for (var lk in litMap) if (litMap[lk]) litCount++;
+                html += '<div class="ih-acts"><button type="button" class="ih-act-btn" onclick="tapFracSplit()"' + (splitOn ? ' disabled' : '') + '>Split ' + h.whole + ' \u00f7 ' + h.den + '</button></div>';
+                html += '<div class="ih-row">';
+                for (i = 0; i < h.den; i++) {
+                    var isLit = !!litMap[i];
+                    html += '<button type="button" class="ih-box' + (isLit ? ' is-lit' : '') + '" onclick="tapFracBox(' + i + ')"><span>' + (splitOn ? h.unit : '?') + '</span><small>1/' + h.den + '</small></button>';
+                }
+                html += '</div>';
+                var fCap = '';
+                if (!splitOn) {
+                    fCap = 'Tap <b>Split ' + h.whole + ' \u00f7 ' + h.den + '</b> to share ' + h.whole + ' into ' + h.den + ' equal boxes!';
+                } else if (litCount === 0) {
+                    fCap = 'Each 1/' + h.den + ' box has <b>' + h.unit + '</b>. Now tap <b>' + h.num + '</b> ' + (h.num === 1 ? 'box' : 'boxes') + '!';
+                } else {
+                    var addTerms = [];
+                    for (i = 0; i < litCount; i++) addTerms.push(h.unit);
+                    var goalNote = litCount === h.num ? (' (' + h.num + '/' + h.den + ' selected!)') : (' (target: ' + h.num + ' boxes)');
+                    fCap = '<b>' + litCount + '</b> ' + (litCount === 1 ? 'box' : 'boxes') + ': <b>' + addTerms.join(' + ') + ' = ?</b>' + goalNote;
+                }
+                html += '<div class="col-cap">' + fCap + '</div>';
+            } else if (activeColPad.kind === 'divrem') {
+                var rounds = Math.max(activeColPad.divRounds || 0, stage >= 1 ? h.full : 0);
+                var leftNow = h.total - rounds * h.d;
+                html += '<div class="ih-acts">' +
+                    '<button type="button" class="ih-act-btn" onclick="tapDivRound(\'one\')"' + (rounds >= h.full ? ' disabled' : '') + '>+1 Each (' + h.d + ' dealt)</button>' +
+                    '<button type="button" class="ih-act-btn" onclick="tapDivRound(\'all\')"' + (rounds >= h.full ? ' disabled' : '') + '>Deal Full Groups</button>' +
+                    (rounds > 0 ? '<button type="button" class="ih-act-btn" onclick="tapDivRound(\'reset\')">Reset</button>' : '') +
+                    '</div>';
+                html += '<div class="ih-row">';
+                for (i = 0; i < h.d; i++) {
+                    html += '<span class="ih-box' + (rounds > 0 ? ' is-lit' : '') + '"><span>' + rounds + '</span><small>Group ' + (i + 1) + '</small></span>';
+                }
+                html += '<span class="ih-box is-rem"><span>' + leftNow + '</span><small>Left Over</small></span>';
+                html += '</div>';
+                var dCap = rounds === 0
+                    ? 'Start with <b>' + h.total + '</b>. Tap <b>+1 Each</b> to share equally into <b>' + h.d + '</b> groups!'
+                    : (rounds < h.full
+                        ? 'Dealt <b>' + rounds + ' \u00d7 ' + h.d + ' = ' + (rounds * h.d) + '</b>. Still <b>' + leftNow + '</b> left \u2014 another round fits!'
+                        : 'Full groups: <b>' + rounds + '</b> each (' + rounds + ' \u00d7 ' + h.d + ' = ' + (rounds * h.d) + '), with <b>' + leftNow + '</b> left over!');
+                html += '<div class="col-cap">' + dCap + '</div>';
+            } else if (activeColPad.kind === 'timejump') {
+                var hops = Math.max(activeColPad.timeHops || 0, stage);
+                var sign = h.dir === 'back' ? '\u2212' : '+';
+                var hop1Lbl = hops >= 1 ? (sign + h.hop1 + 'm') : ('Tap Hop 1');
+                var hop2Lbl = hops >= 2 ? (sign + h.hop2 + 'm') : ('Tap Hop 2');
+                var endLbl = h.dir === 'dur' ? h.end : '?';
+                html += '<div class="ih-hops">' +
+                    '<span class="ih-node">' + h.start + '</span>' +
+                    '<button type="button" class="ih-arc' + (hops >= 1 ? ' is-lit' : '') + '" onclick="tapTimeHop(1)">' + hop1Lbl + '</button>' +
+                    '<span class="ih-node is-mid">' + h.mid + '</span>' +
+                    '<button type="button" class="ih-arc' + (hops >= 2 ? ' is-lit' : '') + '" onclick="tapTimeHop(2)">' + hop2Lbl + '</button>' +
+                    '<span class="ih-node">' + endLbl + '</span>' +
+                    '</div>';
+                var tCap = '';
+                if (hops === 0) {
+                    tCap = 'Tap <b>Hop 1</b> to jump from <b>' + h.start + '</b> to the hour <b>' + h.mid + '</b>!';
+                } else if (hops === 1) {
+                    tCap = 'From <b>' + h.start + '</b> to <b>' + h.mid + '</b> is <b>' + h.hop1 + ' mins</b>. Now tap <b>Hop 2</b>!';
+                } else if (h.dir === 'dur') {
+                    tCap = 'Add both hops: <b>' + h.hop1 + ' mins + ' + h.hop2 + ' mins = ?</b>';
+                } else if (h.dir === 'back') {
+                    tCap = 'We went back <b>' + h.hop1 + 'm</b> to <b>' + h.mid + '</b>. Now count back <b>' + h.hop2 + 'm</b> from <b>' + h.mid + '</b>!';
+                } else {
+                    tCap = 'We used <b>' + h.hop1 + 'm</b> to reach <b>' + h.mid + '</b>. Now add the last <b>' + h.hop2 + 'm</b> past <b>' + h.mid + '</b>!';
+                }
+                html += '<div class="col-cap">' + tCap + '</div>';
+            }
+            card.innerHTML = html;
+        }
+
         function renderColumnPad() {
             var wrap = document.getElementById('colPadWrap');
             var stackBtn = document.getElementById('colStackBtn');
@@ -6703,12 +6969,45 @@
                 card.innerHTML = '';
                 return;
             }
-            var d = activeColPad.data;
             var open = !!activeColPad.open;
             var unlocked = !!activeColPad.unlocked;
             var stage = activeColPad.stage;
-            var maxStage = Math.max(1, d.cols);
             wrap.hidden = false;
+            if (activeColPad.kind !== 'col') {
+                var btnLabels = {
+                    frac: ['\uD83C\uDF70 Split It', '\uD83C\uDF70 Hide Split'],
+                    divrem: ['\uD83D\uDCE6 Share It', '\uD83D\uDCE6 Hide Share'],
+                    timejump: ['\u23F1\uFE0F Jump Clock', '\u23F1\uFE0F Hide Clock']
+                };
+                var pair = btnLabels[activeColPad.kind] || ['\uD83D\uDCDD Helper', '\uD83D\uDCDD Hide'];
+                var hMax = activeColPad.kind === 'divrem' ? 1 : 2;
+                stackBtn.textContent = open ? pair[1] : pair[0];
+                stackBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                if (!unlocked) {
+                    powerBtn.hidden = true;
+                } else {
+                    powerBtn.hidden = false;
+                    if (stage < hMax) {
+                        powerBtn.className = 'col-pad-btn is-power';
+                        powerBtn.disabled = false;
+                        powerBtn.textContent = stage === 0 ? '\u26A1 Show Step' : '\u26A1 Next Step \u25B6';
+                    } else {
+                        powerBtn.className = 'col-pad-btn is-done';
+                        powerBtn.disabled = true;
+                        powerBtn.textContent = '\u2713 Your Turn!';
+                    }
+                }
+                syncColPadCompanionVisibility(open);
+                if (!open) {
+                    card.hidden = true;
+                    return;
+                }
+                card.hidden = false;
+                renderInteractivePadCard(card);
+                return;
+            }
+            var d = activeColPad.data;
+            var maxStage = Math.max(1, d.cols);
             stackBtn.textContent = open ? '\uD83D\uDCDD Hide Stack' : '\uD83D\uDCDD Stack It';
             stackBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
             if (!unlocked) {
@@ -6765,7 +7064,8 @@
             var showRegRow = (d.op === '-' && hasAnySubBorrow) || (d.op === '+' && (d.cols > 1));
             var solvedCols = stage >= 2 ? Math.min(d.cols - 1, stage - 1) : 0;
             var activeCol = d.cols - 1 - solvedCols;
-            var colNames = { Th: 'Thousands', H: 'Hundreds', T: 'Tens', U: 'Units' };
+            var colNames = { Th: 'Thousands', H: 'Hundreds', T: 'Tens', U: 'Units', t: 'Tenths' };
+            var decIdx = d.isDecimal ? (d.cols - 2) : -1;
             var html = '<div class="col-grid" style="--cols:' + d.cols + '">';
             html += '<span></span>';
             for (i = 0; i < d.cols; i++) {
@@ -6791,7 +7091,7 @@
             }
             html += '<span></span>';
             for (i = 0; i < d.cols; i++) {
-                var topCls = 'col-num';
+                var topCls = 'col-num' + (i === decIdx ? ' has-dec' : '');
                 var topInner = String(d.origTop[i]);
                 var canTap = d.op === '-' && i < d.cols - 1 && stage === 0;
                 if (d.op === '-' && liveSub) {
@@ -6811,18 +7111,19 @@
             }
             html += '<span class="col-op">' + (d.op === '-' ? '\u2212' : '+') + '</span>';
             for (i = 0; i < d.cols; i++) {
-                html += '<span class="col-num">' + (d.botBlank[i] ? '' : d.bot[i]) + '</span>';
+                html += '<span class="col-num' + (i === decIdx ? ' has-dec' : '') + '">' + (d.botBlank[i] ? '' : d.bot[i]) + '</span>';
             }
             html += '<span class="col-rule"></span>';
             html += '<span></span>';
             for (i = 0; i < d.cols; i++) {
                 var isSolved = i >= d.cols - solvedCols;
                 var isAct = (stage >= 1 || hasAnySubBorrow || hasAnyAddCarry) && i === activeCol;
-                var aCls = 'col-ans' + (isSolved ? ' is-solved' : (isAct ? ' is-active-col' : ''));
+                var aCls = 'col-ans' + (isSolved ? ' is-solved' : (isAct ? ' is-active-col' : '')) + (i === decIdx ? ' has-dec' : '');
                 html += '<span class="' + aCls + '">' + (isSolved ? d.res[i] : '?') + '</span>';
             }
             html += '</div>';
 
+            var rightName = d.isDecimal ? 'Tenths' : 'Units';
             var cap = '';
             if (activeColPad.note) {
                 cap = activeColPad.note;
@@ -6835,11 +7136,11 @@
                     var mIntro = liveSub.acrossZero ? 'Borrowed across 0: ' : (mParts.length > 2 ? 'Renamed: ' : 'Borrowed! ');
                     cap = mIntro + mParts.join(mParts.length === 2 ? ' and ' : ', ') + '. Now do <b>' + liveSub.work[d.cols - 1] + ' \u2212 ' + d.bot[d.cols - 1] + ' = ?</b>';
                 } else if (d.op === '-') {
-                    cap = 'Start on <b>Units</b> \u2014 tap a top digit to borrow 1 ten!';
+                    cap = 'Start on <b>' + rightName + '</b> \u2014 tap a top digit to borrow!';
                 } else if (hasAnyAddCarry) {
-                    cap = 'Carry marked! Add right to left (<b>Units</b> first).';
+                    cap = 'Carry marked! Add right to left (<b>' + rightName + '</b> first).';
                 } else {
-                    cap = 'Add from <b>Units</b> \u2014 tap <b>+1</b> above a column if you carry!';
+                    cap = 'Add from <b>' + rightName + '</b> \u2014 tap <b>+1</b> above a column if you carry!';
                 }
             } else if (stage === 1) {
                 if (d.op === '-') {
@@ -6854,7 +7155,7 @@
                         for (i = 0; i < d.cols; i++) {
                             if (d.crossed[i] || d.borrowedTo[i]) parts.push('<b>' + d.origTop[i] + ' \u2192 ' + d.work[i] + '</b>');
                         }
-                        var regIntro = parts.length > 2 ? ('Rename: ' + parts.join(', ')) : ('Borrow 1 ten: ' + parts.join(' and '));
+                        var regIntro = parts.length > 2 ? ('Rename: ' + parts.join(', ')) : ('Borrow: ' + parts.join(' and '));
                         cap = regIntro + '. Start on the right: <b>' + d.work[d.cols - 1] + ' \u2212 ' + d.bot[d.cols - 1] + ' = ?</b>';
                     } else {
                         cap = 'No borrowing needed! Start on the right: <b>' + d.origTop[d.cols - 1] + ' \u2212 ' + d.bot[d.cols - 1] + ' = ?</b>';
@@ -6889,20 +7190,39 @@
         function setupColumnPad(question, alreadyMissed) {
             var parsed = null;
             try { parsed = parseColumnProblem(question); } catch (e) { parsed = null; }
-            if (!parsed) {
-                activeColPad = null;
+            if (parsed) {
+                activeColPad = {
+                    kind: 'col',
+                    data: computeColumnSteps(parsed.op, parsed.a, parsed.b, parsed.isDecimal),
+                    open: false,
+                    unlocked: !!alreadyMissed,
+                    stage: 0,
+                    manualBorrows: {},
+                    manualCarries: {},
+                    note: ''
+                };
                 renderColumnPad();
                 return;
             }
-            activeColPad = {
-                data: computeColumnSteps(parsed.op, parsed.a, parsed.b),
-                open: false,
-                unlocked: !!alreadyMissed,
-                stage: 0,
-                manualBorrows: {},
-                manualCarries: {},
-                note: ''
-            };
+            var helper = null;
+            try { helper = parseInteractiveHelper(question); } catch (e) { helper = null; }
+            if (helper) {
+                activeColPad = {
+                    kind: helper.kind,
+                    helper: helper,
+                    open: false,
+                    unlocked: !!alreadyMissed,
+                    stage: 0,
+                    fracSplit: false,
+                    fracPicked: {},
+                    divRounds: 0,
+                    timeHops: 0,
+                    note: ''
+                };
+                renderColumnPad();
+                return;
+            }
+            activeColPad = null;
             renderColumnPad();
         }
 
@@ -6921,7 +7241,7 @@
         }
 
         function allManualBorrowsDone() {
-            if (!activeColPad || activeColPad.data.op !== '-' || !activeColPad.data.needsRegroup) return false;
+            if (!activeColPad || activeColPad.kind !== 'col' || activeColPad.data.op !== '-' || !activeColPad.data.needsRegroup) return false;
             var d = activeColPad.data;
             for (var i = 0; i < d.cols; i++) {
                 if (d.borrowedTo[i] && !activeColPad.manualBorrows[i]) return false;
@@ -6931,6 +7251,16 @@
 
         function stepColumnBlueprint() {
             if (!activeColPad || !activeColPad.unlocked) return;
+            if (activeColPad.kind !== 'col') {
+                var hMax = activeColPad.kind === 'divrem' ? 1 : 2;
+                if (activeColPad.stage >= hMax) return;
+                activeColPad.open = true;
+                activeColPad.stage += 1;
+                hintRevealed = true;
+                playBorrowChime();
+                renderColumnPad();
+                return;
+            }
             var maxStage = Math.max(1, activeColPad.data.cols);
             if (activeColPad.stage >= maxStage) return;
             activeColPad.note = '';
@@ -7667,18 +7997,34 @@
             }
             if (cat === 'Multiplication') {
                 var m1, m2, ext, res;
-                if (t === 1) {
-                    m1 = randInt(3, 8); m2 = randInt(3, 6); res = m1 * m2;
-                    return { id: id, t: 1, s: 'num', cat: 'Multiplication', q: 'There are ' + m1 + ' boxes with ' + m2 + ' pencils in each box. How many pencils altogether?', opts: uniqueOpts(String(res), [String(m1 + m2), String(res + m2), String(Math.max(2, res - m2))]), ans: String(res), hint: 'Multiply ' + m1 + ' \u00d7 ' + m2 + '.' };
+                var mStyle = randInt(0, 2);
+                if (t === 1 || mStyle === 0) {
+                    m1 = randInt(3, 12); m2 = randInt(3, 9); res = m1 * m2;
+                    return { id: id, t: t === 1 ? 1 : 2, s: 'num', cat: 'Multiplication', q: 'What is ' + m1 + ' \u00d7 ' + m2 + '?', opts: uniqueOpts(String(res), [String(res + m2), String(Math.max(2, res - m2)), String(m1 + m2)]), ans: String(res), hint: 'Count in ' + m2 + 's ' + m1 + ' times.' };
+                }
+                if (mStyle === 1) {
+                    m1 = randInt(3, 9); m2 = randInt(4, 9); res = m1 * m2;
+                    return { id: id, t: 2, s: 'num', cat: 'Multiplication', q: 'Find the missing number:  \u2610 \u00d7 ' + m2 + ' = ' + res, opts: uniqueOpts(String(m1), [String(m1 + 1), String(Math.max(2, m1 - 1)), String(m1 + 2)]), ans: String(m1), hint: 'Divide ' + res + ' by ' + m2 + '.' };
                 }
                 m1 = randInt(3, 7); m2 = randInt(6, 9); ext = randInt(3, 8); res = m1 * m2 + ext;
                 return { id: id, t: t, s: 'num', cat: 'Multiplication', q: 'There are ' + m1 + ' packs of ' + m2 + ' cards and ' + ext + ' loose cards. How many cards in total?', opts: uniqueOpts(String(res), [String(m1 * m2), String(res + 4), String(Math.max(2, res - 3))]), ans: String(res), trap: String(m1 * m2), trapMsg: (m1 * m2) + ' is Step 1 (' + m1 + ' \u00d7 ' + m2 + '). Remember to add the ' + ext + ' loose cards!', cue: 'Step 1:  <code>' + m1 + ' \u00d7 ' + m2 + ' = ___</code>   \u2192   Step 2:  <code>___ + ' + ext + '</code>', hint: 'Multiply first, then add the extra cards.' };
             }
             if (cat === 'Division') {
-                var d = randInt(3, 6);
+                var d = randInt(3, 8);
+                var dStyle = randInt(0, 2);
                 if (t === 1) {
                     var qn = randInt(4, 9), tot = d * qn;
-                    return { id: id, t: 1, s: 'num', cat: 'Division', q: tot + ' stickers are shared equally between ' + d + ' friends. How many does each friend get?', opts: uniqueOpts(String(qn), [String(qn - 1), String(qn + 1), String(qn + 2)]), ans: String(qn), hint: 'Think: ' + d + ' \u00d7 ? = ' + tot + '.' };
+                    return { id: id, t: 1, s: 'num', cat: 'Division', q: 'What is ' + tot + ' \u00f7 ' + d + '?', opts: uniqueOpts(String(qn), [String(qn - 1), String(qn + 1), String(qn + 2)]), ans: String(qn), hint: 'Think: ' + d + ' \u00d7 ? = ' + tot + '.' };
+                }
+                if (dStyle === 0) {
+                    var full2 = randInt(4, 9), rem2 = randInt(1, d - 1), total2 = d * full2 + rem2;
+                    var ansR = full2 + ' R ' + rem2;
+                    var trapR = (full2 - 1) + ' R ' + (rem2 + d);
+                    return { id: id, t: t, s: 'num', cat: 'Division', q: 'What is ' + total2 + ' \u00f7 ' + d + '?', opts: uniqueOpts(ansR, [trapR, full2 + ' R ' + ((rem2 % (d - 1)) + 1 === rem2 ? rem2 + 1 : (rem2 % (d - 1)) + 1), (full2 + 1) + ' R ' + rem2]), ans: ansR, trap: trapR, trapMsg: 'Remainder ' + (rem2 + d) + ' is bigger than ' + d + ' \u2014 another ' + d + ' fits in!', cue: 'Rough sheet:  <code>' + d + ' \u00d7 ' + full2 + ' = ' + (d * full2) + '</code>  \u2192 how many left?', hint: d + ' \u00d7 ' + full2 + ' = ' + (d * full2) + ', leaving ' + rem2 + ' over.' };
+                }
+                if (dStyle === 1) {
+                    var q3 = randInt(4, 9), tot3 = d * q3;
+                    return { id: id, t: 2, s: 'num', cat: 'Division', q: 'Find the missing number:  \u2610 \u00f7 ' + d + ' = ' + q3, opts: uniqueOpts(String(tot3), [String(d + q3), String(tot3 - d), String(tot3 + d)]), ans: String(tot3), trap: String(d + q3), trapMsg: 'Use the inverse and multiply ' + d + ' \u00d7 ' + q3 + '!', cue: 'Use inverse:  <code>' + d + ' \u00d7 ' + q3 + ' = ___</code>', hint: 'Multiply ' + d + ' \u00d7 ' + q3 + '.' };
                 }
                 var full = randInt(4, 8), rem = randInt(1, d - 1), total = d * full + rem;
                 return { id: id, t: t, s: 'num', cat: 'Division', q: total + ' marbles are shared equally among ' + d + ' friends. How many marbles are LEFT OVER?', opts: uniqueOpts(String(rem), [String(full), String(rem + 1), String(Math.max(1, rem + 2))]), ans: String(rem), trap: String(full), trapMsg: full + ' is how many each friend gets — read the question: how many are LEFT OVER?', cue: '<code>' + total + ' \u00f7 ' + d + ' = ___ R ___</code>', hint: d + ' \u00d7 ' + full + ' = ' + (d * full) + '. Subtract from ' + total + '.' };
@@ -7692,15 +8038,64 @@
                 return { id: id, t: t, s: 'num', cat: 'Fractions', q: 'Find ' + num + '/' + den + ' of ' + whole + '.', opts: uniqueOpts(String(val), [String(unit), String(val + unit), String(Math.max(1, val - unit)), String(val + 2)]), ans: String(val), trap: num > 1 ? String(unit) : undefined, trapMsg: num > 1 ? (unit + ' is 1/' + den + ' of ' + whole + '! Multiply by ' + num + ' to find ' + num + '/' + den + '.') : undefined, cue: num > 1 ? ('Step 1:  <code>' + whole + ' \u00f7 ' + den + ' = ___</code>   \u2192   Step 2:  <code>___ \u00d7 ' + num + '</code>') : ('<code>' + whole + ' \u00f7 ' + den + ' = ___</code>'), hint: 'Divide ' + whole + ' by ' + den + (num > 1 ? ', then multiply by ' + num + '.' : '.') };
             }
             if (cat === 'Decimals') {
+                var decStyle = randInt(0, 2);
+                if (t === 1 && decStyle === 0) {
+                    var w0 = randInt(1, 5), th0 = randInt(1, 9);
+                    var ans0 = w0 + '.' + th0;
+                    var trap0 = w0 + '.0' + th0;
+                    return { id: id, t: 1, s: 'num', cat: 'Decimals', q: 'Write ' + w0 + ' and ' + th0 + '/10 as a decimal.', opts: uniqueOpts(ans0, [trap0, (w0 * 10 + th0) + '.0', '0.' + w0 + th0]), ans: ans0, trap: trap0, trapMsg: 'The first place after the decimal point is tenths, so ' + th0 + '/10 is .' + th0 + '!', hint: w0 + ' wholes and ' + th0 + ' tenths is ' + ans0 + '.' };
+                }
                 if (t === 1) {
                     var a1 = randInt(2, 5), b1 = randInt(1, 9 - a1);
                     var r1 = ((a1 + b1) / 10).toFixed(1);
                     return { id: id, t: 1, s: 'num', cat: 'Decimals', q: 'Work out 0.' + a1 + ' + 0.' + b1 + '.', opts: uniqueOpts(r1, [((a1 + b1 - 1) / 10).toFixed(1), '0.' + a1 + b1, ((a1 + b1) + '.0')]), ans: r1, hint: a1 + ' tenths + ' + b1 + ' tenths.' };
                 }
-                var wholeDec = t === 2 ? 10 : 20;
-                var subDec = randInt(2, 8);
-                var ansDec = ((wholeDec - subDec) / 10).toFixed(1);
-                return { id: id, t: t, s: 'num', cat: 'Decimals', q: 'Work out ' + (wholeDec / 10).toFixed(1) + ' \u2212 0.' + subDec + '.', opts: uniqueOpts(ansDec, [((wholeDec - subDec + 1) / 10).toFixed(1), ((wholeDec - subDec - 1) / 10).toFixed(1), ((wholeDec + subDec) / 10).toFixed(1)]), ans: ansDec, cue: '<code>' + wholeDec + ' tenths \u2212 ' + subDec + ' tenths = ___</code>', hint: 'Count on from 0.' + subDec + ' to ' + (wholeDec / 10).toFixed(1) + '.' };
+                if (decStyle === 1) {
+                    var da1 = randInt(1, 3) * 10 + randInt(5, 9), db1 = randInt(4, 8);
+                    var dsum = ((da1 + db1) / 10).toFixed(1);
+                    var dtrap = Math.floor(da1 / 10) + '.' + ((da1 % 10) + db1);
+                    return { id: id, t: 2, s: 'num', cat: 'Decimals', q: 'Work out ' + (da1 / 10).toFixed(1) + ' + 0.' + db1 + '.', opts: uniqueOpts(dsum, [dtrap, ((da1 + db1 - 1) / 10).toFixed(1), ((da1 + db1 + 1) / 10).toFixed(1)]), ans: dsum, trap: dtrap, trapMsg: '10 tenths make 1 whole — remember to carry 1 to the Units!', hint: 'Add the tenths and carry 1 whole when they pass 10.' };
+                }
+                var topD = randInt(2, 4) * 10 + randInt(1, 4);
+                var subD = randInt(1, Math.floor(topD / 10) - 1) * 10 + randInt(5, 9);
+                var ansD = ((topD - subD) / 10).toFixed(1);
+                var trD = (Math.floor(topD / 10) - Math.floor(subD / 10)) + '.' + ((subD % 10) - (topD % 10));
+                return { id: id, t: t, s: 'num', cat: 'Decimals', q: 'Work out ' + (topD / 10).toFixed(1) + ' \u2212 ' + (subD / 10).toFixed(1) + '.', opts: uniqueOpts(ansD, [trD, ((topD - subD + 1) / 10).toFixed(1), ((topD - subD + 10) / 10).toFixed(1)]), ans: ansD, trap: trD, trapMsg: 'Rename 1 whole into 10 tenths before subtracting!', cue: '<code>' + topD + ' tenths \u2212 ' + subD + ' tenths = ___</code>', hint: 'Use Stack It and borrow 1 whole into 10 tenths.' };
+            }
+            if (cat === 'Place Value') {
+                var pvStyle = randInt(0, 2);
+                if (pvStyle === 0) {
+                    var h1 = randInt(2, 9), t1p = randInt(1, 9), u1p = randInt(1, 9);
+                    while (t1p === h1) t1p = (t1p % 9) + 1;
+                    while (u1p === h1 || u1p === t1p) u1p = (u1p % 9) + 1;
+                    var numP = h1 * 100 + t1p * 10 + u1p;
+                    var pickTen = t === 1 ? true : randInt(0, 1) === 0;
+                    var dig = pickTen ? t1p : h1;
+                    var valP = pickTen ? t1p * 10 : h1 * 100;
+                    return { id: id, t: t, s: 'num', cat: 'Place Value', q: 'What is the value of the digit ' + dig + ' in the number ' + numP + '?', opts: uniqueOpts(String(valP), [String(dig), String(pickTen ? dig * 100 : dig * 10), String(dig * 10 + u1p)]), ans: String(valP), hint: 'Check H | T | U for the digit ' + dig + '.' };
+                }
+                if (pvStyle === 1) {
+                    var rn = randInt(12, 88) * 10 + randInt(1, 9);
+                    var to100 = t >= 2;
+                    var rAns = to100 ? Math.round(rn / 100) * 100 : Math.round(rn / 10) * 10;
+                    var rTrap = to100 ? Math.round(rn / 10) * 10 : Math.round(rn / 100) * 100;
+                    return { id: id, t: t, s: 'num', cat: 'Place Value', q: 'Round ' + rn + ' to the nearest ' + (to100 ? '100' : '10') + '.', opts: uniqueOpts(String(rAns), [String(rTrap), String(rAns + (to100 ? 100 : 10)), String(Math.max(0, rAns - (to100 ? 100 : 10)))]), ans: String(rAns), trap: String(rTrap), trapMsg: 'Check whether the question asks for nearest ' + (to100 ? 'HUNDRED' : 'TEN') + '!', hint: to100 ? '50 or more rounds up to the next hundred.' : '5 or more in the units rounds up.' };
+                }
+                var baseP = randInt(2, 8) * 100 + randInt(1, 8);
+                var ansP = baseP - 10;
+                return { id: id, t: 3, s: 'num', cat: 'Place Value', q: 'What number is 10 less than ' + baseP + '?', opts: uniqueOpts(String(ansP), [String(baseP - 100), String(baseP + 10), String(ansP - 10)]), ans: String(ansP), trap: String(baseP - 100), trapMsg: (baseP - 100) + ' is 100 less — we only want 10 less!', hint: 'Count back 10 across the hundred.' };
+            }
+            if (cat === 'Patterns') {
+                if (randInt(0, 1) === 0) {
+                    var stepP = [4, 6, 7, 8, 9][randInt(0, 4)];
+                    var goDown = t >= 2 && randInt(0, 1) === 1;
+                    var stP = goDown ? randInt(60, 98) : randInt(6, 25);
+                    var seq = [stP, stP + (goDown ? -stepP : stepP), stP + (goDown ? -2 * stepP : 2 * stepP), stP + (goDown ? -3 * stepP : 3 * stepP)];
+                    var nxt = stP + (goDown ? -4 * stepP : 4 * stepP);
+                    return { id: id, t: t, s: 'num', cat: 'Patterns', q: 'What comes next in this pattern?  ' + seq.join(', ') + ', \u2610', opts: uniqueOpts(String(nxt), [String(nxt + 2), String(nxt - 1), String(nxt + stepP)]), ans: String(nxt), hint: (goDown ? 'Subtract ' : 'Add ') + stepP + ' each step.' };
+                }
+                var pa = randInt(24, 58), pb = randInt(25, 64), pc = pa + pb;
+                return { id: id, t: t, s: 'num', cat: 'Patterns', q: 'Find the missing number:  ' + pa + ' + \u2610 = ' + pc, opts: uniqueOpts(String(pb), [String(pa + pc), String(pb + 10), String(Math.max(2, pb - 10))]), ans: String(pb), trap: String(pa + pc), trapMsg: 'Subtract ' + pa + ' from ' + pc + ' to find the missing number!', cue: 'Rough sheet:  <code>' + pc + ' \u2212 ' + pa + ' = ___</code>', hint: 'Count on from ' + pa + ' to ' + pc + '.' };
             }
             if (cat === 'Money') {
                 if (t === 1) {
@@ -7715,10 +8110,57 @@
                 var change = pay - bill;
                 return { id: id, t: t, s: 'meas', cat: 'Money', q: 'You buy ' + qty + ' items at ' + unitC + 'c each and pay with ' + fmtEuro(pay) + '. How much change do you get?', opts: uniqueOpts(fmtEuro(change), [fmtEuro(bill), fmtEuro(change + 10), fmtEuro(Math.max(5, change - 10))]), ans: fmtEuro(change), trap: fmtEuro(bill), trapMsg: fmtEuro(bill) + ' is Step 1 (total cost). Now subtract from ' + fmtEuro(pay) + '!', cue: 'Step 1:  <code>' + qty + ' \u00d7 ' + unitC + 'c = ___</code>   \u2192   Step 2:  <code>' + pay + 'c \u2212 ___</code>', hint: 'Multiply ' + qty + ' \u00d7 ' + unitC + 'c first, then subtract from ' + fmtEuro(pay) + '.' };
             }
+            if (cat === 'Time') {
+                var th = randInt(1, 11);
+                function fmtClk(hr, mn) { var hh = ((hr - 1) % 12 + 12) % 12 + 1; return hh + ':' + (mn < 10 ? '0' + mn : mn); }
+                if (t === 1) {
+                    var tm = [15, 20, 25, 35, 40, 45, 50][randInt(0, 6)];
+                    var ansT = fmtClk(th, tm);
+                    return { id: id, t: 1, s: 'meas', cat: 'Time', q: 'What time is shown on this clock?', opts: uniqueOpts(ansT, [fmtClk(th + 1, tm), fmtClk(th, (tm + 5) % 60), fmtClk(th, tm / 5)]), ans: ansT, diagram: { type: 'clock', h: th, m: tm }, hint: 'Count in 5s around the clock for the minute hand.' };
+                }
+                var sm = [35, 40, 45, 50][randInt(0, 3)];
+                var dur = [25, 30, 35, 40][randInt(0, 3)];
+                var endMin = sm + dur;
+                var endH = th + Math.floor(endMin / 60);
+                var endM = endMin % 60;
+                var ansET = fmtClk(endH, endM);
+                return { id: id, t: t, s: 'meas', cat: 'Time', q: 'A bus leaves at the time shown on this clock. The journey takes ' + dur + ' minutes. What time does it arrive?', opts: uniqueOpts(ansET, [fmtClk(endH, (endM + 5) % 60), fmtClk(endH, (endM + 55) % 60), th + ':' + endMin]), ans: ansET, diagram: { type: 'clock', h: th, m: sm }, cue: 'Jump to the hour:  <code>' + fmtClk(th, sm) + ' + ' + (60 - sm) + 'm = ' + fmtClk(th + 1, 0) + '</code>  \u2192 add ' + (dur - (60 - sm)) + 'm', hint: 'Jump to the next hour first, then add the remaining minutes.' };
+            }
             if (cat === 'Measurement') {
                 var used = randInt(2, 7) * 100 + [0, 50][randInt(0, 1)];
                 var left = 1000 - used;
                 return { id: id, t: t, s: 'meas', cat: 'Measurement', q: 'A bag holds 1 kg of rice. You use ' + used + ' g. How much rice is left?', opts: uniqueOpts(left + ' g', [(left + 100) + ' g', Math.max(50, left - 100) + ' g', used + ' g']), ans: left + ' g', cue: '<code>1000 g \u2212 ' + used + ' g = ___</code>', hint: '1 kg = 1,000 g. Subtract ' + used + ' g from 1,000 g.' };
+            }
+            if (cat === 'Data') {
+                if (randInt(0, 1) === 0) {
+                    var multD = [2, 4, 5][randInt(0, 2)];
+                    var rA = randInt(4, 6), rB = randInt(1, rA - 2), rC = randInt(2, 5);
+                    var diffIcons = rA - rB, ansD2 = diffIcons * multD;
+                    return { id: id, t: t, s: 'data', cat: 'Data', q: 'How many MORE points did Red Team score than Blue Team?', opts: uniqueOpts(String(ansD2), [String(diffIcons), String(ansD2 + multD), String((rA + rB) * multD)]), ans: String(ansD2), trap: String(diffIcons), trapMsg: 'Check the Key! Each \u2B50 stands for ' + multD + ' points (' + diffIcons + ' \u00d7 ' + multD + ').', diagram: { type: 'picto', title: 'Team Points', key: '\u2B50 = ' + multD + ' points', icon: '\u2B50', rows: [['Red Team', rA], ['Blue Team', rB], ['Green Team', rC]] }, cue: 'Rough sheet:  <code>(' + rA + ' \u2212 ' + rB + ') \u00d7 ' + multD + '</code>', hint: 'Find the difference in stars, then multiply by ' + multD + '.' };
+                }
+                var b1 = randInt(3, 8) * 2, b2 = randInt(2, 7) * 2, b3 = randInt(2, 6) * 2, b4 = randInt(1, 5) * 2;
+                var sumB = b1 + b2;
+                return { id: id, t: t, s: 'data', cat: 'Data', q: 'Look at the bar chart. How many pupils chose Music and Sport ALTOGETHER?', opts: uniqueOpts(String(sumB), [String(Math.abs(b1 - b2)), String(sumB + 2), String(Math.max(2, sumB - 2))]), ans: String(sumB), diagram: { type: 'bar', title: 'Favourite Activities', max: 18, step: 3, bars: [['Music', b1, '#4f46e5'], ['Sport', b2, '#10b981'], ['Art', b3, '#ec4899'], ['Lego', b4, '#f59e0b']] }, cue: 'Rough sheet:  <code>' + b1 + ' + ' + b2 + '</code>', hint: 'Read Music (' + b1 + ') and Sport (' + b2 + '), then add them.' };
+            }
+            if (cat === 'Chance') {
+                var cKind = randInt(0, 3);
+                if (cKind === 0) return { id: id, t: 1, s: 'data', cat: 'Chance', q: 'A bag has 10 blue cubes and no other colours. Picking a RED cube is...', opts: ['Certain', 'Likely', 'Unlikely', 'Impossible'], ans: 'Impossible', hint: 'There are zero red cubes in the bag.' };
+                if (cKind === 1) return { id: id, t: 1, s: 'data', cat: 'Chance', q: 'A bag holds 6 red cubes and 6 blue cubes. Picking a red cube is...', opts: ['Certain', 'Even chance', 'Unlikely', 'Impossible'], ans: 'Even chance', hint: 'Equal numbers of each colour means an even chance.' };
+                if (cKind === 2) return { id: id, t: 2, s: 'data', cat: 'Chance', q: 'A jar holds 9 green sweets and 1 orange sweet. Picking a GREEN sweet is...', opts: ['Certain', 'Likely', 'Unlikely', 'Impossible'], ans: 'Likely', hint: 'Almost all are green, but 1 is orange so it is not certain.' };
+                return { id: id, t: 2, s: 'data', cat: 'Chance', q: 'A jar holds 1 purple sweet and 11 yellow sweets. Picking a PURPLE sweet is...', opts: ['Certain', 'Likely', 'Unlikely', 'Impossible'], ans: 'Unlikely', hint: 'Only 1 out of 12 sweets is purple.' };
+            }
+            if (cat === 'Shapes') {
+                var sPick = randInt(0, 2);
+                if (sPick === 0) {
+                    var aKinds = [['acute', 'Acute angle', 'Obtuse angle', 'Smaller than a right angle is acute!'], ['obtuse', 'Obtuse angle', 'Acute angle', 'Wider than a right angle is obtuse!'], ['right', 'Right angle', 'Obtuse angle', 'A square corner is a right angle!']][randInt(0, 2)];
+                    return { id: id, t: 2, s: 'data', cat: 'Shapes', q: 'What type of angle is shown in the diagram?', opts: ['Acute angle', 'Right angle', 'Obtuse angle', 'Straight line'], ans: aKinds[1], trap: aKinds[2], trapMsg: aKinds[3], diagram: { type: 'angle', kind: aKinds[0] }, hint: 'Compare the opening to a square right-angle corner.' };
+                }
+                if (sPick === 1) {
+                    var lKinds = [['vertical', 'Vertical', 'Horizontal'], ['horizontal', 'Horizontal', 'Vertical'], ['parallel', 'Parallel', 'Perpendicular'], ['perp', 'Perpendicular', 'Parallel']][randInt(0, 3)];
+                    return { id: id, t: 2, s: 'data', cat: 'Shapes', q: 'Which word best describes the line(s) shown here?', opts: ['Vertical', 'Horizontal', 'Parallel', 'Perpendicular'], ans: lKinds[1], trap: lKinds[2], trapMsg: 'Look closely at the direction and whether the lines meet at a square corner!', diagram: { type: 'shape', kind: lKinds[0] }, hint: 'Vertical = up/down, Horizontal = flat, Parallel = never meet, Perpendicular = right angle.' };
+                }
+                var poly = [['pentagon', '5'], ['hexagon', '6'], ['octagon', '8']][randInt(0, 2)];
+                return { id: id, t: 1, s: 'data', cat: 'Shapes', q: 'How many straight sides does a ' + poly[0].toUpperCase() + ' have?', opts: ['4', '5', '6', '8'], ans: poly[1], hint: 'Count the sides carefully.' };
             }
             return null;
         }
@@ -7911,6 +8353,32 @@
             }
 
             if (!chosen) {
+                var qTopic = '';
+                try { qTopic = openQuestTopic(); } catch (e) { qTopic = ''; }
+                if (qTopic && catStrandMap[qTopic] === wantStrand && isEligibleCat(qTopic, 4)) {
+                    var qTier = getCatMastery(m, qTopic).tier || 1;
+                    var qUnseen = TEST_BANK.filter(function (x) {
+                        var xs = m.byQ[normTestQKey(x.q)];
+                        return x.cat === qTopic && (!xs || xs.seen === 0) && recentTestIds.indexOf(x.id) === -1;
+                    });
+                    chosen = pickFromList(qUnseen) || makeHillClimbVariant(qTopic, qTier);
+                }
+            }
+
+            if (!chosen) {
+                var strandCats = allCats.filter(function (c) {
+                    return catStrandMap[c] === wantStrand && isEligibleCat(c, 4);
+                });
+                var seasonedCats = strandCats.filter(function (c) {
+                    return m.byCat[c] && m.byCat[c].seen >= 3;
+                });
+                if (seasonedCats.length && Math.random() < 0.35) {
+                    var varCat = pickFromList(seasonedCats);
+                    chosen = makeHillClimbVariant(varCat, getCatMastery(m, varCat).tier || 2);
+                }
+            }
+
+            if (!chosen) {
                 var unseenStrand = TEST_BANK.filter(function (x) {
                     var xs = m.byQ[normTestQKey(x.q)];
                     var ct = getCatMastery(m, x.cat).tier || 1;
@@ -7941,6 +8409,21 @@
                     });
                 }
                 chosen = pickFromList(unseenStrand);
+            }
+
+            if (!chosen) {
+                var freshCats = allCats.filter(function (c) {
+                    return catStrandMap[c] === wantStrand && isEligibleCat(c, 4);
+                });
+                if (!freshCats.length) {
+                    freshCats = allCats.filter(function (c) {
+                        return catStrandMap[c] === wantStrand && isEligibleCat(c, 3);
+                    });
+                }
+                if (freshCats.length) {
+                    var pickFreshCat = pickFromList(freshCats);
+                    chosen = makeHillClimbVariant(pickFreshCat, getCatMastery(m, pickFreshCat).tier || 2);
+                }
             }
 
             if (!chosen) {
@@ -9729,7 +10212,7 @@
         var dailyOpenTimer = null;
         var cheerTimer = null;
         var collectionPage = 'normal';
-        var DAILY_GOAL = 10;
+        var DAILY_GOAL = 8;
 
         var CHARACTERS = [
             { id: 'luigi', name: 'Luigi', short: 'Luigi', fact: 'Luigi is the tall brother in green. He is brave even when he feels nervous!', colors: { K:'#141414', G:'#2eba34', S:'#f2c7a0', B:'#2440c8', Y:'#ffdc28', N:'#78401e', W:'#f5f5f5' }, pixels: [
@@ -11682,10 +12165,10 @@
         }
 
         var QUEST_DEFS = [
-            { id: 'correct10', goal: 10, reward: 3, label: 'Get 10 correct today' },
-            { id: 'multi5', goal: 5, reward: 3, topic: 'Multiplication', label: 'Get 5 multiplication correct' },
+            { id: 'correct10', goal: 6, reward: 3, label: 'Get 6 correct today' },
+            { id: 'multi5', goal: 2, reward: 3, topic: 'Multiplication', label: 'Get 2 multiplication correct' },
             { id: 'chest', goal: 1, reward: 2, label: 'Open today\'s level chest' },
-            { id: 'answer15', goal: 15, reward: 4, label: 'Answer 15 questions' },
+            { id: 'answer15', goal: 8, reward: 4, label: 'Answer 8 questions' },
             { id: 'streak3', goal: 3, reward: 2, label: 'Get 3 right in a row' }
         ];
         var QUEST_BUNDLE_COINS = 5;

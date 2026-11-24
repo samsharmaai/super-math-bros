@@ -3132,7 +3132,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-23b</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-24a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4127,7 +4127,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-23b';
+        var APP_BUILD = '2026-11-24a';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -4135,8 +4135,12 @@
         var pinnedQuestions = { test: null, classic: null };
         var pinnedAttempts = { test: 0, classic: 0 };
         var recentTestIds = [];
+        var recentTestCats = [];
         var lastTestCat = '';
         var lastRetryStep = -99;
+        var testRoundCatCounts = {};
+        var testRoundPicked = 0;
+        var testLastWasTough = false;
         var testMastery = null;
         var testMasteryHydrated = false;
         var testRoundStats = { num: [0, 0], meas: [0, 0], data: [0, 0] };
@@ -7091,7 +7095,35 @@
             { id:'t142', t:1, s:'data', cat:'Chance', q:'You flip a fair coin. Landing on Heads is...', opts:['Certain','Even chance','Impossible','Unlikely'], ans:'Even chance', hint:'Heads and Tails are equally likely (1 out of 2).' },
             { id:'t143', t:1, s:'data', cat:'Chance', q:'A bag holds 5 blue cubes and 5 red cubes. Picking a blue cube is...', opts:['Certain','Even chance','Unlikely','Impossible'], ans:'Even chance', hint:'There are the exact same number of blue and red cubes.' },
             { id:'t144', t:2, s:'data', cat:'Chance', q:'You roll a normal 1 to 6 dice. Rolling the number 6 is...', opts:['Certain','Likely','Unlikely','Impossible'], ans:'Unlikely', hint:'Only 1 out of 6 faces shows a 6.' },
-            { id:'t145', t:1, s:'data', cat:'Shapes', q:'How many sides does a PENTAGON have?', opts:['4','5','6','8'], ans:'5', hint:'Penta means 5 — a pentagon has 5 straight sides.' }
+            { id:'t145', t:1, s:'data', cat:'Shapes', q:'How many sides does a PENTAGON have?', opts:['4','5','6','8'], ans:'5', hint:'Penta means 5 — a pentagon has 5 straight sides.' },
+            { id:'t146', t:1, s:'num', cat:'Multiplication', q:'What is 7 × 8?', opts:['48','54','56','63'], ans:'56', hint:'Think: 7 × 7 = 49, then add one more 7.' },
+            { id:'t147', t:2, s:'num', cat:'Multiplication', q:'What is 9 × 6?', opts:['45','54','56','63'], ans:'54', hint:'10 × 6 = 60, then take away one 6.' },
+            { id:'t148', t:2, s:'num', cat:'Multiplication', q:'What is 12 × 4?', opts:['36','44','48','52'], ans:'48', hint:'10 × 4 = 40 and 2 × 4 = 8. Add 40 + 8.' },
+            { id:'t149', t:1, s:'num', cat:'Division', q:'What is 56 ÷ 7?', opts:['6','7','8','9'], ans:'8', hint:'Use the inverse: 7 × ? = 56.' },
+            { id:'t150', t:2, s:'num', cat:'Division', q:'What is 72 ÷ 9?', opts:['6','7','8','9'], ans:'8', hint:'Use the inverse: 9 × ? = 72.' },
+            { id:'t151', t:2, s:'num', cat:'Division', q:'If 8 × 9 = 72, what is 72 ÷ 8?', opts:['6','7','8','9'], ans:'9', trap:'8', trapMsg:'8 is the number you divided by — the other factor in 8 × 9 = 72 is 9!', hint:'Multiplication and division are inverses: 8 × 9 = 72 means 72 ÷ 8 = 9.' },
+            { id:'t152', t:1, s:'num', cat:'Multiplication', q:'Find the missing number:  ☐ × 6 = 42', opts:['6','7','8','9'], ans:'7', hint:'Count in 6s up to 42, or divide 42 ÷ 6.' },
+            { id:'t153', t:2, s:'num', cat:'Multiplication', q:'Find the missing number:  8 × ☐ = 64', opts:['6','7','8','9'], ans:'8', hint:'Think: which number times 8 makes 64?' },
+            { id:'t154', t:2, s:'num', cat:'Division', q:'Find the missing number:  ☐ ÷ 5 = 9', opts:['4','14','40','45'], ans:'45', trap:'14', trapMsg:'14 is 9 + 5 — use the inverse and multiply 9 × 5!', cue:'Use inverse:  <code>9 × 5 = ___</code>', hint:'Multiply 9 × 5 to find the starting number.' },
+            { id:'t155', t:2, s:'num', cat:'Division', q:'What is 29 ÷ 4?', opts:['6 R 5','7 R 1','7 R 2','8 R 1'], ans:'7 R 1', trap:'6 R 5', trapMsg:'Remainder 5 is bigger than 4, so one more 4 fits in!', cue:'Rough sheet:  <code>4 × 7 = 28</code>  → how many left?', hint:'4 × 7 = 28, and 29 − 28 = 1 left over.' },
+            { id:'t156', t:2, s:'num', cat:'Division', q:'What is 43 ÷ 5?', opts:['7 R 8','8 R 2','8 R 3','9 R 2'], ans:'8 R 3', trap:'7 R 8', trapMsg:'Remainder 8 is bigger than 5 — 5 fits in 8 times!', cue:'Rough sheet:  <code>5 × 8 = 40</code>  → how many left?', hint:'5 × 8 = 40, leaving 3 over.' },
+            { id:'t157', t:3, s:'num', cat:'Division', q:'What is 53 ÷ 6?', opts:['7 R 11','8 R 5','9 R 1','8 R 3'], ans:'8 R 5', trap:'9 R 1', trapMsg:'6 × 9 = 54, which is too big for 53! Try 6 × 8.', cue:'Rough sheet:  <code>6 × 8 = 48</code>  →  <code>53 − 48</code>', hint:'6 × 8 = 48, and 53 − 48 = 5.' },
+            { id:'t158', t:1, s:'num', cat:'Decimals', q:'Write 1 and 4/10 as a decimal.', opts:['1.04','1.4','14.0','0.14'], ans:'1.4', trap:'1.04', trapMsg:'The first place after the decimal point is tenths, so 4/10 is .4 (not .04)!', hint:'1 whole and 4 tenths is written 1.4.' },
+            { id:'t159', t:1, s:'num', cat:'Decimals', q:'Which decimal is equal to 7/10?', opts:['0.07','0.7','7.0','7.1'], ans:'0.7', trap:'0.07', trapMsg:'0.07 is 7 hundredths — 7 tenths is 0.7!', hint:'7 tenths sits in the first place after the decimal point.' },
+            { id:'t160', t:2, s:'num', cat:'Decimals', q:'Which of these decimals is the LARGEST?', opts:['1.8','2.1','1.9','0.9'], ans:'2.1', trap:'1.9', trapMsg:'Compare the whole numbers first — 2 wholes is bigger than 1 whole!', hint:'Check the whole number before the decimal point first.' },
+            { id:'t161', t:2, s:'num', cat:'Decimals', q:'Which of these decimals is the SMALLEST?', opts:['2.4','2.1','1.9','2.7'], ans:'1.9', trap:'2.1', trapMsg:'1.9 has only 1 whole, while 2.1 has 2 wholes!', hint:'Look at the whole number part first: 1 is less than 2.' },
+            { id:'t162', t:2, s:'num', cat:'Decimals', q:'What is 1.6 + 0.7?', opts:['1.13','2.2','2.3','2.4'], ans:'2.3', trap:'1.13', trapMsg:'6 tenths + 7 tenths = 13 tenths = 1 whole and 3 tenths (carry 1)!', cue:'Rough sheet:  <code>16 tenths + 7 tenths = ___</code>', hint:'1.6 + 0.4 = 2.0, then add 0.3 more.' },
+            { id:'t163', t:3, s:'num', cat:'Decimals', q:'What is 3.2 − 1.5?', opts:['2.3','1.7','1.8','2.7'], ans:'1.7', trap:'2.3', trapMsg:'Rename 1 whole into 10 tenths instead of doing 5 − 2!', cue:'Rough sheet:  <code>32 tenths − 15 tenths = ___</code>', hint:'Count on from 1.5 to 2.0 (+0.5), then 2.0 to 3.2 (+1.2).' },
+            { id:'t164', t:1, s:'data', cat:'Shapes', q:'A straight line that goes straight up and down like a flagpole is called...', opts:['Horizontal','Vertical','Diagonal','Parallel'], ans:'Vertical', trap:'Horizontal', trapMsg:'Horizontal goes flat across like the horizon — straight up and down is vertical!', diagram:{ type:'shape', kind:'vertical' }, hint:'Think of a tall tree or flagpole standing straight up.' },
+            { id:'t165', t:1, s:'data', cat:'Shapes', q:'A flat straight line that goes side to side like the horizon is called...', opts:['Vertical','Horizontal','Curved','Perpendicular'], ans:'Horizontal', trap:'Vertical', trapMsg:'Vertical goes up and down — flat across like the horizon is horizontal!', diagram:{ type:'shape', kind:'horizontal' }, hint:'Horizon helps you remember horizontal.' },
+            { id:'t166', t:2, s:'data', cat:'Shapes', q:'Two lines that meet to make a square right angle are called...', opts:['Parallel','Perpendicular','Horizontal','Curved'], ans:'Perpendicular', trap:'Parallel', trapMsg:'Parallel lines never meet — lines that meet at a right angle are perpendicular!', diagram:{ type:'shape', kind:'perp' }, hint:'Look for the square right-angle corner where the two lines meet.' },
+            { id:'t167', t:2, s:'data', cat:'Shapes', q:'An angle that is SMALLER than a right angle is called an...', opts:['Obtuse angle','Right angle','Acute angle','Straight angle'], ans:'Acute angle', trap:'Obtuse angle', trapMsg:'Obtuse is wide (greater than a right angle) — a small, sharp angle is acute!', diagram:{ type:'angle', kind:'acute' }, hint:'Remember: a-CUTE little angle is smaller than a right angle.' },
+            { id:'t168', t:2, s:'data', cat:'Shapes', q:'An angle that is GREATER than a right angle (but less than a straight line) is called an...', opts:['Acute angle','Right angle','Obtuse angle','Parallel angle'], ans:'Obtuse angle', trap:'Acute angle', trapMsg:'Acute is smaller than a right angle — a wide angle is obtuse!', diagram:{ type:'angle', kind:'obtuse' }, hint:'Obtuse angles open wider than a square corner.' },
+            { id:'t169', t:3, s:'data', cat:'Shapes', q:'How many pairs of PARALLEL sides does a rectangle have?', opts:['1','2','3','4'], ans:'2', trap:'4', trapMsg:'A rectangle has 4 sides, which make 2 PAIRS of opposite parallel sides!', diagram:{ type:'shape', kind:'sym' }, hint:'Top & bottom make 1 pair; left & right make a 2nd pair.' },
+            { id:'t170', t:3, s:'num', cat:'Addition', q:'A bookshop had 145 comics. 38 were sold in the morning and 25 more arrived in the afternoon. How many comics are there now?', opts:['107','132','183','208'], ans:'132', trap:'107', trapMsg:'107 is Step 1 (145 − 38). Remember to add the 25 comics that arrived!', cue:'Step 1:  <code>145 − 38 = ___</code>   →   Step 2:  <code>___ + 25</code>', hint:'Subtract 38 first (= 107), then add 25.' },
+            { id:'t171', t:3, s:'num', cat:'Multiplication', q:'A coach buys 6 packs of 8 tennis balls and shares them equally into 4 baskets. How many balls are in each basket?', opts:['48','12','14','16'], ans:'12', trap:'48', trapMsg:'48 is Step 1 (6 × 8 total balls). Now divide 48 by 4 baskets!', cue:'Step 1:  <code>6 × 8 = ___</code>   →   Step 2:  <code>___ ÷ 4</code>', hint:'Find the total balls (6 × 8 = 48), then divide by 4.' },
+            { id:'t172', t:3, s:'num', cat:'Subtraction', q:'Ben has 90 stickers. He gives 6 stickers to each of his 7 friends. How many stickers does Ben have left?', opts:['42','48','52','58'], ans:'48', trap:'42', trapMsg:'42 is how many stickers Ben gave away (6 × 7) — subtract 42 from 90!', cue:'Step 1:  <code>6 × 7 = ___</code>   →   Step 2:  <code>90 − ___</code>', hint:'First find 6 × 7 = 42, then take 42 from 90.' },
+            { id:'t173', t:3, s:'meas', cat:'Measurement', q:'A rope is 2 metres long. Maya cuts off 3 pieces of 40 cm each. How much rope is left?', opts:['120 cm','80 cm','60 cm','160 cm'], ans:'80 cm', trap:'120 cm', trapMsg:'120 cm is Step 1 (3 × 40 cm cut off). Subtract 120 cm from 200 cm!', cue:'Step 1:  <code>3 × 40 cm = ___</code>   →   Step 2:  <code>200 cm − ___</code>', hint:'2 m = 200 cm. Subtract 3 × 40 cm (120 cm) from 200 cm.' }
         ];
 
         function readSavedPlayMode() {
@@ -7304,6 +7336,24 @@
                 return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 180 70" width="176" height="68">' +
                     '<line x1="20" y1="22" x2="160" y2="22" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>' +
                     '<line x1="20" y1="48" x2="160" y2="48" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/></svg></div>';
+            }
+            if (d.kind === 'vertical') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 120 86" width="116" height="84">' +
+                    '<line x1="60" y1="12" x2="60" y2="74" stroke="#1d4ed8" stroke-width="4.5" stroke-linecap="round"/>' +
+                    '<polygon points="60,6 53,17 67,17" fill="#1d4ed8"/>' +
+                    '<polygon points="60,80 53,69 67,69" fill="#1d4ed8"/></svg></div>';
+            }
+            if (d.kind === 'horizontal') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 180 64" width="176" height="62">' +
+                    '<line x1="20" y1="32" x2="160" y2="32" stroke="#1d4ed8" stroke-width="4.5" stroke-linecap="round"/>' +
+                    '<polygon points="12,32 24,25 24,39" fill="#1d4ed8"/>' +
+                    '<polygon points="168,32 156,25 156,39" fill="#1d4ed8"/></svg></div>';
+            }
+            if (d.kind === 'perp') {
+                return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 150 88" width="146" height="86">' +
+                    '<line x1="20" y1="68" x2="130" y2="68" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>' +
+                    '<line x1="75" y1="14" x2="75" y2="68" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>' +
+                    '<rect x="75" y="52" width="16" height="16" fill="none" stroke="#e11d48" stroke-width="2.5"/></svg></div>';
             }
             if (d.kind === 'hex') {
                 return '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 120 94" width="116" height="90">' +
@@ -7713,15 +7763,56 @@
         function pickTestQuestion() {
             var m = ensureTestMastery();
             var qSlot = Math.max(0, Math.floor(finiteNumber(gameState && gameState.questionsAnsweredLevel) || 0)) % 10;
+            if (qSlot === 0 || testRoundPicked >= 10) {
+                testRoundCatCounts = {};
+                testRoundPicked = 0;
+            }
             var plan = ['num','meas','data','num','meas','data','num','data','meas','num'];
             var wantStrand = plan[qSlot] || 'num';
             var recentShort = recentTestIds.slice(-4);
+            var QUICK_WIN_CATS = { Multiplication: 1, Division: 1, Shapes: 1, Data: 1, Chance: 1, 'Place Value': 1, Patterns: 1 };
+            var catStrandMap = {};
+            var allCats = [];
+            for (var ci = 0; ci < TEST_BANK.length; ci++) {
+                var cn = TEST_BANK[ci].cat;
+                if (!catStrandMap[cn]) {
+                    catStrandMap[cn] = TEST_BANK[ci].s;
+                    allCats.push(cn);
+                }
+            }
+            function catAllowedInRound(cat) {
+                return (testRoundCatCounts[cat] || 0) < 2;
+            }
+            function catOffCooldown(cat, minGap) {
+                var gap = minGap == null ? 4 : minGap;
+                return recentTestCats.slice(-gap).indexOf(cat) === -1;
+            }
+            function isEligibleCat(cat, minGap) {
+                return catAllowedInRound(cat) && catOffCooldown(cat, minGap);
+            }
             var chosen = null;
             var isRetryPick = false;
 
-            if ((m.step - lastRetryStep) >= 2) {
+            if (testLastWasTough) {
+                var quickUnseen = TEST_BANK.filter(function (x) {
+                    var xs = m.byQ[normTestQKey(x.q)];
+                    return x.s === wantStrand && isEligibleCat(x.cat, 4) && (!xs || xs.seen === 0) && ((QUICK_WIN_CATS[x.cat] && (x.t || 1) <= 2) || (x.t || 1) === 1);
+                });
+                var quickPool = quickUnseen.length ? quickUnseen : TEST_BANK.filter(function (x) {
+                    return x.s === wantStrand && isEligibleCat(x.cat, 4) && recentTestIds.indexOf(x.id) === -1 && ((QUICK_WIN_CATS[x.cat] && (x.t || 1) <= 2) || (x.t || 1) <= 2);
+                });
+                if (!quickPool.length) {
+                    quickPool = TEST_BANK.filter(function (x) {
+                        return x.s === wantStrand && isEligibleCat(x.cat, 4) && (x.t || 1) <= 2;
+                    });
+                }
+                chosen = pickFromList(quickPool);
+            }
+
+            if (!chosen && !testLastWasTough && (m.step - lastRetryStep) >= 3) {
                 var dueList = TEST_BANK.filter(function (item) {
                     if (recentShort.indexOf(item.id) !== -1) return false;
+                    if (!isEligibleCat(item.cat, 4)) return false;
                     var st = m.byQ[normTestQKey(item.q)];
                     return st && st.seen > 0 && (st.misses > 0 || st.firstWins === 0) && (st.streak || 0) < 2 && (st.dueAt || 0) <= m.step;
                 });
@@ -7731,65 +7822,67 @@
                         var sb = m.byQ[normTestQKey(b.q)];
                         return (sa.dueAt - sb.dueAt) || (sb.misses - sa.misses);
                     });
-                    var dueItem = dueList[0];
-                    var dueCatState = getCatMastery(m, dueItem.cat);
-                    var dueQState = m.byQ[normTestQKey(dueItem.q)];
-                    if ((dueItem.t || 2) > dueCatState.tier) {
-                        var bridge = TEST_BANK.filter(function (x) {
-                            var xs = m.byQ[normTestQKey(x.q)];
-                            return x.cat === dueItem.cat && (x.t || 1) <= dueCatState.tier && (!xs || xs.seen === 0);
-                        });
-                        chosen = pickFromList(bridge) || makeHillClimbVariant(dueItem.cat, dueCatState.tier);
+                    var dueStrand = dueList.filter(function (x) { return x.s === wantStrand; });
+                    var dueItem = null;
+                    if (dueStrand.length) {
+                        dueItem = dueStrand[0];
+                    } else {
+                        var altDue = dueList[0];
+                        var strandTarget = altDue.s === 'num' ? 4 : 3;
+                        var strandDone = testRoundStats[altDue.s] ? testRoundStats[altDue.s][1] : 0;
+                        if (strandDone < strandTarget) dueItem = altDue;
                     }
-                    if (!chosen) {
-                        if (dueQState && dueQState.misses >= 2 && Math.random() < 0.5) {
-                            chosen = makeHillClimbVariant(dueItem.cat, dueItem.t || 2) || dueItem;
-                        } else {
-                            chosen = dueItem;
+                    if (dueItem) {
+                        var dueCatState = getCatMastery(m, dueItem.cat);
+                        var dueQState = m.byQ[normTestQKey(dueItem.q)];
+                        if ((dueItem.t || 2) > dueCatState.tier) {
+                            var bridge = TEST_BANK.filter(function (x) {
+                                var xs = m.byQ[normTestQKey(x.q)];
+                                return x.cat === dueItem.cat && (x.t || 1) <= dueCatState.tier && (!xs || xs.seen === 0);
+                            });
+                            chosen = pickFromList(bridge) || makeHillClimbVariant(dueItem.cat, dueCatState.tier);
                         }
-                        isRetryPick = true;
-                        lastRetryStep = m.step;
+                        if (!chosen) {
+                            if (dueQState && dueQState.misses >= 2 && Math.random() < 0.5) {
+                                chosen = makeHillClimbVariant(dueItem.cat, dueItem.t || 2) || dueItem;
+                            } else {
+                                chosen = dueItem;
+                            }
+                        }
+                        if (chosen) {
+                            isRetryPick = true;
+                            lastRetryStep = m.step;
+                        }
                     }
                 }
             }
 
             if (!chosen) {
-                var allCats = [];
-                var catSeenMap = {};
-                for (var i = 0; i < TEST_BANK.length; i++) {
-                    var cName = TEST_BANK[i].cat;
-                    if (!catSeenMap[cName]) {
-                        catSeenMap[cName] = TEST_BANK[i].s;
-                        allCats.push(cName);
-                    }
-                }
                 var untriedCats = allCats.filter(function (c) {
-                    return !m.byCat[c] || m.byCat[c].seen === 0;
+                    return (!m.byCat[c] || m.byCat[c].seen === 0) && isEligibleCat(c, 4);
                 });
                 if (untriedCats.length) {
-                    var strandUntried = untriedCats.filter(function (c) { return catSeenMap[c] === wantStrand && c !== lastTestCat; });
-                    var pickCat = pickFromList(strandUntried) || pickFromList(untriedCats.filter(function (c) { return c !== lastTestCat; })) || untriedCats[0];
+                    var strandUntried = untriedCats.filter(function (c) { return catStrandMap[c] === wantStrand; });
+                    var pickCat = pickFromList(strandUntried) || pickFromList(untriedCats);
                     var diagPool = TEST_BANK.filter(function (x) { return x.cat === pickCat && (x.t || 1) === 1; });
                     if (!diagPool.length) diagPool = TEST_BANK.filter(function (x) { return x.cat === pickCat; });
                     chosen = pickFromList(diagPool);
                 }
             }
 
-            if (!chosen) {
+            if (!chosen && !testLastWasTough) {
                 var weakCats = Object.keys(m.byCat).filter(function (c) {
                     var st = m.byCat[c];
-                    return st && st.seen > 0 && ((st.firstWins / st.seen) < 0.8 || (st.tier || 1) < 3);
+                    return st && st.seen > 0 && ((st.firstWins / st.seen) < 0.8 || (st.tier || 1) < 3) && isEligibleCat(c, 4) && catStrandMap[c] === wantStrand;
                 });
-                if (weakCats.length && Math.random() < 0.65) {
+                if (weakCats.length && Math.random() < 0.55) {
                     weakCats.sort(function (a, b) {
                         var sa = m.byCat[a], sb = m.byCat[b];
                         var ra = sa.firstWins / Math.max(1, sa.seen);
                         var rb = sb.firstWins / Math.max(1, sb.seen);
                         return (ra - rb) || ((sa.tier || 1) - (sb.tier || 1));
                     });
-                    var altWeak = weakCats.filter(function (c) { return c !== lastTestCat; });
-                    var topWeak = altWeak.length ? altWeak.slice(0, 3) : weakCats.slice(0, 2);
-                    var targetCat = pickFromList(topWeak);
+                    var targetCat = pickFromList(weakCats.slice(0, 3));
                     var targetTier = getCatMastery(m, targetCat).tier || 1;
                     var unseenTier = TEST_BANK.filter(function (x) {
                         var xs = m.byQ[normTestQKey(x.q)];
@@ -7816,18 +7909,30 @@
                 var unseenStrand = TEST_BANK.filter(function (x) {
                     var xs = m.byQ[normTestQKey(x.q)];
                     var ct = getCatMastery(m, x.cat).tier || 1;
-                    return x.s === wantStrand && (!xs || xs.seen === 0) && (x.t || 1) <= ct + 1 && x.cat !== lastTestCat;
+                    return x.s === wantStrand && (!xs || xs.seen === 0) && (x.t || 1) <= ct + 1 && isEligibleCat(x.cat, 4);
                 });
                 if (!unseenStrand.length) {
                     unseenStrand = TEST_BANK.filter(function (x) {
                         var xs = m.byQ[normTestQKey(x.q)];
-                        return x.s === wantStrand && (!xs || xs.seen === 0);
+                        return x.s === wantStrand && (!xs || xs.seen === 0) && isEligibleCat(x.cat, 4);
                     });
                 }
                 if (!unseenStrand.length) {
                     unseenStrand = TEST_BANK.filter(function (x) {
                         var xs = m.byQ[normTestQKey(x.q)];
-                        return !xs || xs.seen === 0;
+                        return x.s === wantStrand && (!xs || xs.seen === 0) && isEligibleCat(x.cat, 3);
+                    });
+                }
+                if (!unseenStrand.length) {
+                    unseenStrand = TEST_BANK.filter(function (x) {
+                        var xs = m.byQ[normTestQKey(x.q)];
+                        return (!xs || xs.seen === 0) && isEligibleCat(x.cat, 4);
+                    });
+                }
+                if (!unseenStrand.length) {
+                    unseenStrand = TEST_BANK.filter(function (x) {
+                        var xs = m.byQ[normTestQKey(x.q)];
+                        return (!xs || xs.seen === 0) && isEligibleCat(x.cat, 3);
                     });
                 }
                 chosen = pickFromList(unseenStrand);
@@ -7835,8 +7940,28 @@
 
             if (!chosen) {
                 var fallbackPool = TEST_BANK.filter(function (x) {
-                    return x.s === wantStrand && recentTestIds.indexOf(x.id) === -1;
+                    return x.s === wantStrand && recentTestIds.indexOf(x.id) === -1 && isEligibleCat(x.cat, 4);
                 });
+                if (!fallbackPool.length) {
+                    fallbackPool = TEST_BANK.filter(function (x) {
+                        return x.s === wantStrand && isEligibleCat(x.cat, 4);
+                    });
+                }
+                if (!fallbackPool.length) {
+                    fallbackPool = TEST_BANK.filter(function (x) {
+                        return x.s === wantStrand && isEligibleCat(x.cat, 3);
+                    });
+                }
+                if (!fallbackPool.length) {
+                    fallbackPool = TEST_BANK.filter(function (x) {
+                        return isEligibleCat(x.cat, 4);
+                    });
+                }
+                if (!fallbackPool.length) {
+                    fallbackPool = TEST_BANK.filter(function (x) {
+                        return x.s === wantStrand && catAllowedInRound(x.cat);
+                    });
+                }
                 if (!fallbackPool.length) fallbackPool = TEST_BANK.filter(function (x) { return x.s === wantStrand; });
                 chosen = pickFromList(fallbackPool) || TEST_BANK[0];
             }
@@ -7845,6 +7970,13 @@
                 chosen = Object.assign({}, chosen, { __isRetry: true });
             }
             lastTestCat = chosen.cat || '';
+            recentTestCats.push(lastTestCat);
+            if (recentTestCats.length > 12) recentTestCats.shift();
+            testRoundCatCounts[lastTestCat] = (testRoundCatCounts[lastTestCat] || 0) + 1;
+            testRoundPicked += 1;
+            var chosenCatSt = m.byCat[lastTestCat];
+            var isWeakChosen = !!(chosenCatSt && chosenCatSt.seen > 0 && (chosenCatSt.firstWins / chosenCatSt.seen) < 0.7);
+            testLastWasTough = !!(isRetryPick || (!QUICK_WIN_CATS[lastTestCat] && ((chosen.t || 1) >= 3 || isWeakChosen)));
             if (chosen.id && String(chosen.id).indexOf('v_') !== 0) {
                 recentTestIds.push(chosen.id);
                 if (recentTestIds.length > 26) recentTestIds.shift();
@@ -8599,6 +8731,8 @@
             gameState.questionsAnsweredLevel = 0; gameState.correctInLevel = 0;
             gameState.levelMisses = [];
             testRoundStats = { num: [0, 0], meas: [0, 0], data: [0, 0] };
+            testRoundCatCounts = {};
+            testRoundPicked = 0;
             levelChestLock = false;
             
             gameState.stage++;

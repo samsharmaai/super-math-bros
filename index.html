@@ -1310,6 +1310,15 @@
             width: min(96%, 560px); max-width: 560px;
             margin-top: 6px; align-self: center; flex-shrink: 0;
         }
+        .answers-grid.is-four {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .answers-grid.is-four .brick-btn {
+            font-size: clamp(15px, 3.8vw, 21px);
+            min-height: 54px;
+            padding: 10px 8px;
+        }
         @keyframes brick-bump {
             0% { transform: translateY(0) scale(1); }
             35% { transform: translateY(-10px) scale(1.05); }
@@ -3132,7 +3141,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-24a</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-24b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4127,7 +4136,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-24a';
+        var APP_BUILD = '2026-11-24b';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -4636,7 +4645,7 @@
             };
             if (hinted) payload.hintUsed = true;
             if (tItem) {
-                payload.mode = "test";
+                payload.mode = isTestMode() ? "test" : "classic";
                 if (tItem.s) payload.strand = tItem.s;
             }
             db.collection("math_logs").add(payload).catch(function (err) {
@@ -4747,11 +4756,7 @@
 
         function forceOfflineMode() {
             document.getElementById('loading-container').style.display = 'none';
-            allQuestions = [
-                {Question: "10 + 10 = ?", Option1: "20", Option2: "30", Option3: "40", Answer: "20", Category: "Offline"},
-                {Question: "5 + 5 = ?", Option1: "10", Option2: "15", Option3: "25", Answer: "10", Category: "Offline"},
-                {Question: "Red Color?", Option1: "Blue", Option2: "Red", Option3: "Green", Answer: "Red", Category: "Offline"}
-            ];
+            allQuestions = [];
             loadNextQuestion();
             if(!window.offlineAlertShown) {
                 cloudStatusText = 'Offline practice mode (check internet).';
@@ -7534,7 +7539,7 @@
                 if (!dt) continue;
                 var qKey = normTestQKey(r.question);
                 var matched = lookup[qKey] || null;
-                if (!matched && r.mode !== 'test') continue;
+                if (!matched && r.mode !== 'test' && !r.strand) continue;
                 testRows.push({
                     qKey: qKey,
                     q: r.question,
@@ -7984,6 +7989,27 @@
             return makeTestQObj(chosen);
         }
 
+        function shouldUseUnifiedClassicMaths(pool) {
+            if (!Array.isArray(pool) || !pool.length) return true;
+            for (var i = 0; i < pool.length; i++) {
+                if (isFunQuestion(pool[i])) return true;
+            }
+            return pool.length >= 20;
+        }
+
+        function pickClassicFunQuestion(pool) {
+            if (!Array.isArray(pool) || !pool.length) return null;
+            var funPool = questionsWhere(pool, isFunQuestion);
+            if (!funPool.length) return null;
+            if (lastFunKey && funPool.length > 1) {
+                var alt = questionsWhere(funPool, function (q) {
+                    return questionPracticeKey(q) !== lastFunKey;
+                });
+                if (alt.length) funPool = alt;
+            }
+            return pickPracticeMix(funPool, false) || pickFromList(funPool);
+        }
+
         function readTestQuestion() {
             if (!currentQ || !currentQ.Question) return;
             var txt = plainQuestionText(currentQ.Question);
@@ -8157,11 +8183,20 @@
                 } else {
                     let pool = allQuestions;
                     try { stampSheetRows(pool); } catch (e) {}
-                    try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
-                    if (!picked) {
-                        var spare = availableQuestions(pool);
-                        var fallback = spare && spare.length ? spare : pool;
-                        picked = fallback[Math.floor(Math.random() * fallback.length)];
+                    if (shouldUseUnifiedClassicMaths(pool)) {
+                        if (funIsDue()) {
+                            try { picked = pickClassicFunQuestion(pool); } catch (e) { picked = null; }
+                        }
+                        if (!picked) {
+                            picked = pickTestQuestion();
+                        }
+                    } else {
+                        try { picked = chooseQuestion(pool); } catch (e) { picked = null; }
+                        if (!picked) {
+                            var spare = availableQuestions(pool);
+                            var fallback = spare && spare.length ? spare : pool;
+                            picked = fallback[Math.floor(Math.random() * fallback.length)];
+                        }
                     }
                     pinnedQuestions.classic = picked;
                     pinnedAttempts.classic = 0;
@@ -8208,9 +8243,14 @@
                 }
             } else {
                 if (tierEl) tierEl.hidden = true;
-                try { renderTestDiagram(null); } catch (e) {}
                 if (roughEl) { roughEl.hidden = true; roughEl.innerHTML = ''; }
-                try { renderQuestionVisual(currentQ); } catch (e) {}
+                if (tItem && tItem.diagram) {
+                    try { renderQuestionVisual(null); } catch (e) {}
+                    try { renderTestDiagram(tItem.diagram); } catch (e) {}
+                } else {
+                    try { renderTestDiagram(null); } catch (e) {}
+                    try { renderQuestionVisual(currentQ); } catch (e) {}
+                }
             }
             try { setupColumnPad(currentQ, attemptsOnCurrentQuestion >= 1); } catch (e) {}
             const qBoard = document.getElementById('questionBoard');
@@ -8228,6 +8268,7 @@
             const answersDiv = document.getElementById('answers');
             answersDiv.innerHTML = "";
             if (inTest) {
+                answersDiv.classList.remove('is-four');
                 const rawOpts = [currentQ.Option1, currentQ.Option2, currentQ.Option3, currentQ.Option4].filter(function (v) { return !!cellText(v); });
                 const shuffled = rawOpts.slice().sort(function () { return Math.random() - 0.5; });
                 const longest = shuffled.reduce(function (m, v) { return Math.max(m, cellText(v).length); }, 0);
@@ -8244,7 +8285,9 @@
                 });
             } else {
                 answersDiv.classList.remove('is-stacked');
-                const options = [currentQ.Option1, currentQ.Option2, currentQ.Option3].sort(() => Math.random() - 0.5);
+                const rawClassicOpts = [currentQ.Option1, currentQ.Option2, currentQ.Option3, currentQ.Option4].filter(function (v) { return !!cellText(v); });
+                answersDiv.classList.toggle('is-four', rawClassicOpts.length >= 4);
+                const options = rawClassicOpts.slice().sort(() => Math.random() - 0.5);
                 options.forEach(opt => {
                     var label = cellText(opt);
                     if(!label) return;
@@ -8302,15 +8345,15 @@
             logAttempt(isCorrect, currentQ);
 
             if(isCorrect) {
-                var solvedMode = tItem ? 'test' : 'classic';
+                var solvedMode = isTestMode() ? 'test' : 'classic';
                 pinnedQuestions[solvedMode] = null;
                 pinnedAttempts[solvedMode] = 0;
-                if (tItem) clearPinnedTestQ();
+                if (solvedMode === 'test') clearPinnedTestQ();
                 if (!tItem) {
                     try { notePractice(currentQ, true); } catch (e) {}
                 } else {
                     try { recordTestMasteryOutcome(tItem, attemptsOnCurrentQuestion === 0 && !hintRevealed, hintRevealed === true); } catch (e) {}
-                    if (testRoundStats[tItem.s]) {
+                    if (solvedMode === 'test' && testRoundStats[tItem.s]) {
                         testRoundStats[tItem.s][1] += 1;
                         if (attemptsOnCurrentQuestion === 0) testRoundStats[tItem.s][0] += 1;
                     }
@@ -8355,9 +8398,9 @@
             } else {
                 playBonkSound();
                 attemptsOnCurrentQuestion++;
-                var missedMode = tItem ? 'test' : 'classic';
+                var missedMode = isTestMode() ? 'test' : 'classic';
                 pinnedAttempts[missedMode] = attemptsOnCurrentQuestion;
-                if (tItem && tItem.id) writePinnedTestQ(tItem.id, attemptsOnCurrentQuestion, tItem);
+                if (missedMode === 'test' && tItem && tItem.id) writePinnedTestQ(tItem.id, attemptsOnCurrentQuestion, tItem);
                 if (attemptsOnCurrentQuestion === 1) {
                     try { resetSuperStreak(); } catch (e) {}
                     if (!tItem) {

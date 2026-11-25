@@ -3192,7 +3192,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25b</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25c</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4187,7 +4187,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-25b';
+        var APP_BUILD = '2026-11-25c';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -10321,7 +10321,18 @@
         var dailyOpenTimer = null;
         var cheerTimer = null;
         var collectionPage = 'normal';
-        var DAILY_GOAL = 8;
+        function isWeekendDay(dayStr) {
+            var d;
+            if (dayStr && /^\d{4}-\d{2}-\d{2}$/.test(dayStr)) {
+                var p = dayStr.split('-');
+                d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+            } else {
+                d = new Date();
+            }
+            var dow = d.getDay();
+            return dow === 0 || dow === 6;
+        }
+        var DAILY_GOAL = isWeekendDay() ? 12 : 8;
 
         var CHARACTERS = [
             { id: 'luigi', name: 'Luigi', short: 'Luigi', fact: 'Luigi is the tall brother in green. He is brave even when he feels nervous!', colors: { K:'#141414', G:'#2eba34', S:'#f2c7a0', B:'#2440c8', Y:'#ffdc28', N:'#78401e', W:'#f5f5f5' }, pixels: [
@@ -12273,18 +12284,27 @@
             refreshSurpriseProgress();
         }
 
-        var QUEST_DEFS = [
+        var WEEKDAY_QUEST_DEFS = [
             { id: 'correct10', goal: 6, reward: 3, label: 'Get 6 correct today' },
             { id: 'multi5', goal: 2, reward: 3, topic: 'Multiplication', label: 'Get 2 multiplication correct' },
             { id: 'chest', goal: 1, reward: 2, label: 'Open today\'s level chest' },
             { id: 'answer15', goal: 8, reward: 4, label: 'Answer 8 questions' },
             { id: 'streak3', goal: 3, reward: 2, label: 'Get 3 right in a row' }
         ];
-        var QUEST_BUNDLE_COINS = 5;
+        var WEEKEND_QUEST_DEFS = [
+            { id: 'correct10', goal: 10, reward: 4, label: 'Get 10 correct today' },
+            { id: 'multi5', goal: 3, reward: 4, topic: 'Multiplication', label: 'Get 3 multiplication correct' },
+            { id: 'chest', goal: 1, reward: 2, label: 'Open today\'s level chest' },
+            { id: 'answer15', goal: 14, reward: 5, label: 'Answer 14 questions' },
+            { id: 'streak3', goal: 4, reward: 3, label: 'Get 4 right in a row' }
+        ];
+        var QUEST_DEFS = isWeekendDay() ? WEEKEND_QUEST_DEFS : WEEKDAY_QUEST_DEFS;
+        var QUEST_BUNDLE_COINS = isWeekendDay() ? 7 : 5;
 
         function questById(id) {
+            var list = isWeekendDay(surpriseToday()) ? WEEKEND_QUEST_DEFS : WEEKDAY_QUEST_DEFS;
             var i;
-            for (i = 0; i < QUEST_DEFS.length; i++) if (QUEST_DEFS[i].id === id) return QUEST_DEFS[i];
+            for (i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
             return null;
         }
 

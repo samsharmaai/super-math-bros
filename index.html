@@ -3192,7 +3192,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25a</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4187,7 +4187,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-25a';
+        var APP_BUILD = '2026-11-25b';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -7311,9 +7311,9 @@
             { id:'t26', t:2, s:'num', cat:'Fractions', q:'What is 3/4 of 24?', opts:['6','12','18','20'], ans:'18', trap:'6', trapMsg:'6 is 1/4 of 24! Multiply by 3 to find 3/4.', cue:'Step 1:  <code>24 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Divide by the bottom (4), then multiply by the top (3).' },
             { id:'t27', t:3, s:'num', cat:'Fractions', q:'What is 3/4 of 32?', opts:['8','16','24','28'], ans:'24', trap:'8', trapMsg:'8 is 1/4 of 32! Now find 3 quarters (3 × 8).', cue:'Step 1:  <code>32 ÷ 4 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Find one quarter (32 ÷ 4), then triple it.' },
             { id:'t28', t:3, s:'num', cat:'Fractions', q:'What is 2/5 of 25?', opts:['5','10','15','20'], ans:'10', trap:'5', trapMsg:'5 is 1/5 of 25 — multiply by 2 to get 2/5!', cue:'Step 1:  <code>25 ÷ 5 = ___</code>   →   Step 2:  <code>___ × 2</code>', hint:'Divide 25 by 5, then multiply by 2.' },
-            { id:'t29', t:2, s:'num', cat:'Fractions', q:'A pizza is cut into 8 equal slices. Sam eats 3 slices. What fraction of the pizza is LEFT?', opts:['3/8','4/8','5/8','6/8'], ans:'5/8', trap:'3/8', trapMsg:'3/8 is the part eaten — the question asks what fraction is LEFT!', cue:'Rough sheet:  <code>8/8 − 3/8 = ___</code>', hint:'A whole pizza is 8/8. Take away 3/8.' },
-            { id:'t30', t:2, s:'num', cat:'Fractions', q:'Which of these fractions is the BIGGEST?', opts:['1/2','1/4','1/8','1/10'], ans:'1/2', trap:'1/10', trapMsg:'Bigger bottom number means MORE cuts, so smaller pieces!', hint:'Half of a cake is larger than a quarter or an eighth.' },
-            { id:'t31', t:1, s:'num', cat:'Fractions', q:'Which fraction is equal to 1/2?', opts:['1/4','2/4','3/4','2/8'], ans:'2/4', hint:'Half of 4 quarters is 2 quarters.' },
+            { id:'t29', t:2, s:'num', cat:'Fractions', q:'A pizza is cut into 8 equal slices. Sam eats 3 slices. What fraction of the pizza is LEFT?', opts:['3/8','4/8','5/8','6/8'], ans:'5/8', trap:'3/8', trapMsg:'3/8 is the part eaten — the question asks what fraction is LEFT!', diagram:{ type:'fracpie', parts:8, shaded:3, color:'#fb923c' }, cue:'Rough sheet:  <code>8/8 − 3/8 = ___</code>', hint:'A whole pizza is 8/8. Take away 3/8.' },
+            { id:'t30', t:2, s:'num', cat:'Fractions', q:'Which of these fractions is the BIGGEST?', opts:['1/2','1/4','1/8','1/10'], ans:'1/2', trap:'1/10', trapMsg:'Bigger bottom number means MORE cuts, so smaller pieces!', diagram:{ type:'fracwall', bars:[[1,2,'#60a5fa'],[1,4,'#f59e0b'],[1,8,'#10b981'],[1,10,'#ec4899']] }, hint:'Half of a cake is larger than a quarter or an eighth.' },
+            { id:'t31', t:1, s:'num', cat:'Fractions', q:'Which fraction is equal to 1/2?', opts:['1/4','2/4','3/4','2/8'], ans:'2/4', diagram:{ type:'fracgrid', rows:2, cols:2, shaded:2, color:'#facc15' }, hint:'Half of 4 quarters is 2 quarters.' },
             { id:'t32', t:1, s:'num', cat:'Decimals', q:'What is 0.4 + 0.5?', opts:['0.8','0.9','9.0','0.45'], ans:'0.9', hint:'4 tenths + 5 tenths = 9 tenths.' },
             { id:'t33', t:2, s:'num', cat:'Decimals', q:'What is 1.0 − 0.3?', opts:['0.3','0.6','0.7','1.3'], ans:'0.7', hint:'10 tenths minus 3 tenths = 7 tenths.' },
             { id:'t34', t:3, s:'num', cat:'Patterns', q:'Find the missing number:  47 + ☐ = 112', opts:['55','65','75','159'], ans:'65', trap:'159', trapMsg:'159 is 47 + 112! Subtract 47 from 112 to find ☐.', cue:'Rough sheet:  <code>112 − 47 = ___</code>', hint:'Jump from 47 to 50 (+3), then 50 to 112 (+62).' },
@@ -7408,7 +7408,7 @@
             { id:'t120', t:2, s:'num', cat:'Fractions', q:'What is 2/3 of 18?', opts:['6','9','12','15'], ans:'12', trap:'6', trapMsg:'6 is 1/3 of 18! Multiply by 2 to find 2/3.', cue:'Step 1:  <code>18 ÷ 3 = ___</code>   →   Step 2:  <code>___ × 2</code>', hint:'Divide 18 by 3 (= 6), then double it.' },
             { id:'t121', t:1, s:'num', cat:'Decimals', q:'What is 0.2 + 0.5?', opts:['0.3','0.7','7.0','0.25'], ans:'0.7', hint:'2 tenths + 5 tenths = 7 tenths.' },
             { id:'t122', t:1, s:'num', cat:'Decimals', q:'What is 0.8 − 0.3?', opts:['0.4','0.5','0.6','5.0'], ans:'0.5', hint:'8 tenths minus 3 tenths = 5 tenths.' },
-            { id:'t123', t:1, s:'num', cat:'Decimals', q:'Which decimal is equal to 1/2?', opts:['0.2','0.4','0.5','1.2'], ans:'0.5', hint:'Half of 10 tenths is 5 tenths (0.5).' },
+            { id:'t123', t:1, s:'num', cat:'Decimals', q:'Which decimal is equal to 1/2?', opts:['0.2','0.4','0.5','1.2'], ans:'0.5', diagram:{ type:'tenths', wholes:0, tenths:5, label:'1/2 = 5/10' }, hint:'Half of 10 tenths is 5 tenths (0.5).' },
             { id:'t124', t:2, s:'num', cat:'Decimals', q:'What is 1.4 + 0.5?', opts:['1.8','1.9','2.0','1.45'], ans:'1.9', hint:'Add 4 tenths + 5 tenths = 9 tenths, keeping 1 whole.' },
             { id:'t125', t:3, s:'num', cat:'Decimals', q:'What is 2.0 − 0.6?', opts:['1.6','1.4','1.5','2.6'], ans:'1.4', trap:'1.6', trapMsg:'Think of 20 tenths minus 6 tenths = 14 tenths (1.4)!', cue:'<code>20 tenths − 6 tenths = ___</code>', hint:'0.6 + 0.4 = 1.0, plus 1.0 more makes 2.0.' },
             { id:'t126', t:1, s:'num', cat:'Patterns', q:'What comes next in this pattern?  15, 20, 25, 30, ☐', opts:['32','35','40','45'], ans:'35', hint:'Each jump adds 5.' },
@@ -7443,8 +7443,8 @@
             { id:'t155', t:2, s:'num', cat:'Division', q:'What is 29 ÷ 4?', opts:['6 R 5','7 R 1','7 R 2','8 R 1'], ans:'7 R 1', trap:'6 R 5', trapMsg:'Remainder 5 is bigger than 4, so one more 4 fits in!', cue:'Rough sheet:  <code>4 × 7 = 28</code>  → how many left?', hint:'4 × 7 = 28, and 29 − 28 = 1 left over.' },
             { id:'t156', t:2, s:'num', cat:'Division', q:'What is 43 ÷ 5?', opts:['7 R 8','8 R 2','8 R 3','9 R 2'], ans:'8 R 3', trap:'7 R 8', trapMsg:'Remainder 8 is bigger than 5 — 5 fits in 8 times!', cue:'Rough sheet:  <code>5 × 8 = 40</code>  → how many left?', hint:'5 × 8 = 40, leaving 3 over.' },
             { id:'t157', t:3, s:'num', cat:'Division', q:'What is 53 ÷ 6?', opts:['7 R 11','8 R 5','9 R 1','8 R 3'], ans:'8 R 5', trap:'9 R 1', trapMsg:'6 × 9 = 54, which is too big for 53! Try 6 × 8.', cue:'Rough sheet:  <code>6 × 8 = 48</code>  →  <code>53 − 48</code>', hint:'6 × 8 = 48, and 53 − 48 = 5.' },
-            { id:'t158', t:1, s:'num', cat:'Decimals', q:'Write 1 and 4/10 as a decimal.', opts:['1.04','1.4','14.0','0.14'], ans:'1.4', trap:'1.04', trapMsg:'The first place after the decimal point is tenths, so 4/10 is .4 (not .04)!', hint:'1 whole and 4 tenths is written 1.4.' },
-            { id:'t159', t:1, s:'num', cat:'Decimals', q:'Which decimal is equal to 7/10?', opts:['0.07','0.7','7.0','7.1'], ans:'0.7', trap:'0.07', trapMsg:'0.07 is 7 hundredths — 7 tenths is 0.7!', hint:'7 tenths sits in the first place after the decimal point.' },
+            { id:'t158', t:1, s:'num', cat:'Decimals', q:'Write 1 and 4/10 as a decimal.', opts:['1.04','1.4','14.0','0.14'], ans:'1.4', trap:'1.04', trapMsg:'The first place after the decimal point is tenths, so 4/10 is .4 (not .04)!', diagram:{ type:'tenths', wholes:1, tenths:4, label:'1 whole + 4/10' }, hint:'1 whole and 4 tenths is written 1.4.' },
+            { id:'t159', t:1, s:'num', cat:'Decimals', q:'Which decimal is equal to 7/10?', opts:['0.07','0.7','7.0','7.1'], ans:'0.7', trap:'0.07', trapMsg:'0.07 is 7 hundredths — 7 tenths is 0.7!', diagram:{ type:'tenths', wholes:0, tenths:7, label:'7/10 (7 tenths)' }, hint:'7 tenths sits in the first place after the decimal point.' },
             { id:'t160', t:2, s:'num', cat:'Decimals', q:'Which of these decimals is the LARGEST?', opts:['1.8','2.1','1.9','0.9'], ans:'2.1', trap:'1.9', trapMsg:'Compare the whole numbers first — 2 wholes is bigger than 1 whole!', hint:'Check the whole number before the decimal point first.' },
             { id:'t161', t:2, s:'num', cat:'Decimals', q:'Which of these decimals is the SMALLEST?', opts:['2.4','2.1','1.9','2.7'], ans:'1.9', trap:'2.1', trapMsg:'1.9 has only 1 whole, while 2.1 has 2 wholes!', hint:'Look at the whole number part first: 1 is less than 2.' },
             { id:'t162', t:2, s:'num', cat:'Decimals', q:'What is 1.6 + 0.7?', opts:['1.13','2.2','2.3','2.4'], ans:'2.3', trap:'1.13', trapMsg:'6 tenths + 7 tenths = 13 tenths = 1 whole and 3 tenths (carry 1)!', cue:'Rough sheet:  <code>16 tenths + 7 tenths = ___</code>', hint:'1.6 + 0.4 = 2.0, then add 0.3 more.' },
@@ -7618,6 +7618,32 @@
         }
 
         function buildGeoSvg(d) {
+            if (d.type === 'tenths') {
+                var wholes = Math.min(3, Math.max(0, d.wholes || 0));
+                var th = Math.min(10, Math.max(0, d.tenths || 0));
+                var rowsT = wholes + (th > 0 ? 1 : 0);
+                var cw = 21, bhT = 24, lxT = 14, totalW = 10 * cw + 28, totalH = rowsT * 34 + 24;
+                var ts = '<div class="td-head"><span>Tenths Bar (10 equal parts = 1 whole)</span><span class="td-key">' + (d.label || (th + '/10')) + '</span></div>';
+                ts += '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 ' + totalW + ' ' + totalH + '" width="' + totalW + '" height="' + totalH + '">';
+                var rT, cT, yT;
+                for (rT = 0; rT < wholes; rT++) {
+                    yT = 6 + rT * 34;
+                    for (cT = 0; cT < 10; cT++) {
+                        ts += '<rect x="' + (lxT + cT * cw) + '" y="' + yT + '" width="' + cw + '" height="' + bhT + '" fill="#3b82f6" stroke="#1e293b" stroke-width="1.6"/>';
+                    }
+                }
+                if (th > 0) {
+                    yT = 6 + wholes * 34;
+                    for (cT = 0; cT < 10; cT++) {
+                        ts += '<rect x="' + (lxT + cT * cw) + '" y="' + yT + '" width="' + cw + '" height="' + bhT + '" fill="' + (cT < th ? '#60a5fa' : '#ffffff') + '" stroke="#1e293b" stroke-width="1.6"/>';
+                    }
+                }
+                var footY = rowsT * 34 + 14;
+                ts += '<text x="' + lxT + '" y="' + footY + '" font-size="10.5" font-weight="800" fill="#475569">0</text>';
+                ts += '<text x="' + (lxT + 5 * cw) + '" y="' + footY + '" text-anchor="middle" font-size="10.5" font-weight="800" fill="#475569">5/10</text>';
+                ts += '<text x="' + (lxT + 10 * cw) + '" y="' + footY + '" text-anchor="end" font-size="10.5" font-weight="800" fill="#475569">1 whole</text>';
+                return ts + '</svg></div>';
+            }
             if (d.type === 'fracgrid') {
                 var sq = 30, rr, cc, idx = 0, gw = d.cols * sq + 24, gh = d.rows * sq + 16;
                 var fg = '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 ' + gw + ' ' + gh + '" width="' + gw + '" height="' + gh + '">';
@@ -8123,10 +8149,10 @@
             if (cat === 'Decimals') {
                 var decStyle = randInt(0, 2);
                 if (t === 1 && decStyle === 0) {
-                    var w0 = randInt(1, 5), th0 = randInt(1, 9);
+                    var w0 = randInt(1, 3), th0 = randInt(1, 9);
                     var ans0 = w0 + '.' + th0;
                     var trap0 = w0 + '.0' + th0;
-                    return { id: id, t: 1, s: 'num', cat: 'Decimals', q: 'Write ' + w0 + ' and ' + th0 + '/10 as a decimal.', opts: uniqueOpts(ans0, [trap0, (w0 * 10 + th0) + '.0', '0.' + w0 + th0]), ans: ans0, trap: trap0, trapMsg: 'The first place after the decimal point is tenths, so ' + th0 + '/10 is .' + th0 + '!', hint: w0 + ' wholes and ' + th0 + ' tenths is ' + ans0 + '.' };
+                    return { id: id, t: 1, s: 'num', cat: 'Decimals', q: 'Write ' + w0 + ' and ' + th0 + '/10 as a decimal.', opts: uniqueOpts(ans0, [trap0, (w0 * 10 + th0) + '.0', '0.' + w0 + th0]), ans: ans0, trap: trap0, trapMsg: 'The first place after the decimal point is tenths, so ' + th0 + '/10 is .' + th0 + '!', diagram: { type: 'tenths', wholes: w0, tenths: th0, label: w0 + ' whole' + (w0 > 1 ? 's' : '') + ' + ' + th0 + '/10' }, hint: w0 + ' wholes and ' + th0 + ' tenths is ' + ans0 + '.' };
                 }
                 if (t === 1) {
                     var a1 = randInt(2, 5), b1 = randInt(1, 9 - a1);

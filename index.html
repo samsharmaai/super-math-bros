@@ -3192,7 +3192,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-24c</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4187,7 +4187,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-24c';
+        var APP_BUILD = '2026-11-25a';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -7458,7 +7458,23 @@
             { id:'t170', t:3, s:'num', cat:'Addition', q:'A bookshop had 145 comics. 38 were sold in the morning and 25 more arrived in the afternoon. How many comics are there now?', opts:['107','132','183','208'], ans:'132', trap:'107', trapMsg:'107 is Step 1 (145 − 38). Remember to add the 25 comics that arrived!', cue:'Step 1:  <code>145 − 38 = ___</code>   →   Step 2:  <code>___ + 25</code>', hint:'Subtract 38 first (= 107), then add 25.' },
             { id:'t171', t:3, s:'num', cat:'Multiplication', q:'A coach buys 6 packs of 8 tennis balls and shares them equally into 4 baskets. How many balls are in each basket?', opts:['48','12','14','16'], ans:'12', trap:'48', trapMsg:'48 is Step 1 (6 × 8 total balls). Now divide 48 by 4 baskets!', cue:'Step 1:  <code>6 × 8 = ___</code>   →   Step 2:  <code>___ ÷ 4</code>', hint:'Find the total balls (6 × 8 = 48), then divide by 4.' },
             { id:'t172', t:3, s:'num', cat:'Subtraction', q:'Ben has 90 stickers. He gives 6 stickers to each of his 7 friends. How many stickers does Ben have left?', opts:['42','48','52','58'], ans:'48', trap:'42', trapMsg:'42 is how many stickers Ben gave away (6 × 7) — subtract 42 from 90!', cue:'Step 1:  <code>6 × 7 = ___</code>   →   Step 2:  <code>90 − ___</code>', hint:'First find 6 × 7 = 42, then take 42 from 90.' },
-            { id:'t173', t:3, s:'meas', cat:'Measurement', q:'A rope is 2 metres long. Maya cuts off 3 pieces of 40 cm each. How much rope is left?', opts:['120 cm','80 cm','60 cm','160 cm'], ans:'80 cm', trap:'120 cm', trapMsg:'120 cm is Step 1 (3 × 40 cm cut off). Subtract 120 cm from 200 cm!', cue:'Step 1:  <code>3 × 40 cm = ___</code>   →   Step 2:  <code>200 cm − ___</code>', hint:'2 m = 200 cm. Subtract 3 × 40 cm (120 cm) from 200 cm.' }
+            { id:'t173', t:3, s:'meas', cat:'Measurement', q:'A rope is 2 metres long. Maya cuts off 3 pieces of 40 cm each. How much rope is left?', opts:['120 cm','80 cm','60 cm','160 cm'], ans:'80 cm', trap:'120 cm', trapMsg:'120 cm is Step 1 (3 × 40 cm cut off). Subtract 120 cm from 200 cm!', cue:'Step 1:  <code>3 × 40 cm = ___</code>   →   Step 2:  <code>200 cm − ___</code>', hint:'2 m = 200 cm. Subtract 3 × 40 cm (120 cm) from 200 cm.' },
+            { id:'t174', t:1, s:'num', cat:'Fractions', q:'What fraction of this shape is shaded?', opts:['2/8','3/8','4/8','6/8'], ans:'4/8', diagram:{ type:'fracgrid', rows:2, cols:4, shaded:4, color:'#facc15' }, hint:'Count 4 shaded squares out of 8 equal squares (4/8 is also 2/4 or 1/2).' },
+            { id:'t175', t:2, s:'num', cat:'Fractions', q:'4 out of 8 squares are shaded. Which simpler fraction means the exact same amount?', opts:['1/4','1/2','1/8','3/4'], ans:'1/2', trap:'1/4', trapMsg:'Look at the shape — exactly HALF of the 8 squares are shaded (4/8 = 1/2)!', diagram:{ type:'fracgrid', rows:2, cols:4, shaded:4, color:'#facc15' }, hint:'4 is half of 8, so 4/8 = 2/4 = 1/2.' },
+            { id:'t176', t:2, s:'num', cat:'Fractions', q:'2 out of 8 slices are shaded. Which simpler fraction is EQUAL to 2/8?', opts:['1/2','1/4','1/8','3/4'], ans:'1/4', trap:'1/2', trapMsg:'1/2 would be 4 slices — 2 out of 8 slices is one quarter (1/4)!', diagram:{ type:'fracpie', parts:8, shaded:2, color:'#f472b6' }, hint:'Four groups of 2 slices make 8 slices, so 2/8 = 1/4.' },
+            { id:'t177', t:2, s:'num', cat:'Fractions', q:'6 out of 8 squares are shaded. Which simpler fraction is EQUAL to 6/8?', opts:['1/4','2/4','3/4','1/2'], ans:'3/4', trap:'2/4', trapMsg:'2/4 is 4/8 (half) — 6/8 is three quarters (3/4)!', diagram:{ type:'fracgrid', rows:2, cols:4, shaded:6, color:'#fb923c' }, hint:'Every 2 squares make 1 quarter, so 6 squares make 3 quarters (3/4).' },
+            { id:'t178', t:2, s:'num', cat:'Fractions', q:'Look at the shaded circle. What fraction is NOT shaded?', opts:['5/8','3/8','4/8','2/8'], ans:'3/8', trap:'5/8', trapMsg:'5/8 is the shaded part — count the white unshaded slices!', diagram:{ type:'fracpie', parts:8, shaded:5, color:'#4ade80' }, hint:'There are 8 slices in total and 5 are shaded, leaving 3 unshaded.' },
+            { id:'t179', t:3, s:'num', cat:'Fractions', q:'Which pair of fractions BOTH name the shaded part of this circle?', opts:['6/8 and 3/4','6/8 and 2/4','4/8 and 1/2','2/8 and 1/4'], ans:'6/8 and 3/4', trap:'6/8 and 2/4', trapMsg:'2/4 equals 4/8, not 6/8 — 6/8 equals 3/4!', diagram:{ type:'fracpie', parts:8, shaded:6, color:'#60a5fa' }, hint:'Count the 6 shaded slices out of 8, then group in pairs to see 3/4.' },
+            { id:'t180', t:1, s:'num', cat:'Fractions', q:'Compare these two fractions:  1/2  ☐  1/4', opts:['<','>','=','Cannot tell'], ans:'>', trap:'<', trapMsg:'Look at the bars — 1/2 is longer than 1/4, so 1/2 > 1/4!', diagram:{ type:'fracwall', bars:[[1,2,'#60a5fa'],[1,4,'#f59e0b']] }, hint:'The top bar (1/2) stretches further than the bottom bar (1/4).' },
+            { id:'t181', t:2, s:'num', cat:'Fractions', q:'Compare these two fractions:  3/4  ☐  5/8', opts:['<','>','=','Cannot tell'], ans:'>', trap:'<', trapMsg:'Look at the bars — 3/4 equals 6/8, which is longer than 5/8!', diagram:{ type:'fracwall', bars:[[3,4,'#60a5fa'],[5,8,'#f59e0b']] }, hint:'3/4 is the same as 6/8, and 6/8 is bigger than 5/8.' },
+            { id:'t182', t:2, s:'num', cat:'Fractions', q:'Compare these two fractions:  5/8  ☐  1/2', opts:['<','>','=','Cannot tell'], ans:'>', trap:'<', trapMsg:'1/2 equals 4/8, so 5/8 is one eighth bigger than 1/2!', diagram:{ type:'fracwall', bars:[[5,8,'#60a5fa'],[1,2,'#f59e0b']] }, hint:'Line up the shaded bars: 5/8 goes past 1/2 (4/8).' },
+            { id:'t183', t:2, s:'num', cat:'Fractions', q:'Compare these two fractions:  4/8  ☐  2/4', opts:['<','>','=','Cannot tell'], ans:'=', trap:'>', trapMsg:'Look at the bars — 4/8 and 2/4 line up to the exact same length (both equal 1/2)!', diagram:{ type:'fracwall', bars:[[4,8,'#60a5fa'],[2,4,'#f59e0b']] }, hint:'Both bars reach the exact halfway line.' },
+            { id:'t184', t:2, s:'num', cat:'Fractions', q:'Compare these two fractions:  4/4  ☐  8/8', opts:['<','>','=','Cannot tell'], ans:'=', trap:'<', trapMsg:'4/4 is 1 whole and 8/8 is also 1 whole — they are equal!', diagram:{ type:'fracwall', bars:[[4,4,'#60a5fa'],[8,8,'#f59e0b']] }, hint:'Both bars are completely shaded (1 whole).' },
+            { id:'t185', t:3, s:'num', cat:'Fractions', q:'Compare these two fractions:  3/8  ☐  1/2', opts:['<','>','=','Cannot tell'], ans:'<', trap:'>', trapMsg:'1/2 equals 4/8, so 3/8 is smaller than 1/2!', diagram:{ type:'fracwall', bars:[[3,8,'#60a5fa'],[1,2,'#f59e0b']] }, hint:'Compare 3/8 to 4/8 (which equals 1/2).' },
+            { id:'t186', t:1, s:'num', cat:'Fractions', q:'What is 1/2 of 8?', opts:['2','4','6','16'], ans:'4', hint:'Split 8 into 2 equal groups (8 ÷ 2).' },
+            { id:'t187', t:1, s:'num', cat:'Fractions', q:'What is 1/4 of 16?', opts:['2','4','8','12'], ans:'4', trap:'8', trapMsg:'8 is 1/2 of 16 — split 16 into 4 equal groups for 1/4!', hint:'Divide 16 by 4.' },
+            { id:'t188', t:2, s:'num', cat:'Fractions', q:'What is 1/8 of 24?', opts:['3','4','6','8'], ans:'3', trap:'8', trapMsg:'Split 24 into 8 equal groups (24 ÷ 8 = 3)!', cue:'<code>24 ÷ 8 = ___</code>', hint:'Think: 8 × ? = 24.' },
+            { id:'t189', t:3, s:'num', cat:'Fractions', q:'What is 3/8 of 24?', opts:['3','6','9','12'], ans:'9', trap:'3', trapMsg:'3 is 1/8 of 24! Multiply by 3 to find 3/8.', cue:'Step 1:  <code>24 ÷ 8 = ___</code>   →   Step 2:  <code>___ × 3</code>', hint:'Find 1/8 of 24 (= 3), then multiply by 3.' }
         ];
 
         function readSavedPlayMode() {
@@ -7602,6 +7618,48 @@
         }
 
         function buildGeoSvg(d) {
+            if (d.type === 'fracgrid') {
+                var sq = 30, rr, cc, idx = 0, gw = d.cols * sq + 24, gh = d.rows * sq + 16;
+                var fg = '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 ' + gw + ' ' + gh + '" width="' + gw + '" height="' + gh + '">';
+                for (cc = 0; cc < d.cols; cc++) {
+                    for (rr = 0; rr < d.rows; rr++) {
+                        var isLit = idx < (d.shaded || 0);
+                        fg += '<rect x="' + (12 + cc * sq) + '" y="' + (8 + rr * sq) + '" width="' + sq + '" height="' + sq + '" fill="' + (isLit ? (d.color || '#facc15') : '#ffffff') + '" stroke="#1e293b" stroke-width="2"/>';
+                        idx++;
+                    }
+                }
+                return fg + '</svg></div>';
+            }
+            if (d.type === 'fracpie') {
+                var parts = Math.max(2, d.parts || 8), sh = d.shaded || 0, cx = 56, cy = 56, rad = 46;
+                var fp = '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 112 112" width="110" height="110">';
+                for (var s = 0; s < parts; s++) {
+                    var a1 = (s * 360 / parts - 90) * Math.PI / 180;
+                    var a2 = ((s + 1) * 360 / parts - 90) * Math.PI / 180;
+                    var x1 = (cx + rad * Math.cos(a1)).toFixed(1), y1 = (cy + rad * Math.sin(a1)).toFixed(1);
+                    var x2 = (cx + rad * Math.cos(a2)).toFixed(1), y2 = (cy + rad * Math.sin(a2)).toFixed(1);
+                    var large = (360 / parts) > 180 ? 1 : 0;
+                    var fill = s < sh ? (d.color || '#f472b6') : '#ffffff';
+                    fp += '<path d="M' + cx + ',' + cy + ' L' + x1 + ',' + y1 + ' A' + rad + ',' + rad + ' 0 ' + large + ',1 ' + x2 + ',' + y2 + ' Z" fill="' + fill + '" stroke="#1e293b" stroke-width="2"/>';
+                }
+                return fp + '</svg></div>';
+            }
+            if (d.type === 'fracwall') {
+                var bars = d.bars || [], bw = 192, bh = 26, lx = 44, fw = '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 250 ' + (bars.length * 38 + 12) + '" width="250" height="' + (bars.length * 38 + 12) + '">';
+                for (var bi = 0; bi < bars.length; bi++) {
+                    var bn = bars[bi][0], bd = bars[bi][1], bc = bars[bi][2] || '#60a5fa';
+                    var by = 8 + bi * 38, sw = bw / bd;
+                    fw += '<text x="22" y="' + (by + 18) + '" text-anchor="middle" font-size="13" font-weight="800" fill="#0f172a">' + bn + '/' + bd + '</text>';
+                    for (var k = 0; k < bd; k++) {
+                        fw += '<rect x="' + (lx + k * sw).toFixed(1) + '" y="' + by + '" width="' + sw.toFixed(1) + '" height="' + bh + '" fill="' + (k < bn ? bc : '#ffffff') + '" stroke="#1e293b" stroke-width="1.8"/>';
+                    }
+                }
+                if (bars.length >= 2) {
+                    var guideX = (lx + (bars[0][0] / bars[0][1]) * bw).toFixed(1);
+                    fw += '<line x1="' + guideX + '" y1="4" x2="' + guideX + '" y2="' + (bars.length * 38 + 6) + '" stroke="#e11d48" stroke-width="2" stroke-dasharray="4 3"/>';
+                }
+                return fw + '</svg></div>';
+            }
             if (d.type === 'area') {
                 var sq = 22, r, c, skipMap = {}, out = '<div class="td-svg-wrap"><svg class="td-svg" viewBox="0 0 140 84" width="140" height="84">';
                 for (r = 0; r < (d.skip || []).length; r++) skipMap[d.skip[r][0] + ',' + d.skip[r][1]] = true;
@@ -8030,9 +8088,34 @@
                 return { id: id, t: t, s: 'num', cat: 'Division', q: total + ' marbles are shared equally among ' + d + ' friends. How many marbles are LEFT OVER?', opts: uniqueOpts(String(rem), [String(full), String(rem + 1), String(Math.max(1, rem + 2))]), ans: String(rem), trap: String(full), trapMsg: full + ' is how many each friend gets — read the question: how many are LEFT OVER?', cue: '<code>' + total + ' \u00f7 ' + d + ' = ___ R ___</code>', hint: d + ' \u00d7 ' + full + ' = ' + (d * full) + '. Subtract from ' + total + '.' };
             }
             if (cat === 'Fractions') {
-                var den = t === 1 ? [2, 3, 4][randInt(0, 2)] : [3, 4, 5][randInt(0, 2)];
-                var num = t === 1 ? 1 : (den - 1);
-                var unit = randInt(3, 8);
+                var fStyle = randInt(0, 2);
+                if (fStyle === 0) {
+                    var cmpPairs = [
+                        [3, 4, 5, 8, '>', '<', '3/4 equals 6/8, which is longer than 5/8!'],
+                        [5, 8, 1, 2, '>', '<', '1/2 equals 4/8, so 5/8 is bigger than 1/2!'],
+                        [3, 8, 1, 2, '<', '>', '1/2 equals 4/8, so 3/8 is smaller than 1/2!'],
+                        [4, 8, 2, 4, '=', '>', 'Both 4/8 and 2/4 line up to the exact halfway mark!'],
+                        [2, 8, 1, 4, '=', '<', 'Look at the bars — 2/8 and 1/4 are the exact same length!'],
+                        [6, 8, 3, 4, '=', '>', 'Look at the bars — 6/8 and 3/4 line up to the exact same length!'],
+                        [1, 4, 3, 8, '<', '>', '1/4 equals 2/8, so 3/8 is bigger than 1/4!'],
+                        [7, 8, 3, 4, '>', '<', '3/4 equals 6/8, so 7/8 is one eighth longer!']
+                    ];
+                    var cp = cmpPairs[randInt(0, cmpPairs.length - 1)];
+                    return { id: id, t: t, s: 'num', cat: 'Fractions', q: 'Compare these two fractions:  ' + cp[0] + '/' + cp[1] + '  \u2610  ' + cp[2] + '/' + cp[3], opts: ['<', '>', '=', 'Cannot tell'], ans: cp[4], trap: cp[5], trapMsg: cp[6], diagram: { type: 'fracwall', bars: [[cp[0], cp[1], '#60a5fa'], [cp[2], cp[3], '#f59e0b']] }, hint: 'Compare the shaded lengths on the two equal bars.' };
+                }
+                if (fStyle === 1) {
+                    var eqItems = [
+                        { sh: 4, ans: '1/2', trap: '1/4', msg: '4 out of 8 is exactly HALF (1/2)!', col: '#facc15', grid: true },
+                        { sh: 2, ans: '1/4', trap: '1/2', msg: '2 out of 8 is one quarter (1/4)!', col: '#f472b6', grid: false },
+                        { sh: 6, ans: '3/4', trap: '2/4', msg: '6 out of 8 is three quarters (3/4)!', col: '#fb923c', grid: true }
+                    ];
+                    var eq = eqItems[randInt(0, eqItems.length - 1)];
+                    var diagEq = eq.grid ? { type: 'fracgrid', rows: 2, cols: 4, shaded: eq.sh, color: eq.col } : { type: 'fracpie', parts: 8, shaded: eq.sh, color: eq.col };
+                    return { id: id, t: t, s: 'num', cat: 'Fractions', q: eq.sh + ' out of 8 equal parts are shaded. Which simpler fraction is EQUAL to ' + eq.sh + '/8?', opts: ['1/4', '1/2', '3/4', '1/8'], ans: eq.ans, trap: eq.trap, trapMsg: eq.msg, diagram: diagEq, hint: 'Group the 8 pieces into pairs to see quarters or halves.' };
+                }
+                var den = t === 1 ? [2, 4, 8][randInt(0, 2)] : [3, 4, 5, 8][randInt(0, 3)];
+                var num = t === 1 ? 1 : (den === 8 ? [1, 3, 5][randInt(0, 2)] : (den - 1));
+                var unit = randInt(2, den === 8 ? 5 : 8);
                 var whole = den * unit;
                 var val = num * unit;
                 return { id: id, t: t, s: 'num', cat: 'Fractions', q: 'Find ' + num + '/' + den + ' of ' + whole + '.', opts: uniqueOpts(String(val), [String(unit), String(val + unit), String(Math.max(1, val - unit)), String(val + 2)]), ans: String(val), trap: num > 1 ? String(unit) : undefined, trapMsg: num > 1 ? (unit + ' is 1/' + den + ' of ' + whole + '! Multiply by ' + num + ' to find ' + num + '/' + den + '.') : undefined, cue: num > 1 ? ('Step 1:  <code>' + whole + ' \u00f7 ' + den + ' = ___</code>   \u2192   Step 2:  <code>___ \u00d7 ' + num + '</code>') : ('<code>' + whole + ' \u00f7 ' + den + ' = ___</code>'), hint: 'Divide ' + whole + ' by ' + den + (num > 1 ? ', then multiply by ' + num + '.' : '.') };

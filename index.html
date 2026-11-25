@@ -3192,7 +3192,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25c</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25d</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -4187,7 +4187,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-25c';
+        var APP_BUILD = '2026-11-25d';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -10332,7 +10332,7 @@
             var dow = d.getDay();
             return dow === 0 || dow === 6;
         }
-        var DAILY_GOAL = isWeekendDay() ? 12 : 8;
+        var DAILY_GOAL = isWeekendDay() ? 20 : 15;
 
         var CHARACTERS = [
             { id: 'luigi', name: 'Luigi', short: 'Luigi', fact: 'Luigi is the tall brother in green. He is brave even when he feels nervous!', colors: { K:'#141414', G:'#2eba34', S:'#f2c7a0', B:'#2440c8', Y:'#ffdc28', N:'#78401e', W:'#f5f5f5' }, pixels: [
@@ -12285,21 +12285,21 @@
         }
 
         var WEEKDAY_QUEST_DEFS = [
-            { id: 'correct10', goal: 6, reward: 3, label: 'Get 6 correct today' },
-            { id: 'multi5', goal: 2, reward: 3, topic: 'Multiplication', label: 'Get 2 multiplication correct' },
+            { id: 'correct10', goal: 12, reward: 3, label: 'Get 12 correct today' },
+            { id: 'multi5', goal: 3, reward: 3, topic: 'Multiplication', label: 'Get 3 multiplication correct' },
             { id: 'chest', goal: 1, reward: 2, label: 'Open today\'s level chest' },
-            { id: 'answer15', goal: 8, reward: 4, label: 'Answer 8 questions' },
-            { id: 'streak3', goal: 3, reward: 2, label: 'Get 3 right in a row' }
+            { id: 'answer15', goal: 16, reward: 4, label: 'Answer 16 questions' },
+            { id: 'streak3', goal: 4, reward: 2, label: 'Get 4 right in a row' }
         ];
         var WEEKEND_QUEST_DEFS = [
-            { id: 'correct10', goal: 10, reward: 4, label: 'Get 10 correct today' },
-            { id: 'multi5', goal: 3, reward: 4, topic: 'Multiplication', label: 'Get 3 multiplication correct' },
+            { id: 'correct10', goal: 18, reward: 5, label: 'Get 18 correct today' },
+            { id: 'multi5', goal: 4, reward: 4, topic: 'Multiplication', label: 'Get 4 multiplication correct' },
             { id: 'chest', goal: 1, reward: 2, label: 'Open today\'s level chest' },
-            { id: 'answer15', goal: 14, reward: 5, label: 'Answer 14 questions' },
-            { id: 'streak3', goal: 4, reward: 3, label: 'Get 4 right in a row' }
+            { id: 'answer15', goal: 22, reward: 6, label: 'Answer 22 questions' },
+            { id: 'streak3', goal: 5, reward: 3, label: 'Get 5 right in a row' }
         ];
         var QUEST_DEFS = isWeekendDay() ? WEEKEND_QUEST_DEFS : WEEKDAY_QUEST_DEFS;
-        var QUEST_BUNDLE_COINS = isWeekendDay() ? 7 : 5;
+        var QUEST_BUNDLE_COINS = isWeekendDay() ? 8 : 5;
 
         function questById(id) {
             var list = isWeekendDay(surpriseToday()) ? WEEKEND_QUEST_DEFS : WEEKDAY_QUEST_DEFS;

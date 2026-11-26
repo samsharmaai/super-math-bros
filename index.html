@@ -2579,16 +2579,17 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .collection-tabs { display: flex; gap: 4px; margin: 2px 0 8px; }
+        .collection-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0 8px; }
         .collection-tab {
-            flex: 1; appearance: none; -webkit-appearance: none;
-            font-family: 'Press Start 2P', cursive; font-size: 0.39em; line-height: 1.35;
+            flex: 1 1 0; appearance: none; -webkit-appearance: none;
+            font-family: 'Press Start 2P', cursive; font-size: 0.36em; line-height: 1.35;
             padding: 9px 2px; border: 3px solid #000; border-radius: 9px;
             background: rgba(0,0,0,0.3); color: #fff; cursor: pointer;
             touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         }
         .collection-tab.is-on { background: #ffde00; color: #1a1a1a; box-shadow: inset 0 2px 0 #fff8c4; }
         .collection-tab.power-tab.is-on { background: #ea580c; color: #fffbeb; box-shadow: inset 0 2px 0 #fdba74; }
+        .collection-tab.craft-tab.is-on { background: #16a34a; color: #f0fdf4; box-shadow: inset 0 2px 0 #86efac; }
         .collection-tab.xmas-tab.is-on { background: #dc2626; color: #fffbeb; box-shadow: inset 0 2px 0 #fca5a5; }
         .collection-tab.gold-tab.is-on { background: #ffe14a; color: #3a2800; }
         .collection-playing {
@@ -3290,7 +3291,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-26a</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-26b</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -3760,6 +3761,7 @@
                 <button type="button" class="collection-tab is-on" id="collectionTabNormal" role="tab" aria-selected="true" onclick="setCollectionPage('normal')">FRIENDS</button>
                 <button type="button" class="collection-tab power-tab" id="collectionTabPower" role="tab" aria-selected="false" onclick="setCollectionPage('power')">POWER</button>
                 <button type="button" class="collection-tab" id="collectionTabSpeed" role="tab" aria-selected="false" onclick="setCollectionPage('speed')">SPEED</button>
+                <button type="button" class="collection-tab craft-tab" id="collectionTabCraft" role="tab" aria-selected="false" onclick="setCollectionPage('craft')">CRAFT</button>
                 <button type="button" class="collection-tab xmas-tab" id="collectionTabXmas" role="tab" aria-selected="false" onclick="setCollectionPage('xmas')">FESTIVE</button>
                 <button type="button" class="collection-tab gold-tab" id="collectionTabGold" role="tab" aria-selected="false" onclick="setCollectionPage('gold')">GOLD</button>
             </div>
@@ -3966,7 +3968,15 @@
             santa_mario: { icon: '\uD83C\uDF81', badge: '\uD83C\uDF81 Sleigh Hop', jump: '', idle: '', fx: 'snowball', sfx: 'ice', superTitle: 'STAR GIFT!' },
             reindeer_yoshi: { icon: '\uD83E\uDD8C', badge: '\uD83E\uDD8C Sleigh Flutter', jump: 'jump-flutter', idle: '', fx: 'snowball', sfx: 'yoshi', superTitle: 'RUDOLPH DASH!' },
             elf_toad: { icon: '\uD83C\uDF84', badge: '\uD83C\uDF84 Ribbon Hop', jump: '', idle: '', fx: 'emerald', sfx: 'turbo', superTitle: 'WORKSHOP POP!' },
-            snowman_bowser: { icon: '\u26C4', badge: '\u26C4 Snowball Toss', jump: 'jump-hop', idle: '', fx: 'snowball', sfx: 'ice', superTitle: 'BLIZZARD TOSS!' }
+            snowman_bowser: { icon: '\u26C4', badge: '\u26C4 Snowball Toss', jump: 'jump-hop', idle: '', fx: 'snowball', sfx: 'ice', superTitle: 'BLIZZARD TOSS!' },
+            mc_steve: { icon: '\u26CF\uFE0F', badge: '\u26CF\uFE0F Pickaxe Swing', jump: 'jump-hop', idle: '', fx: 'classic', sfx: 'heavy', superTitle: 'BLOCK BREAK!' },
+            mc_creeper: { icon: '\uD83D\uDCA5', badge: '\uD83D\uDCA5 Creeper Boom', jump: 'jump-hop', idle: '', fx: 'emerald', sfx: 'heavy', superTitle: 'SSSS-BOOM!' },
+            mc_alex: { icon: '\uD83C\uDFF9', badge: '\uD83C\uDFF9 Bow Shot', jump: 'jump-flutter', idle: '', fx: 'emerald', sfx: 'turbo', superTitle: 'POWER ARROW!' },
+            mc_enderman: { icon: '\uD83D\uDFE3', badge: '\uD83D\uDFE3 Ender Warp', jump: 'jump-hover', idle: 'idle-hover', fx: 'psychic', sfx: 'psychic', superTitle: 'ENDER BLINK!' },
+            mc_diamond: { icon: '\uD83D\uDC8E', badge: '\uD83D\uDC8E Diamond Slash', jump: 'jump-spin', idle: '', fx: 'iceball', sfx: 'rings', superTitle: 'DIAMOND CRUSH!' },
+            mc_golem: { icon: '\uD83D\uDEE1\uFE0F', badge: '\uD83D\uDEE1\uFE0F Iron Slam', jump: 'jump-heavy', idle: '', fx: 'heavy', sfx: 'heavy', superTitle: 'GOLEM SMASH!' },
+            mc_pig: { icon: '\uD83D\uDC37', badge: '\uD83D\uDC37 Saddle Hop', jump: 'jump-hop', idle: '', fx: 'pink', sfx: 'yoshi', superTitle: 'CARROT DASH!' },
+            mc_villager: { icon: '\uD83D\uDC9A', badge: '\uD83D\uDC9A Emerald Trade', jump: '', idle: '', fx: 'emerald', sfx: 'rings', superTitle: 'EMERALD JACKPOT!' }
         };
 
         var heroSuperStreak = -1;
@@ -4316,7 +4326,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-26a';
+        var APP_BUILD = '2026-11-26b';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -10579,6 +10589,30 @@
             ]},
             { id: 'blaze', team: 'speed', name: 'Blaze', short: 'Blaze', fact: 'Blaze leaps in a graceful purple flame spin and guards the Sol Emeralds!', colors: { K:'#141414', P:'#c084fc', V:'#7e22ce', W:'#ffffff', R:'#db2777', Y:'#fef08a' }, pixels: [
                 '......KPPK......','..KK.KPPPPK.KK..','..KPKPPPPPPKPK..','...KPPYPPYPPK...','...KPPWWWWPPK...','....KKPPPPKK....','...KWWWWWWWWK...','..KVVVVVVVVVVk..','..KVVVVVVVVVVk..','...KVVVVVVVVk...','....KRRRRRRK....','....KRR..RRK....','...KRRR..RRRK...','................','................','................'
+            ]},
+            { id: 'mc_steve', team: 'craft', name: 'Steve', short: 'Steve', fact: 'Steve mines through blocky worlds with his trusty pickaxe and crafts every puzzle!', colors: { K:'#141414', H:'#5c3818', S:'#d49a6a', W:'#ffffff', E:'#3b49b8', C:'#00a6b4', B:'#2c3e99', G:'#4b5563' }, pixels: [
+                '....KKKKKKKK....','....KHHHHHHK....','....KHSSSSHK....','....KWEWWEWK....','....KSSSSSSK....','....KSBBBBSK....','..KKKKKKKKKKKK..','..KCCCCCCCCCCK..','..KSSCCCCCCSSK..','..KSSCCCCCCSSK..','....KBBBBBBK....','....KBBBBBBK....','....KBB..BBK....','....KGG..GGK....','....KKK..KKK....','................'
+            ]},
+            { id: 'mc_creeper', team: 'craft', name: 'Creeper', short: 'Creeper', fact: 'Creeper sneaks up quietly with a blocky grin—solve fast before it goes ssss-BOOM!', colors: { K:'#141414', G:'#4ca634', L:'#76d658', D:'#2d6e1e' }, pixels: [
+                '....KKKKKKKK....','....KGLGGLGK....','....KGGKKGGK....','....KGGKKGGK....','....KLGKKGLK....','....KGKKKKGK....','....KGKGGKGK....','....KKKKKKKK....','.....KGLGGK.....','.....KDGGLK.....','.....KGGGDK.....','....KGLGGLGK....','....KGG..GGK....','....KDK..KDK....','....KKK..KKK....','................'
+            ]},
+            { id: 'mc_alex', team: 'craft', name: 'Alex', short: 'Alex', fact: 'Alex explores snowy peaks and emerald caves with sharp aim and fearless jumps!', colors: { K:'#141414', O:'#d96b27', S:'#f0c29c', W:'#ffffff', E:'#2f9e44', G:'#65a30d', N:'#7c4a21', D:'#4b5563' }, pixels: [
+                '....KKKKKKKK....','....KOOOOOOK....','....KOOSSSSK....','....KWEWWEWK....','....KSSSSSSK....','....KOOOOSSK....','..KKKKKKKKKKKK..','..KGGGGGGGGGGK..','..KSSGGGGGGSSK..','..KSSGGGGGGSSK..','....KNNNNNNK....','....KNNNNNNK....','....KNN..NNK....','....KDD..DDK....','....KKK..KKK....','................'
+            ]},
+            { id: 'mc_enderman', team: 'craft', name: 'Enderman', short: 'Enderman', fact: 'Enderman teleports across blocks in a purple flash while carrying grass blocks!', colors: { K:'#141414', D:'#1f1f24', P:'#d946ef', M:'#f5d0fe', G:'#4ca634', N:'#8b5a2b' }, pixels: [
+                '....KKKKKKKK....','....KDDDDDDK....','....KDDDDDDK....','....KPMPPMDK....','....KDDDDDDK....','....KKKKKKKK....','...KDDDDDDDDK...','..KD.KDDDDK.DK..','..KD.KDDDDK.DK..','..KD.KGGGGK.DK..','.....KNNNNK.....','.....KDD.DK.....','.....KDD.DK.....','.....KDD.DK.....','.....KKK.KK.....','................'
+            ]},
+            { id: 'mc_diamond', team: 'craft', name: 'Diamond Steve', short: 'Diamond', fact: 'Diamond Steve shines in full enchanted diamond armor forged from deep cavern gems!', colors: { K:'#141414', C:'#22d3ee', L:'#a5f3fc', D:'#0891b2', S:'#d49a6a', W:'#ffffff', E:'#3b49b8' }, pixels: [
+                '....KKKKKKKK....','....KCLCCLCK....','....KCSSSSCK....','....KWEWWEWK....','....KCCSSCCK....','..KKKKKKKKKKKK..','..KCCLLCCLLCCK..','..KCCCCCCCCCCK..','..KCDCCCCCCDCK..','....KCCCCCCK....','....KCDDDDCK....','....KCC..CCK....','....KDD..DDK....','....KKK..KKK....','................','................'
+            ]},
+            { id: 'mc_golem', team: 'craft', name: 'Iron Golem', short: 'Golem', fact: 'Iron Golem guards the village with mighty iron arms and a tiny flower in hand!', colors: { K:'#141414', M:'#d1d5db', D:'#9ca3af', R:'#dc2626', G:'#22c55e', S:'#6b7280' }, pixels: [
+                '....KKKKKKKK....','....KMMMMMMK....','....KMRMMRMK....','....KMMSSMMK....','..KKKKKKKKKKKK..','.KMMMGMMMMMMMK..','.KMMMMGMMMMMMK..','.KMDMMGMMMMDMK..','.KMDMMMMMMMMDK..','.KMD.KMMMMK.DK..','.....KMMMMK.....','.....KMM.MK.....','.....KDD.DK.....','.....KKK.KK.....','................','................'
+            ]},
+            { id: 'mc_pig', team: 'craft', name: 'Minecraft Pig', short: 'Pig', fact: 'Minecraft Pig trots happily across grassy plains chasing carrots on a stick!', colors: { K:'#141414', P:'#f4a2b8', L:'#fbcfe8', D:'#db6c8c', W:'#ffffff' }, pixels: [
+                '................','...KKKKKKKKKK...','...KPPPPPPPPK...','...KWKPPPPKWK...','...KPPDDDDPPK...','...KPPKDDKPPK...','...KPPDDDDPPK...','..KKKKKKKKKKKK..','..KPPPPPPPPPPK..','..KPLPPPPPPPLK..','..KPPPPPPPPPPK..','...KPP....PPK...','...KDD....DDK...','...KKK....KKK...','................','................'
+            ]},
+            { id: 'mc_villager', team: 'craft', name: 'Villager', short: 'Villager', fact: 'Villager says "Hmm!" and trades shiny green emeralds for super maths streaks!', colors: { K:'#141414', S:'#d9a074', N:'#7c4a21', D:'#4e2e14', E:'#10b981', L:'#6ee7b7' }, pixels: [
+                '....KKKKKKKK....','....KSSSSSSK....','....KDDDDDDK....','....KESSSSEK....','....KSSNNSSK....','....KSSNNSSK....','..KKKKKKKKKKKK..','..KNNNNNNNNNNK..','..KNNNEELENNNK..','..KNNNEEEENNNK..','....KNNNNNNK....','....KDDDDDDK....','....KDD..DDK....','....KKK..KKK....','................','................'
             ]}
         ];
 
@@ -12014,6 +12048,162 @@
                 ell(32, 26.4, 1.5, 1, K, null, 0);
                 return;
             }
+            if (id === 'mc_steve') {
+                rr(23, 44, 8, 13, 1, '#2c3e99', K, 2);
+                rr(33, 44, 8, 13, 1, '#2c3e99', K, 2);
+                rr(23, 53, 8, 4, 0.5, '#4b5563', K, 1.6);
+                rr(33, 53, 8, 4, 0.5, '#4b5563', K, 1.6);
+                rr(14, 28, 8, 15, 1, '#d49a6a', K, 2);
+                rr(14, 28, 8, 6, 0.5, '#00a6b4', K, 1.8);
+                rr(42, 28, 8, 15, 1, '#d49a6a', K, 2);
+                rr(42, 28, 8, 6, 0.5, '#00a6b4', K, 1.8);
+                rr(22, 28, 20, 17, 1, '#00a6b4', K, 2.2);
+                rr(20, 8, 24, 20, 1, '#d49a6a', K, 2.2);
+                rr(20, 8, 24, 6, 0.5, '#5c3818', K, 1.8);
+                rr(20, 13, 4, 4, 0.5, '#5c3818', null, 0);
+                rr(40, 13, 4, 4, 0.5, '#5c3818', null, 0);
+                rr(23, 17, 3.5, 3, 0.4, '#ffffff', null, 0);
+                rr(26.5, 17, 3.5, 3, 0.4, '#3b49b8', null, 0);
+                rr(34, 17, 3.5, 3, 0.4, '#3b49b8', null, 0);
+                rr(37.5, 17, 3.5, 3, 0.4, '#ffffff', null, 0);
+                rr(29, 20.5, 6, 2.5, 0.4, '#a66b43', null, 0);
+                rr(26, 23, 12, 4.2, 0.4, '#5c3818', null, 0);
+                rr(28.5, 23, 7, 2.2, 0.3, '#d49a6a', null, 0);
+                pth('M46 35 L56 23', null, '#7c4a21', 3);
+                pth('M48 18 L57 20 L59 29', null, '#22d3ee', 3.4);
+                return;
+            }
+            if (id === 'mc_creeper') {
+                rr(19, 46, 11, 11, 1, '#4ca634', K, 2);
+                rr(34, 46, 11, 11, 1, '#4ca634', K, 2);
+                rr(19, 53, 11, 4, 0.5, '#1f2937', K, 1.5);
+                rr(34, 53, 11, 4, 0.5, '#1f2937', K, 1.5);
+                rr(23, 28, 18, 20, 1, '#4ca634', K, 2.2);
+                rr(25, 31, 4, 4, 0.4, '#76d658', null, 0);
+                rr(35, 37, 4, 5, 0.4, '#2d6e1e', null, 0);
+                rr(26, 40, 5, 4, 0.4, '#76d658', null, 0);
+                rr(19, 7, 26, 22, 1, '#4ca634', K, 2.3);
+                rr(21, 9, 4, 4, 0.4, '#76d658', null, 0);
+                rr(39, 10, 4, 4, 0.4, '#2d6e1e', null, 0);
+                rr(23, 13, 6, 5.5, 0.4, K, null, 0);
+                rr(35, 13, 6, 5.5, 0.4, K, null, 0);
+                rr(29, 18.5, 6, 4, 0.4, K, null, 0);
+                rr(26, 20.5, 12, 4, 0.4, K, null, 0);
+                rr(26, 23.5, 3.5, 3.5, 0.4, K, null, 0);
+                rr(34.5, 23.5, 3.5, 3.5, 0.4, K, null, 0);
+                return;
+            }
+            if (id === 'mc_alex') {
+                rr(23, 44, 8, 13, 1, '#7c4a21', K, 2);
+                rr(33, 44, 8, 13, 1, '#7c4a21', K, 2);
+                rr(23, 53, 8, 4, 0.5, '#4b5563', K, 1.6);
+                rr(33, 53, 8, 4, 0.5, '#4b5563', K, 1.6);
+                rr(15, 28, 7, 15, 1, '#f0c29c', K, 2);
+                rr(15, 28, 7, 6, 0.5, '#65a30d', K, 1.8);
+                rr(42, 28, 7, 15, 1, '#f0c29c', K, 2);
+                rr(42, 28, 7, 6, 0.5, '#65a30d', K, 1.8);
+                rr(22, 28, 20, 17, 1, '#65a30d', K, 2.2);
+                rr(28, 30, 8, 3, 0.4, '#a3e635', null, 0);
+                rr(22, 41, 20, 3.5, 0.4, '#5c3818', K, 1.4);
+                rr(20, 8, 24, 20, 1, '#f0c29c', K, 2.2);
+                rr(20, 8, 24, 6, 0.5, '#d96b27', K, 1.8);
+                rr(20, 13, 6, 15, 0.5, '#d96b27', K, 1.5);
+                rr(23.5, 17, 3, 3, 0.4, '#ffffff', null, 0);
+                rr(26.5, 17, 3.5, 3, 0.4, '#2f9e44', null, 0);
+                rr(34, 17, 3.5, 3, 0.4, '#2f9e44', null, 0);
+                rr(37.5, 17, 3, 3, 0.4, '#ffffff', null, 0);
+                rr(28.5, 22.5, 7, 2.4, 0.4, '#c27b56', null, 0);
+                return;
+            }
+            if (id === 'mc_enderman') {
+                rr(24, 38, 6, 19, 1, '#1f1f24', K, 2);
+                rr(34, 38, 6, 19, 1, '#1f1f24', K, 2);
+                rr(14, 23, 6, 20, 1, '#1f1f24', K, 2);
+                rr(44, 23, 6, 20, 1, '#1f1f24', K, 2);
+                rr(22, 23, 20, 16, 1, '#1f1f24', K, 2.2);
+                rr(22, 31, 20, 12, 1, '#8b5a2b', K, 2);
+                rr(22, 31, 20, 4.5, 0.5, '#4ca634', K, 1.6);
+                rr(21, 5, 22, 18, 1, '#1f1f24', K, 2.2);
+                rr(23, 13, 7, 3, 0.4, '#f5d0fe', null, 0);
+                rr(25, 13, 3, 3, 0.3, '#d946ef', null, 0);
+                rr(34, 13, 7, 3, 0.4, '#f5d0fe', null, 0);
+                rr(36, 13, 3, 3, 0.3, '#d946ef', null, 0);
+                ell(14, 12, 2, 2, '#d946ef', null, 0);
+                ell(50, 16, 2.2, 2.2, '#f5d0fe', null, 0);
+                ell(49, 9, 1.5, 1.5, '#d946ef', null, 0);
+                return;
+            }
+            if (id === 'mc_diamond') {
+                rr(23, 44, 8, 13, 1, '#0891b2', K, 2);
+                rr(33, 44, 8, 13, 1, '#0891b2', K, 2);
+                rr(23, 52, 8, 5, 0.5, '#22d3ee', K, 1.8);
+                rr(33, 52, 8, 5, 0.5, '#22d3ee', K, 1.8);
+                rr(14, 28, 8, 15, 1, '#22d3ee', K, 2);
+                rr(42, 28, 8, 15, 1, '#22d3ee', K, 2);
+                rr(22, 28, 20, 17, 1, '#22d3ee', K, 2.2);
+                rr(25, 31, 14, 4, 0.5, '#a5f3fc', null, 0);
+                rr(27, 37, 10, 5, 0.5, '#0891b2', null, 0);
+                rr(20, 8, 24, 20, 1, '#d49a6a', K, 2.2);
+                rr(20, 8, 24, 8, 0.5, '#22d3ee', K, 2);
+                rr(20, 15, 4, 10, 0.5, '#22d3ee', K, 1.5);
+                rr(40, 15, 4, 10, 0.5, '#22d3ee', K, 1.5);
+                rr(29, 14, 6, 4, 0.4, '#a5f3fc', null, 0);
+                rr(24, 18, 3, 2.8, 0.4, '#ffffff', null, 0);
+                rr(27, 18, 3, 2.8, 0.4, '#3b49b8', null, 0);
+                rr(34, 18, 3, 2.8, 0.4, '#3b49b8', null, 0);
+                rr(37, 18, 3, 2.8, 0.4, '#ffffff', null, 0);
+                pth('M48 39 L58 14', null, '#22d3ee', 4.5);
+                pth('M48 39 L58 14', null, '#a5f3fc', 1.8);
+                pth('M45 35 L53 38', null, '#0891b2', 3);
+                return;
+            }
+            if (id === 'mc_golem') {
+                rr(22, 43, 8.5, 14, 1, '#9ca3af', K, 2.2);
+                rr(33.5, 43, 8.5, 14, 1, '#9ca3af', K, 2.2);
+                rr(10, 23, 9, 25, 1, '#d1d5db', K, 2.2);
+                rr(45, 23, 9, 25, 1, '#d1d5db', K, 2.2);
+                rr(19, 22, 26, 22, 1, '#d1d5db', K, 2.3);
+                rr(22, 24, 4, 14, 0.5, '#22c55e', null, 0);
+                rr(26, 28, 4, 6, 0.5, '#16a34a', null, 0);
+                rr(36, 36, 5, 5, 0.5, '#9ca3af', null, 0);
+                rr(23, 6, 18, 17, 1, '#d1d5db', K, 2.2);
+                rr(23, 11, 18, 3, 0.4, '#6b7280', null, 0);
+                rr(25.5, 14.5, 3.5, 2.8, 0.4, '#dc2626', null, 0);
+                rr(35, 14.5, 3.5, 2.8, 0.4, '#dc2626', null, 0);
+                rr(30, 14.5, 4, 8.5, 0.6, '#9ca3af', K, 1.5);
+                ell(50, 44, 3, 3, '#ef4444', K, 1.3);
+                return;
+            }
+            if (id === 'mc_pig') {
+                rr(18, 46, 9, 11, 1, '#f4a2b8', K, 2);
+                rr(37, 46, 9, 11, 1, '#f4a2b8', K, 2);
+                rr(18, 53, 9, 4, 0.5, '#db6c8c', K, 1.5);
+                rr(37, 53, 9, 4, 0.5, '#db6c8c', K, 1.5);
+                rr(16, 30, 32, 18, 1.5, '#f4a2b8', K, 2.3);
+                rr(22, 34, 10, 5, 0.5, '#fbcfe8', null, 0);
+                rr(19, 12, 26, 22, 1.5, '#f4a2b8', K, 2.3);
+                rr(21, 19, 3.2, 3.2, 0.4, '#ffffff', null, 0);
+                rr(24.2, 19, 2.8, 3.2, 0.4, K, null, 0);
+                rr(37, 19, 2.8, 3.2, 0.4, K, null, 0);
+                rr(39.8, 19, 3.2, 3.2, 0.4, '#ffffff', null, 0);
+                rr(26, 23, 12, 8.5, 1, '#db6c8c', K, 1.8);
+                rr(28, 25.5, 2.5, 3.5, 0.4, '#7f1d3a', null, 0);
+                rr(33.5, 25.5, 2.5, 3.5, 0.4, '#7f1d3a', null, 0);
+                return;
+            }
+            if (id === 'mc_villager') {
+                rr(23, 45, 18, 12, 1, '#4e2e14', K, 2.2);
+                rr(15, 29, 34, 17, 1.2, '#7c4a21', K, 2.2);
+                rr(19, 34, 26, 8, 1, '#925a2b', K, 1.8);
+                pth('M32 32 L37 38 L32 44 L27 38 Z', '#10b981', K, 1.8);
+                pth('M32 34.5 L34.5 38 L32 41.5 L29.5 38 Z', '#6ee7b7', null, 0);
+                rr(22, 6, 20, 23, 1, '#d9a074', K, 2.2);
+                rr(22, 14, 20, 3, 0.4, '#4e2e14', null, 0);
+                rr(24, 17, 4.5, 3, 0.4, '#10b981', null, 0);
+                rr(35.5, 17, 4.5, 3, 0.4, '#10b981', null, 0);
+                rr(29.5, 18, 5, 10, 0.8, '#c58a5e', K, 1.7);
+                return;
+            }
             pth('M18 14 L8 19 L17 25 Z M46 14 L56 19 L47 25 Z', '#1d4ed8', K, 2.2);
             rr(19, 50, 11, 7, 3, '#dc2626', K, 2.2);
             rr(34, 50, 11, 7, 3, '#dc2626', K, 2.2);
@@ -12210,6 +12400,7 @@
         function setCollectionPage(page) {
             if (page === 'gold') collectionPage = 'gold';
             else if (page === 'xmas') collectionPage = 'xmas';
+            else if (page === 'craft') collectionPage = 'craft';
             else if (page === 'speed') collectionPage = 'speed';
             else if (page === 'power') collectionPage = 'power';
             else collectionPage = 'normal';
@@ -12224,6 +12415,7 @@
                 team = CHARACTERS[i].team || 'normal';
                 if (page === 'power' && team === 'power') list.push(CHARACTERS[i]);
                 else if (page === 'speed' && team === 'speed') list.push(CHARACTERS[i]);
+                else if (page === 'craft' && team === 'craft') list.push(CHARACTERS[i]);
                 else if (page === 'xmas' && team === 'xmas') list.push(CHARACTERS[i]);
                 else if (page === 'normal' && team === 'normal') list.push(CHARACTERS[i]);
             }
@@ -12276,9 +12468,10 @@
             var onGold = collectionPage === 'gold';
             var onPower = collectionPage === 'power';
             var onSpeed = collectionPage === 'speed';
+            var onCraft = collectionPage === 'craft';
             var onXmas = collectionPage === 'xmas';
-            var onNormal = !onGold && !onPower && !onSpeed && !onXmas;
-            var pageKey = onGold ? 'gold' : (onXmas ? 'xmas' : (onSpeed ? 'speed' : (onPower ? 'power' : 'normal')));
+            var onNormal = !onGold && !onPower && !onSpeed && !onCraft && !onXmas;
+            var pageKey = onGold ? 'gold' : (onXmas ? 'xmas' : (onCraft ? 'craft' : (onSpeed ? 'speed' : (onPower ? 'power' : 'normal'))));
             var pageList = charactersForPage(pageKey);
             var countEl = document.getElementById('collectionCountLabel');
             var hintEl = document.getElementById('collectionHint');
@@ -12287,6 +12480,7 @@
             var tabNormal = document.getElementById('collectionTabNormal');
             var tabPower = document.getElementById('collectionTabPower');
             var tabSpeed = document.getElementById('collectionTabSpeed');
+            var tabCraft = document.getElementById('collectionTabCraft');
             var tabXmas = document.getElementById('collectionTabXmas');
             var tabGold = document.getElementById('collectionTabGold');
             var claimed = dateClaimed(source);
@@ -12308,6 +12502,10 @@
                 tabSpeed.classList.toggle('is-on', onSpeed);
                 tabSpeed.setAttribute('aria-selected', onSpeed ? 'true' : 'false');
             }
+            if (tabCraft) {
+                tabCraft.classList.toggle('is-on', onCraft);
+                tabCraft.setAttribute('aria-selected', onCraft ? 'true' : 'false');
+            }
             if (tabXmas) {
                 tabXmas.classList.toggle('is-on', onXmas);
                 tabXmas.setAttribute('aria-selected', onXmas ? 'true' : 'false');
@@ -12324,6 +12522,7 @@
             if (playingEl) playingEl.textContent = 'Playing as ' + playAsName(play);
             if (hintEl) {
                 if (onGold && owned.length < total) hintEl.textContent = 'Find every friend first. Then one shiny gold friend appears each day!';
+                else if (onCraft && pageOwned < pageList.length) hintEl.textContent = 'Finish all 3 daily quests to unlock a Minecraft friend every day!';
                 else if (onPower && pageOwned < pageList.length) hintEl.textContent = 'Fire Mario, Ice Luigi, Tanooki & Bowser Jr. unlock in the daily surprise!';
                 else if (onXmas && pageOwned === 0) hintEl.textContent = 'Festive friends unlock in the daily surprise, one each day!';
                 else if (onSpeed && pageOwned < pageList.length) hintEl.textContent = 'Dr. Eggman, Super Sonic, Silver & Blaze unlock in the daily surprise!';
@@ -12984,8 +13183,10 @@
                 list.appendChild(row);
             }
             if (bundle) {
+                var hasCraftLeft = !!nextMissingCraftCharacter(currentOwned(gameState));
                 if (done >= 3 && bundleClaimedToday()) bundle.textContent = 'All three done! +' + QUEST_BUNDLE_COINS + ' extra coins.';
                 else if (done >= 3) bundle.textContent = 'All three done! Bonus coins are on the way.';
+                else if (hasCraftLeft) bundle.textContent = 'Finish all three for +' + QUEST_BUNDLE_COINS + ' extra coins & a Minecraft friend!';
                 else bundle.textContent = 'Finish all three for +' + QUEST_BUNDLE_COINS + ' extra coins.';
             }
         }
@@ -13003,11 +13204,12 @@
 
         function settleQuestRewards() {
             var today = surpriseToday();
-            var ids, i, def, progress, paid, lines, count;
+            var ids, i, def, progress, paid, lines, count, unlockedCraft;
             if (!today) return;
             ids = questsForDay(today);
             paid = 0;
             lines = [];
+            unlockedCraft = null;
             for (i = 0; i < ids.length; i++) {
                 def = questById(ids[i]);
                 if (!def || questClaimed(def.id)) continue;
@@ -13022,7 +13224,14 @@
                 markBundleClaimed();
                 paid += QUEST_BUNDLE_COINS;
                 lines.push('All 3 quests done! +' + QUEST_BUNDLE_COINS + ' bonus coins!');
-                try { noteBigMoment({ rain: 2, pop: 'All quests done!', popRank: 3, sound: 'bundle' }); } catch (e) {}
+                gameState.characters = sanitizeCharacters(gameState.characters);
+                unlockedCraft = nextMissingCraftCharacter(gameState.characters);
+                if (unlockedCraft) {
+                    gameState.characters.push(unlockedCraft.id);
+                    try { writeCharacterBackup(gameState.characters, currentGold(gameState)); } catch (e) {}
+                    lines.push('Unlocked ' + unlockedCraft.name + '!');
+                }
+                try { noteBigMoment({ rain: 2, pop: unlockedCraft ? ('Unlocked ' + unlockedCraft.short + '!') : 'All quests done!', popRank: 3, sound: 'bundle' }); } catch (e) {}
             }
             if (stretchOffered()) {
                 count = dailyCorrectCountFor(gameState);
@@ -13042,7 +13251,12 @@
             if (paid > 0) {
                 addCoins(paid);
                 try { showCheer(lines); } catch (e) {}
-                try { saveGame(); } catch (e) {}
+                try { saveGame(!!unlockedCraft); } catch (e) {}
+            }
+            if (unlockedCraft) {
+                try { renderCollection(); } catch (e) {}
+                try { playSurpriseSound(); } catch (e) {}
+                try { showSurpriseCard(unlockedCraft, QUEST_BUNDLE_COINS, false, 'QUEST UNLOCK!'); } catch (e) {}
             }
             try { paintQuestButton(); } catch (e) {}
             try { paintStretch(); } catch (e) {}
@@ -13151,7 +13365,7 @@
             } catch (e) {}
         }
 
-        function showSurpriseCard(character, bonus, gold) {
+        function showSurpriseCard(character, bonus, gold, customKicker) {
             var overlay = document.getElementById('surpriseOverlay');
             var canvas = document.getElementById('surpriseCanvas');
             var nameEl = document.getElementById('surpriseName');
@@ -13160,7 +13374,7 @@
             var card = document.getElementById('surpriseCard');
             var kicker = document.querySelector('#surpriseCard .surprise-kicker');
             if (!overlay) return;
-            if (kicker) kicker.textContent = (character && gold) ? 'GOLD SURPRISE!' : 'DAILY SURPRISE!';
+            if (kicker) kicker.textContent = customKicker || ((character && gold) ? 'GOLD SURPRISE!' : 'DAILY SURPRISE!');
             try {
                 if (character) {
                     paintSprite(canvas, character, false, !!gold);
@@ -13202,6 +13416,14 @@
                 }
                 try { showSurpriseCard(character, bonus, gold); } catch (e) {}
             }, 620);
+        }
+
+        function nextMissingCraftCharacter(list) {
+            var i;
+            for (i = 0; i < CHARACTERS.length; i++) {
+                if (CHARACTERS[i].team === 'craft' && list.indexOf(CHARACTERS[i].id) === -1) return CHARACTERS[i];
+            }
+            return null;
         }
 
         function nextMissingCharacter(list) {

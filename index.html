@@ -64,6 +64,15 @@
             --hud-navy: rgba(6, 30, 96, 0.9);
             --board-navy: rgba(7, 36, 112, 0.93);
         }
+        html.pack-minecraft,
+        body.pack-minecraft {
+            --sky-top: #4e95f5;
+            --sky-mid: #82c0ff;
+            --sky-horizon: #bfe2ff;
+            --sky-blue: #82c0ff;
+            --hud-navy: rgba(28, 25, 23, 0.92);
+            --board-navy: rgba(54, 50, 46, 0.95);
+        }
 
         html {
             background-color: var(--sky-blue);
@@ -1747,14 +1756,14 @@
             68% { transform: scale(1.16); opacity: 0.55; }
             100% { transform: scale(1.28); opacity: 0; }
         }
-        .xmas-tree, .diwali-stand, .sonic-palm {
+        .xmas-tree, .diwali-stand, .sonic-palm, .mc-tree {
             position: absolute;
             left: clamp(86px, 21vw, 195px);
             bottom: calc(var(--ground-h) - 2px);
             width: clamp(54px, 11vw, 76px);
             height: auto;
         }
-        .xmas-snowman, .diwali-rangoli, .sonic-loop {
+        .xmas-snowman, .diwali-rangoli, .sonic-loop, .mc-creeper {
             position: absolute;
             right: clamp(70px, 13vw, 148px);
             bottom: calc(var(--ground-h) - 2px);
@@ -1762,6 +1771,78 @@
             height: auto;
         }
         .sonic-loop { width: clamp(62px, 12vw, 88px); }
+        .mc-creeper { width: clamp(68px, 13vw, 96px); }
+        .mc-prop, .mc-layer { display: none; }
+        body.pack-minecraft .mc-prop, body.pack-minecraft .mc-layer { display: block; }
+        .mc-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 3;
+        }
+        .mc-sun {
+            position: absolute;
+            top: clamp(56px, 10vh, 88px);
+            right: clamp(22px, 6vw, 64px);
+            width: clamp(34px, 6vw, 48px);
+            height: clamp(34px, 6vw, 48px);
+            background: #fff3a1;
+            border: 3px solid #fde047;
+            box-shadow: 0 0 0 5px rgba(254, 240, 138, 0.35);
+            z-index: 2;
+        }
+        .mc-xp {
+            position: absolute;
+            left: var(--mx, 50%);
+            top: var(--my, 28%);
+            width: var(--msize, 10px);
+            height: var(--msize, 10px);
+            background: var(--mcol, #34d399);
+            border: 2px solid #064e3b;
+            box-shadow: 0 0 8px var(--mcol, #34d399);
+            animation: mc-xp-float var(--mdur, 4.4s) ease-in-out var(--mdelay, 0s) infinite;
+        }
+        @keyframes mc-xp-float {
+            0%, 100% { transform: translateY(0) scale(0.9); opacity: 0.7; }
+            50% { transform: translateY(-10px) scale(1.1); opacity: 1; }
+        }
+        body.pack-minecraft .question-board {
+            background: var(--board-navy);
+            border-color: #1c1917;
+            box-shadow: inset 0 4px 0 #57534e, inset 0 -4px 0 #292524, 0 8px 0 rgba(0, 0, 0, 0.38);
+            border-radius: 8px;
+        }
+        body.mode-test.pack-minecraft .question-board {
+            background: #ffffff;
+            border-color: #10b981;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+            border-radius: 16px;
+        }
+        body.pack-minecraft .q-category-badge {
+            background: #065f46;
+            color: #a7f3d0;
+            border-color: #34d399;
+        }
+        body.pack-minecraft .brick-btn:not(.is-correct):not(.is-wrong):not(.test-opt) {
+            background-color: #9b6b38;
+            background-image:
+                linear-gradient(180deg, rgba(226, 182, 126, 0.52) 0px, rgba(226, 182, 126, 0.52) 5px, transparent 5px),
+                linear-gradient(90deg, transparent 48%, rgba(43, 29, 14, 0.38) 48%, rgba(43, 29, 14, 0.38) 52%, transparent 52%),
+                linear-gradient(180deg, transparent 49%, rgba(43, 29, 14, 0.42) 49%, rgba(43, 29, 14, 0.42) 55%, transparent 55%);
+            border-color: #2b1d0e;
+            box-shadow: inset 0 -5px 0 #6e4820, 0 6px 0 #1f1409, 0 9px 14px rgba(0, 0, 0, 0.28);
+            border-radius: 6px;
+        }
+        body.pack-minecraft .deco-brick {
+            background: linear-gradient(#74c73b 0 4px, #59a52c 4px 10px, transparent 10px) 0 0 / 100% 100% no-repeat, #866043;
+        }
+        body.pack-minecraft .pack-btn {
+            background: rgba(6, 95, 70, 0.94);
+            border-color: #34d399;
+            color: #ecfdf5;
+        }
+        body.pack-minecraft .pack-btn:hover { background: rgba(5, 150, 105, 0.98); }
         .ground {
             position: fixed; left: 0; bottom: 0; width: 100%; height: var(--ground-h); z-index: 4;
             box-sizing: border-box; border-top: 4px solid #000; pointer-events: none;
@@ -1773,6 +1854,11 @@
             background-color: #9a3e0a;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' shape-rendering='crispEdges'%3E%3Crect width='32' height='32' fill='%238c3808'/%3E%3Crect x='0' y='0' width='16' height='16' fill='%23d97706'/%3E%3Crect x='16' y='16' width='16' height='16' fill='%23d97706'/%3E%3Crect x='2' y='2' width='12' height='4' fill='%23f59e0b'/%3E%3Crect x='18' y='18' width='12' height='4' fill='%23f59e0b'/%3E%3C/svg%3E");
             background-size: 28px 28px;
+        }
+        body.pack-minecraft .ground {
+            background-color: #866043;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' shape-rendering='crispEdges'%3E%3Crect width='32' height='32' fill='%23866043'/%3E%3Crect x='0' y='0' width='8' height='8' fill='%23775439'/%3E%3Crect x='16' y='8' width='8' height='8' fill='%236c4b32'/%3E%3Crect x='8' y='16' width='8' height='8' fill='%239b7454'/%3E%3Crect x='24' y='24' width='8' height='8' fill='%23775439'/%3E%3Crect x='4' y='24' width='4' height='4' fill='%2378716c'/%3E%3C/svg%3E");
+            background-size: 32px 32px;
         }
         body.pack-christmas .ground::before {
             content: '';
@@ -1803,6 +1889,18 @@
             height: 11px;
             background: linear-gradient(180deg, #86efac 0%, #22c55e 45%, #15803d 100%);
             border-bottom: 3px solid #052e16;
+        }
+        body.pack-minecraft .ground::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 14px;
+            background:
+                repeating-linear-gradient(90deg, #74c73b 0 16px, #59a52c 16px 32px) 0 0 / 100% 5px no-repeat,
+                linear-gradient(180deg, #59a52c 0%, #427d20 100%);
+            border-bottom: 3px solid #2b4e14;
         }
         
         .hero-hit {
@@ -3192,7 +3290,7 @@
             <button id="loginBtn" class="login-btn" onclick="appLogin()">LOGIN & PLAY</button>
             <button class="guest-btn" onclick="playAsGuest()">PLAY AS GUEST</button>
             <p class="account-note">Playing as guest keeps progress on this device only. Log in with the same email on every phone and tablet to share friends, coins, and streak.</p>
-            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-25d</p>
+            <p id="buildStamp" class="account-note" onclick="maybeForceUpdate()">Build 2026-11-26a</p>
             <button type="button" class="guest-btn collection-menu-btn" onclick="openCollection()">CHARACTER COLLECTION</button>
 
             <div id="login-status" role="status" aria-live="polite"></div>
@@ -3243,6 +3341,7 @@
             <div class="ctrl-wrap" id="packWrap">
                 <button type="button" id="packBtn" class="pack-btn" onclick="togglePackMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Theme pack"><span id="packBtnLabel">🪔 DIWALI</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
                 <div id="packMenu" class="ctrl-menu" role="menu" hidden>
+                    <button type="button" class="ctrl-opt" data-pack="minecraft" role="menuitemradio" onclick="setThemePack('minecraft')"><span>⛏️ Minecraft World</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-pack="diwali" role="menuitemradio" onclick="setThemePack('diwali')"><span>🪔 Diwali Pack</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-pack="sonic" role="menuitemradio" onclick="setThemePack('sonic')"><span>💨 Sonic Zone</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-pack="christmas" role="menuitemradio" onclick="setThemePack('christmas')"><span>🎄 Christmas Pack</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
@@ -3253,6 +3352,7 @@
                 <button type="button" id="musicBtn" class="music-btn" onclick="toggleMusicMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Music selector"><span id="musicBtnLabel">🎵 OFF</span><span class="ctrl-caret" aria-hidden="true">▾</span></button>
                 <div id="musicMenu" class="ctrl-menu" role="menu" hidden>
                     <button type="button" class="ctrl-opt is-active" data-track="off" role="menuitemradio" onclick="selectMusicTrack('off')"><span>🔇 Music: Off</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
+                    <button type="button" class="ctrl-opt" data-track="minecraft" role="menuitemradio" onclick="selectMusicTrack('minecraft')"><span>⛏️ Minecraft: Sweden</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="diwali" role="menuitemradio" onclick="selectMusicTrack('diwali')"><span>🪔 Diwali: Festival Music</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="mario" role="menuitemradio" onclick="selectMusicTrack('mario')"><span>🍄 Super Mario</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
                     <button type="button" class="ctrl-opt" data-track="sonic" role="menuitemradio" onclick="selectMusicTrack('sonic')"><span>💨 Sonic: Palmtree Panic</span><span class="ctrl-opt-check" aria-hidden="true">✓</span></button>
@@ -3563,8 +3663,34 @@
                     <rect x="64" y="64" width="18" height="6" rx="2" fill="#ef4444" stroke="#141414" stroke-width="2"/>
                     <rect x="67" y="70" width="12" height="5" fill="#fde047" stroke="#141414" stroke-width="1.8"/>
                 </symbol>
+                <symbol id="px-mc-tree" viewBox="0 0 72 90" shape-rendering="crispEdges">
+                    <rect x="28" y="42" width="16" height="48" fill="#6d4c34" stroke="#2b1d0e" stroke-width="3"/>
+                    <rect x="32" y="50" width="4" height="12" fill="#866043"/>
+                    <rect x="38" y="66" width="4" height="14" fill="#543925"/>
+                    <rect x="8" y="14" width="56" height="34" fill="#3f8f29" stroke="#1e4614" stroke-width="3"/>
+                    <rect x="18" y="4" width="36" height="14" fill="#4aa631" stroke="#1e4614" stroke-width="3"/>
+                    <rect x="14" y="20" width="10" height="10" fill="#59b839"/>
+                    <rect x="46" y="24" width="10" height="10" fill="#59b839"/>
+                    <rect x="28" y="10" width="10" height="8" fill="#74c73b"/>
+                </symbol>
+                <symbol id="px-mc-creeper" viewBox="0 0 96 76" shape-rendering="crispEdges">
+                    <rect x="6" y="46" width="26" height="30" fill="#78716c" stroke="#292524" stroke-width="2.5"/>
+                    <rect x="11" y="52" width="6" height="5" fill="#38bdf8"/>
+                    <rect x="21" y="62" width="6" height="6" fill="#38bdf8"/>
+                    <rect x="36" y="34" width="26" height="42" fill="#4cb944" stroke="#14532d" stroke-width="2.5"/>
+                    <rect x="34" y="10" width="30" height="28" fill="#4cb944" stroke="#14532d" stroke-width="2.5"/>
+                    <rect x="39" y="16" width="6" height="6" fill="#0c0a09"/>
+                    <rect x="53" y="16" width="6" height="6" fill="#0c0a09"/>
+                    <rect x="45" y="22" width="8" height="7" fill="#0c0a09"/>
+                    <rect x="42" y="26" width="4" height="8" fill="#0c0a09"/>
+                    <rect x="52" y="26" width="4" height="8" fill="#0c0a09"/>
+                    <rect x="66" y="42" width="26" height="34" fill="#78716c" stroke="#292524" stroke-width="2.5"/>
+                    <rect x="71" y="49" width="6" height="6" fill="#10b981"/>
+                    <rect x="81" y="60" width="6" height="6" fill="#10b981"/>
+                </symbol>
             </defs>
         </svg>
+        <div class="mc-prop mc-sun"></div>
         <div class="cloud-track cloud-track-back">
             <div class="cloud-set">
                 <svg class="cloud c2" viewBox="0 0 56 28"><use href="#px-cloud-small"/></svg>
@@ -3593,11 +3719,13 @@
         <svg class="xmas-prop xmas-tree" viewBox="0 0 64 84"><use href="#px-xmas-tree"/></svg>
         <svg class="diwali-prop diwali-stand" viewBox="0 0 64 84"><use href="#px-diwali-stand"/></svg>
         <svg class="sonic-prop sonic-palm" viewBox="0 0 72 90"><use href="#px-sonic-palm"/></svg>
+        <svg class="mc-prop mc-tree" viewBox="0 0 72 90"><use href="#px-mc-tree"/></svg>
         <svg class="bush bush-a" viewBox="0 0 72 40"><use href="#px-bush"/></svg>
         <svg class="bush bush-b" viewBox="0 0 72 40"><use href="#px-bush"/></svg>
         <svg class="xmas-prop xmas-snowman" viewBox="0 0 56 72"><use href="#px-xmas-snowman"/></svg>
         <svg class="diwali-prop diwali-rangoli" viewBox="0 0 68 54"><use href="#px-diwali-rangoli"/></svg>
         <svg class="sonic-prop sonic-loop" viewBox="0 0 88 76"><use href="#px-sonic-loop"/></svg>
+        <svg class="mc-prop mc-creeper" viewBox="0 0 96 76"><use href="#px-mc-creeper"/></svg>
         <div class="sky-row">
             <span class="deco-brick"></span>
             <span class="deco-brick"></span>
@@ -3608,6 +3736,7 @@
         <div id="snowLayer" class="snow-layer"></div>
         <div id="diwaliLayer" class="diwali-layer"></div>
         <div id="sonicLayer" class="sonic-layer"></div>
+        <div id="mcLayer" class="mc-layer"></div>
     </div>
     <div class="ground"></div>
 
@@ -4187,7 +4316,7 @@
         var serverSeen = false;
         var extraCloudDocs = [];
         var cloudStatusText = '';
-        var APP_BUILD = '2026-11-25d';
+        var APP_BUILD = '2026-11-26a';
         var latestKnownBuild = '';
         var playMode = 'classic';
         var pendingTestChoice = null;
@@ -9377,6 +9506,7 @@
         }
 
         var THEME_PACKS = {
+            minecraft: { id: 'minecraft', bodyClass: 'pack-minecraft', shortLabel: '\u26CF\uFE0F CRAFT', sky: '#82c0ff', music: 'minecraft' },
             diwali: { id: 'diwali', bodyClass: 'pack-diwali', shortLabel: '\uD83E\uDE94 DIWALI', sky: '#3a1668', music: 'diwali' },
             sonic: { id: 'sonic', bodyClass: 'pack-sonic', shortLabel: '\uD83D\uDCA8 SONIC', sky: '#1676f3', music: 'sonic' },
             christmas: { id: 'christmas', bodyClass: 'pack-christmas', shortLabel: '\uD83C\uDF84 XMAS', sky: '#183f78', music: 'xmas' },
@@ -9505,6 +9635,33 @@
             layer.appendChild(frag);
         }
 
+        function ensureMinecraftEffects() {
+            var layer = document.getElementById('mcLayer');
+            if (!layer || layer.children.length > 0) return;
+            var frag = document.createDocumentFragment();
+            var pts = [
+                [12, 24, 9, '#34d399', 4.2, 0],
+                [26, 16, 11, '#38bdf8', 5.1, 0.7],
+                [44, 20, 8, '#a3e635', 4.6, 1.3],
+                [66, 18, 10, '#34d399', 4.9, 0.4],
+                [82, 26, 9, '#38bdf8', 4.4, 1.1],
+                [18, 56, 8, '#a3e635', 5.3, 1.8],
+                [86, 52, 10, '#34d399', 4.7, 0.9]
+            ];
+            for (var i = 0; i < pts.length; i++) {
+                var el = document.createElement('span');
+                el.className = 'mc-xp';
+                el.style.setProperty('--mx', pts[i][0] + '%');
+                el.style.setProperty('--my', pts[i][1] + '%');
+                el.style.setProperty('--msize', pts[i][2] + 'px');
+                el.style.setProperty('--mcol', pts[i][3]);
+                el.style.setProperty('--mdur', pts[i][4] + 's');
+                el.style.setProperty('--mdelay', pts[i][5] + 's');
+                frag.appendChild(el);
+            }
+            layer.appendChild(frag);
+        }
+
         function applyThemePack() {
             var packId = activeThemePackId();
             var pack = THEME_PACKS[packId] || THEME_PACKS.diwali;
@@ -9527,6 +9684,7 @@
             if (packId === 'christmas') ensureSnowflakes();
             if (packId === 'diwali') ensureDiwaliLights();
             if (packId === 'sonic') ensureSonicEffects();
+            if (packId === 'minecraft') ensureMinecraftEffects();
             labelEl = document.getElementById('packBtnLabel');
             if (labelEl) labelEl.textContent = pack.shortLabel;
             btnEl = document.getElementById('packBtn');
@@ -9534,6 +9692,7 @@
                 btnEl.classList.toggle('is-xmas', packId === 'christmas');
                 btnEl.classList.toggle('is-diwali', packId === 'diwali');
                 btnEl.classList.toggle('is-sonic', packId === 'sonic');
+                btnEl.classList.toggle('is-minecraft', packId === 'minecraft');
             }
             opts = document.querySelectorAll('#packMenu .ctrl-opt');
             for (i = 0; i < opts.length; i++) {
@@ -9874,7 +10033,7 @@
             try {
                 if (window.localStorage) {
                     var t = String(localStorage.getItem('marioMathMusicTrack') || '').trim().toLowerCase();
-                    if (t === 'mario' || t === 'sonic' || t === 'xmas' || t === 'diwali') return t;
+                    if (t === 'mario' || t === 'sonic' || t === 'xmas' || t === 'diwali' || t === 'minecraft') return t;
                 }
             } catch (e) {}
             var pack = THEME_PACKS[activeThemePackId()];
@@ -9887,6 +10046,7 @@
             var opts = document.querySelectorAll('#musicMenu .ctrl-opt');
             var labels = {
                 off: '\uD83C\uDFB5 OFF',
+                minecraft: '\uD83D\uDD0A CRAFT',
                 diwali: '\uD83D\uDD0A DIWALI',
                 mario: '\uD83D\uDD0A MARIO',
                 sonic: '\uD83D\uDD0A SONIC',
@@ -9903,6 +10063,7 @@
         }
 
         var SC_TRACKS = {
+            minecraft: { url: 'https://soundcloud.com/c418/sweden', label: '\u26CF\uFE0F C418 \u2014 Sweden', color: '#10b981', border: '#34d399' },
             diwali: { url: 'https://soundcloud.com/shuvo-ghosh-750404745/diwali-festival-music-instrumental-ncv-no-copyright-vibes', label: '\uD83E\uDE94 Diwali Festival', color: '#f59e0b', border: '#fbbf24' },
             sonic: { url: 'https://soundcloud.com/korey-kery/sonic-cd-02-palmtree-panic', label: '\uD83D\uDCA8 Palmtree Panic', color: '#2563eb', border: '#60a5fa' },
             xmas: { url: 'https://soundcloud.com/childhoodtv/jingle-bells-instrumental', label: '\uD83C\uDF84 Jingle Bells', color: '#dc2626', border: '#f87171' }
@@ -10070,7 +10231,7 @@
 
         function selectMusicTrack(trackId) {
             var bgm = document.getElementById('bgm');
-            if (trackId !== 'off' && trackId !== 'mario' && trackId !== 'sonic' && trackId !== 'xmas' && trackId !== 'diwali') trackId = 'off';
+            if (trackId !== 'off' && trackId !== 'mario' && !isScTrack(trackId)) trackId = 'off';
             musicMode = trackId;
             musicPausedForCard = false;
             stopChipMusic();
